@@ -1,4 +1,4 @@
-package com.github.gconaty.intellijplugintemplate
+package com.datastax.astra.jetbrains
 
 import com.intellij.AbstractBundle
 import org.jetbrains.annotations.NonNls
