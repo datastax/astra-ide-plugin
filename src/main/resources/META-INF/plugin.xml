@@ -1,19 +1,18 @@
 <idea-plugin>
-    <id>com.github.gconaty.intellijplugintemplate</id>
-    <name>intellij-plugin-template</name>
-    <vendor>gconaty</vendor>
+    <id>astra.toolkit</id>
+    <name>Astra Toolkit</name>
+    <vendor>DataStax</vendor>
+
+    <resource-bundle>resources.MessagesBundle</resource-bundle>
 
     <!-- Product and plugin compatibility requirements -->
     <!-- https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.gconaty.intellijplugintemplate.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.gconaty.intellijplugintemplate.services.MyProjectService"/>
-    </extensions>
 
-    <applicationListeners>
-        <listener class="com.github.gconaty.intellijplugintemplate.listeners.MyProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
+        <projectService serviceImplementation="com.datastax.astra.jetbrains.explorer.ExplorerToolWindow"/>
+        <toolWindow id="astra.explorer" anchor="left" secondary="true"
+        factoryClass="com.datastax.astra.jetbrains.explorer.ExplorerFactory"/>
+    </extensions>
 </idea-plugin>
