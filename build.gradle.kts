@@ -18,6 +18,8 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.16.0"
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+    //from: https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+    id( "org.openapi.generator") version "5.1.0"
 }
 
 group = properties("pluginGroup")
@@ -120,4 +122,29 @@ tasks {
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first())
     }
+
+    //Trying to use openapigenerate function to create rest stubs
+    openApiGenerate {
+        val generatorName = "kotlin"
+        val inputSpec = "$rootDir/src/main/resources/apis/devops_v2_openapi.json".toString()
+        val outputDir = "$buildDir/kotlin/openapistubs".toString()
+        //Left this here as a reminder this option requires a map in kotlin
+        //val configOptions = mapOf(
+        //    "dateLibrary" to "java8"
+        //)
+        val globalProperties = mapOf(
+            "debugOpenAPI" to "true"
+        )
+        val skipValidateSpec = true
+        val logToStderr = true
+        val generateAliasAsModel = true
+        // set to true and set environment variable {LANG}_POST_PROCESS_FILE
+        // (e.g. SCALA_POST_PROCESS_FILE) to the linter/formatter to be processed.
+        // This command will be passed one file at a time for most supported post processors.
+        val enablePostProcessFile = false
+        val library = "jvm-okhttp4"
+    }
+
+
+
 }
