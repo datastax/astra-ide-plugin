@@ -67,11 +67,42 @@ detekt {
     }
 }
 
+//This defines the generator
+openApiGenerate {
+    generatorName.set("kotlin")
+    inputSpec.set("$rootDir/src/main/resources/apis/devops_v2_openapi.json".toString())
+    //This is a randomly choosen location and can (probably should be) be changed
+    outputDir.set("$buildDir/kotlin/openapistubs".toString())
+    //Might need to change this to a different package
+    apiPackage.set("org.openapi.example.api")
+    invokerPackage.set("org.openapi.example.invoker")
+    modelPackage.set("org.openapi.example.model")
+    configOptions.set(mapOf(
+        "dateLibrary" to "java8",
+        "library" to "jvm-okhttp4"
+    ))
+    //Turn off debug in production
+    globalProperties.set(mapOf(
+        "debugOpenAPI" to "true"))
+    logToStderr.set(true)
+    generateAliasAsModel.set(true)
+    // set to true and set environment variable {LANG}_POST_PROCESS_FILE
+    // (e.g. SCALA_POST_PROCESS_FILE) to the linter/formatter to be processed.
+    // This command will be passed one file at a time for most supported post processors.
+    enablePostProcessFile.set(false)
+}
+
+
 tasks {
+    //This calls the generator
+    val openApiGenerate by getting
+
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
+        //Don't run this until the files are generated
+        dependsOn(openApiGenerate)
     }
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
@@ -122,29 +153,5 @@ tasks {
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first())
     }
-
     //Trying to use openapigenerate function to create rest stubs
-    openApiGenerate {
-        val generatorName = "kotlin"
-        val inputSpec = "$rootDir/src/main/resources/apis/devops_v2_openapi.json".toString()
-        val outputDir = "$buildDir/kotlin/openapistubs".toString()
-        //Left this here as a reminder this option requires a map in kotlin
-        //val configOptions = mapOf(
-        //    "dateLibrary" to "java8"
-        //)
-        val globalProperties = mapOf(
-            "debugOpenAPI" to "true"
-        )
-        val skipValidateSpec = true
-        val logToStderr = true
-        val generateAliasAsModel = true
-        // set to true and set environment variable {LANG}_POST_PROCESS_FILE
-        // (e.g. SCALA_POST_PROCESS_FILE) to the linter/formatter to be processed.
-        // This command will be passed one file at a time for most supported post processors.
-        val enablePostProcessFile = false
-        val library = "jvm-okhttp4"
-    }
-
-
-
 }
