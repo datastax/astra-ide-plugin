@@ -31,7 +31,21 @@ repositories {
     jcenter()
 }
 dependencies {
+    val kotlin_version ="1.3.61"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
+    implementation( "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation( "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
+    implementation( "com.squareup.moshi:moshi-kotlin:1.11.0")
+    implementation( "com.squareup.okhttp3:okhttp:4.9.0")
+}
+
+sourceSets {
+    main {
+        java.srcDirs("$rootDir/gen/openapistubs/src/main")
+    }
+    test {
+        java.srcDirs("$rootDir/gen/openapistubs/src/main")
+    }
 }
 
 // Configure gradle-intellij-plugin plugin.
@@ -72,7 +86,7 @@ openApiGenerate {
     generatorName.set("kotlin")
     inputSpec.set("$rootDir/src/main/resources/apis/devops_v2_openapi.json".toString())
     //This is a randomly choosen location and can (probably should be) be changed
-    outputDir.set("$buildDir/kotlin/openapistubs".toString())
+    outputDir.set("$rootDir/gen/openapistubs".toString())
     //Might need to change this to a different package
     apiPackage.set("org.openapi.example.api")
     invokerPackage.set("org.openapi.example.invoker")
