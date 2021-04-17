@@ -1,6 +1,7 @@
 import com.datastax.astra.devops_v2.apis.OperationsApi
 import com.datastax.astra.devops_v2.infrastructure.ApiClient
 import com.datastax.astra.devops_v2.models.Database
+import com.datastax.astra.stargate_v2.apis.SchemasApi
 import java.io.File
 
 
@@ -15,7 +16,11 @@ fun test_putDatabase(){
 
 //Test listing all DBs
 fun test_listDatabases(){
-    ApiClient.accessToken = "AstraCS:nsISvKavXHEpZLTIAEsoNxaC:f265ecb8677dd8bbfccb2bb332a31b3a3ed08155a43caa3de5dcba8718078a83"
+    val accessToken = "AstraCS:nsISvKavXHEpZLTIAEsoNxaC:f265ecb8677dd8bbfccb2bb332a31b3a3ed08155a43caa3de5dcba8718078a83"
+    //com.datastax.astra.stargate_v2.infrastructure.ApiClient.accessToken = "AstraCS:nsISvKavXHEpZLTIAEsoNxaC:f265ecb8677dd8bbfccb2bb332a31b3a3ed08155a43caa3de5dcba8718078a83"
+    com.datastax.astra.devops_v2.infrastructure.ApiClient.accessToken = accessToken
+
+    //SchemasApi().getTables(accessToken,"keyspaceId",null)
     var dbHolderType:String = ""
     var dbHolderObjType:String = ""
 

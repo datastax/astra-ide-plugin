@@ -43,10 +43,12 @@ sourceSets {
     main {
         //java.srcDirs("$rootDir/gen/openapistubs/src/main")
         java.srcDir("gen/devops_v2/src/main")
+        java.srcDir("gen/stargate_v2/src/main")
     }
     test {
         //java.srcDirs("$rootDir/gen/openapistubs/src/main")
         java.srcDir("gen/devops_v2/src/main")
+        java.srcDir("gen/stargate_v2/src/main")
     }
 }
 
