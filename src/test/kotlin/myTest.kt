@@ -1,8 +1,8 @@
+import com.datastax.astra.devops_v2.apis.OperationsApi
+import com.datastax.astra.devops_v2.infrastructure.ApiClient
+import com.datastax.astra.devops_v2.models.Database
 import java.io.File
-import kotlin.reflect.*
-import org.openapitools.client.infrastructure.*
-import org.openapi.example.api.*
-import org.openapi.example.model.*
+
 
 fun main() {
     test_listDatabases()
@@ -54,7 +54,7 @@ fun test_listDatabases(){
             println("Returned: $dbHolderType")
         }
         //Check holder type
-        if (dbHolderObjType == "class org.openapitools.client.models.Database") checkdbHolderType = true
+        if (dbHolderObjType == "class com.datastax.astra.devops_v2.models.Database") checkdbHolderType = true
         else{
             println("listDatabases type test failed! Wrong dbHolderObjType.")
             println("Expected: class org.openapitools.client.models.Database")

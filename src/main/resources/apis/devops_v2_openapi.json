@@ -752,6 +752,7 @@
                 "terminateDatacenter",
                 "getCreds",
                 "terminate",
+                "suspend",
                 "removeKeyspace",
                 "addTable",
                 "removeMigrationProxy",
@@ -893,7 +894,7 @@
             "example": "*****",
             "description": "Password for the user to access the database"
           },
-          "additionalKeyspaces": {
+          "keyspaces": {
             "type": "array",
             "maximum": 1,
             "items": {

@@ -19,7 +19,7 @@ plugins {
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     //from: https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-    id( "org.openapi.generator") version "5.1.0"
+    //id( "org.openapi.generator") version "5.1.0"
 }
 
 group = properties("pluginGroup")
@@ -33,18 +33,20 @@ repositories {
 dependencies {
     val kotlin_version ="1.3.61"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
-    implementation( "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    /*implementation( "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation( "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-    implementation( "com.squareup.moshi:moshi-kotlin:1.11.0")
+    implementation( "com.squareup.moshi:moshi-kotlin:1.11.0")*/
     implementation( "com.squareup.okhttp3:okhttp:4.9.0")
 }
 
 sourceSets {
     main {
-        java.srcDirs("$rootDir/gen/openapistubs/src/main")
+        //java.srcDirs("$rootDir/gen/openapistubs/src/main")
+        java.srcDir("gen/devops_v2/src/main")
     }
     test {
-        java.srcDirs("$rootDir/gen/openapistubs/src/main")
+        //java.srcDirs("$rootDir/gen/openapistubs/src/main")
+        java.srcDir("gen/devops_v2/src/main")
     }
 }
 
@@ -81,6 +83,7 @@ detekt {
     }
 }
 
+/*
 //This defines the generator
 openApiGenerate {
     generatorName.set("kotlin")
@@ -105,18 +108,19 @@ openApiGenerate {
     // This command will be passed one file at a time for most supported post processors.
     enablePostProcessFile.set(false)
 }
+*/
 
 
 tasks {
     //This calls the generator
-    val openApiGenerate by getting
+    //val openApiGenerate by getting
 
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
         //Don't run this until the files are generated
-        dependsOn(openApiGenerate)
+        //dependsOn(openApiGenerate)
     }
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
