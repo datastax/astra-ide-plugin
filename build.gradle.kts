@@ -31,25 +31,17 @@ repositories {
     jcenter()
 }
 dependencies {
-    val kotlin_version ="1.3.61"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
-    /*implementation( "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    implementation( "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-    implementation( "com.squareup.moshi:moshi-kotlin:1.11.0")*/
-    implementation( "com.squareup.okhttp3:okhttp:4.9.0")
-}
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation(project(":devops_v2"))
+    implementation(project(":stargate_v2"))
 
-sourceSets {
-    main {
-        //java.srcDirs("$rootDir/gen/openapistubs/src/main")
-        java.srcDir("gen/devops_v2/src/main")
-        java.srcDir("gen/stargate_v2/src/main")
-    }
-    test {
-        //java.srcDirs("$rootDir/gen/openapistubs/src/main")
-        java.srcDir("gen/devops_v2/src/main")
-        java.srcDir("gen/stargate_v2/src/main")
-    }
+    // Use JUnit Jupiter API for testing.
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    // Use JUnit Jupiter Engine for testing.
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
 }
 
 // Configure gradle-intellij-plugin plugin.
@@ -85,38 +77,8 @@ detekt {
     }
 }
 
-/*
-//This defines the generator
-openApiGenerate {
-    generatorName.set("kotlin")
-    inputSpec.set("$rootDir/src/main/resources/apis/devops_v2_openapi.json".toString())
-    //This is a randomly choosen location and can (probably should be) be changed
-    outputDir.set("$rootDir/gen/openapistubs".toString())
-    //Might need to change this to a different package
-    apiPackage.set("org.openapi.example.api")
-    invokerPackage.set("org.openapi.example.invoker")
-    modelPackage.set("org.openapi.example.model")
-    configOptions.set(mapOf(
-        "dateLibrary" to "java8",
-        "library" to "jvm-okhttp4"
-    ))
-    //Turn off debug in production
-    globalProperties.set(mapOf(
-        "debugOpenAPI" to "true"))
-    logToStderr.set(true)
-    generateAliasAsModel.set(true)
-    // set to true and set environment variable {LANG}_POST_PROCESS_FILE
-    // (e.g. SCALA_POST_PROCESS_FILE) to the linter/formatter to be processed.
-    // This command will be passed one file at a time for most supported post processors.
-    enablePostProcessFile.set(false)
-}
-*/
-
 
 tasks {
-    //This calls the generator
-    //val openApiGenerate by getting
-
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "1.8"
@@ -173,5 +135,8 @@ tasks {
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first())
     }
-    //Trying to use openapigenerate function to create rest stubs
+
+    test {
+        useJUnitPlatform()
+    }
 }
