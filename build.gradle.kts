@@ -32,7 +32,7 @@ repositories {
 }
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3-native-mt")
     implementation(project(":devops_v2"))
     implementation(project(":stargate_v2"))
 
