@@ -3,7 +3,7 @@
     <name>Astra Toolkit</name>
     <vendor>DataStax</vendor>
 
-    <resource-bundle>resources.MessagesBundle</resource-bundle>
+    <resource-bundle>MessagesBundle</resource-bundle>
 
     <!-- Product and plugin compatibility requirements -->
     <!-- https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -13,6 +13,31 @@
 
         <projectService serviceImplementation="com.datastax.astra.jetbrains.explorer.ExplorerToolWindow"/>
         <toolWindow id="astra.explorer" anchor="left" secondary="true"
-        factoryClass="com.datastax.astra.jetbrains.explorer.ExplorerFactory"/>
+                    factoryClass="com.datastax.astra.jetbrains.explorer.ExplorerFactory"/>
     </extensions>
+
+    <actions>
+        <group id="astra.explorer.databases" popup="false" compact="false">
+            <action id="database.create"
+                    class="com.datastax.astra.jetbrains.services.database.CreateDatabaseAction"/>
+        </group>
+        <group id="astra.explorer.databases.database" popup="true" compact="false">
+            <action id="keyspace.create"
+                    class="com.datastax.astra.jetbrains.services.database.CreateKeyspaceAction"/>
+            <separator/>
+            <action id="database.delete"
+                    class="com.datastax.astra.jetbrains.services.database.DeleteDatabaseAction"/>
+        </group>
+        <group id="astra.explorer.databases.keyspace" popup="true" compact="false">
+            <action id="keyspace.delete"
+                    class="com.datastax.astra.jetbrains.services.database.DeleteKeyspaceAction"/>
+        </group>
+
+        <!--
+        <group id="astra.explorer.streaming" popup="false" compact="false">
+            <action id="database.create"
+                    class="com.datastax.astra.jetbrains.services.streaming.CreateStreamAction"/>
+        </group>
+        -->
+    </actions>
 </idea-plugin>

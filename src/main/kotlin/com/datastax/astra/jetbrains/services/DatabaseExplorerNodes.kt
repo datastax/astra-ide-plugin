@@ -2,7 +2,7 @@ package com.datastax.astra.jetbrains.explorer
 
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.AstraClient
-import com.datastax.astra.jetbrains.MyBundle.message
+import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.stargate_v2.models.Keyspace
 import com.datastax.astra.stargate_v2.models.Table
 import com.intellij.ide.util.treeView.AbstractTreeNode
@@ -11,18 +11,28 @@ import kotlinx.coroutines.runBlocking
 import java.net.URI
 
 class DatabaseParentNode(project: Project) :
-    ExplorerNode<String>(project, "Databases", null), ResourceParentNode {
+    ExplorerNode<String>(project, "Databases", null),
+    ResourceActionNode, ResourceParentNode {
 
+    override fun actionGroupName(): String = "astra.explorer.databases"
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        val foo = AstraClient.operationsApi().listDatabases()
-        foo.body()?.map { DatabaseNode(nodeProject, it) } ?: emptyList()
+        val response = AstraClient.operationsApi().listDatabases()
+        if (response.isSuccessful) {
+            response.body()?.map { DatabaseNode(nodeProject, it) } ?: emptyList()
+        } else {
+            emptyList()
+        }
     }
+
+
 }
 
 class DatabaseNode(project: Project, val database: Database) :
     ExplorerNode<String>(project, database.info.name.orEmpty(), null),
-    ResourceParentNode {
+    ResourceActionNode, ResourceParentNode {
+
+    override fun actionGroupName(): String = "astra.explorer.databases.database"
     override fun emptyChildrenNode(): ExplorerEmptyNode =
         ExplorerEmptyNode(nodeProject, message("astra.no_keyspaces_in_database"))
 
@@ -37,7 +47,10 @@ class DatabaseNode(project: Project, val database: Database) :
 }
 
 class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Database) :
-    ExplorerNode<String>(project, keyspace.name, null), ResourceParentNode {
+    ExplorerNode<String>(project, keyspace.name, null),
+    ResourceActionNode, ResourceParentNode {
+
+    override fun actionGroupName(): String = "astra.explorer.databases.keyspace"
     override fun emptyChildrenNode(): ExplorerEmptyNode =
         ExplorerEmptyNode(nodeProject, message("astra.no_tables_in_keyspace"))
 
