@@ -1,47 +1,39 @@
-import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.changelog.closure
 import org.jetbrains.changelog.markdownToHTML
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
-    // Java support
-    id("java")
-    // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.4.32"
+    id("astra-kotlin-conventions")
+
     // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
-    id("org.jetbrains.intellij") version "0.7.2"
+    id("org.jetbrains.intellij") version "0.7.3"
+
     // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
     id("org.jetbrains.changelog") version "1.1.2"
+
     // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
     id("io.gitlab.arturbosch.detekt") version "1.16.0"
+
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
-    //from: https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-    //id( "org.openapi.generator") version "5.1.0"
 }
 
-group = properties("pluginGroup")
-version = properties("pluginVersion")
-
-// Configure project's dependencies
-repositories {
-    mavenCentral()
-    jcenter()
-}
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
-    implementation(project(":devops_v2"))
-    implementation(project(":stargate_v2"))
-
-    // Use JUnit Jupiter API for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    // Use JUnit Jupiter Engine for testing.
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-
+    api(project(":devops_v2"))
+    api(project(":stargate_v2"))
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
+}
+
+
+configurations {
+    runtimeClasspath {
+        // IMPORTANT: Without this exclusion ran into classpath issues with kotlinx coroutines
+        // Exclude dependencies that ship with iDE
+        exclude(group = "org.slf4j")
+        exclude(group = "org.jetbrains.kotlin")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
 }
 
 // Configure gradle-intellij-plugin plugin.
@@ -77,8 +69,8 @@ detekt {
     }
 }
 
-
 tasks {
+    /*
     // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "1.8"
@@ -93,7 +85,7 @@ tasks {
 
     withType<Detekt> {
         jvmTarget = "1.8"
-    }
+    }*/
 
     patchPluginXml {
         version(properties("pluginVersion"))
@@ -135,8 +127,8 @@ tasks {
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
         channels(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first())
     }
-
-    test {
-        useJUnitPlatform()
-    }
 }
+
+//TODO: What is this for?
+group = properties("pluginGroup")
+version = properties("pluginVersion")

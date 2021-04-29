@@ -1,4 +1,4 @@
-rootProject.name = "intellij-plugin-template"
+rootProject.name = "astra-intellij-plugin"
 
 include("devops_v2")
 include("stargate_v2")
