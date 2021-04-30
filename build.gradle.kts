@@ -70,20 +70,20 @@ detekt {
 }
 
 tasks {
+
     /*
-    // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
-        //Don't run this until the files are generated
-        //dependsOn(openApiGenerate)
     }
-    withType<KotlinCompile> {
+    */
+    /*
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
         kotlinOptions.useIR = true
     }
 
-    withType<Detekt> {
+    withType<io.gitlab.arturbosch.detekt.Detekt> {
         jvmTarget = "1.8"
     }*/
 
