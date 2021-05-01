@@ -1,38 +1,70 @@
+import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.changelog.closure
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
-    id("astra-kotlin-conventions")
-
+    // Java support
+    id("java")
+    // Kotlin support
+    id("org.jetbrains.kotlin.jvm") version "1.4.32"
     // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
     id("org.jetbrains.intellij") version "0.7.3"
-
     // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
     id("org.jetbrains.changelog") version "1.1.2"
-
     // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
     id("io.gitlab.arturbosch.detekt") version "1.16.0"
-
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 }
 
+group = properties("pluginGroup")
+version = properties("pluginVersion")
+
+// Configure project's dependencies
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir("api/devops_v2/src/main")
+            srcDir("api/stargate_v2/src/main")
+        }
+    }
+}
+
+val retrofitVersion = "2.7.2"
 dependencies {
-    api(project(":devops_v2"))
-    api(project(":stargate_v2"))
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
+
+    //Dependencies for OpenApi clients
+    //Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
+    //or have issues with Linkage errors etc since IntelliJ ships with older kotlin libs
+    implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.8.1")
+    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
+    implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
+    implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
+
+    // Use JUnit Jupiter API for testing.
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    // Use JUnit Jupiter Engine for testing.
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
 }
 
-
 configurations {
     runtimeClasspath {
-        // IMPORTANT: Without this exclusion ran into classpath issues with kotlinx coroutines
         // Exclude dependencies that ship with iDE
-        exclude(group = "org.slf4j")
+        //exclude(group = "org.slf4j")
         exclude(group = "org.jetbrains.kotlin")
-        exclude(group = "org.jetbrains.kotlinx")
+        //exclude(group = "org.jetbrains.kotlinx")
     }
 }
 
@@ -70,22 +102,18 @@ detekt {
 }
 
 tasks {
-
-    /*
+    // Set the compatibility versions to 1.8
     withType<JavaCompile> {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
     }
-    */
-    /*
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    withType<KotlinCompile> {
         kotlinOptions.jvmTarget = "1.8"
-        kotlinOptions.useIR = true
     }
 
-    withType<io.gitlab.arturbosch.detekt.Detekt> {
+    withType<Detekt> {
         jvmTarget = "1.8"
-    }*/
+    }
 
     patchPluginXml {
         version(properties("pluginVersion"))
@@ -128,7 +156,3 @@ tasks {
         channels(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first())
     }
 }
-
-//TODO: What is this for?
-group = properties("pluginGroup")
-version = properties("pluginVersion")
