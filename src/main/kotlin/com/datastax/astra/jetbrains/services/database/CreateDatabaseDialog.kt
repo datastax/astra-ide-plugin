@@ -20,18 +20,28 @@ class CreateDatabaseDialog(
     CoroutineScope by ApplicationThreadPoolScope("Database") {
 
     var name: String = ""
-    get() = name.trim()
-    lateinit var keyspace: String
+    var keyspace: String = ""
+
     val cloudProvider = DatabaseInfoCreate.CloudProvider.AWS
     val tier = DatabaseInfoCreate.Tier.SERVERLESS
     var region = "us-west-2"
 
     val view = panel {
         row("Database Name:") {
-            textField(::name)
+            textField(::name).withValidationOnApply {
+                if (it.text.trim().isEmpty()) ValidationInfo(
+                    message("database.create.database.missing.database.name"),
+                    it
+                ) else null
+            }
         }
         row("Keyspace: ") {
-            textField(::keyspace)
+            textField(::keyspace).withValidationOnApply {
+                if (it.text.trim().isEmpty()) ValidationInfo(
+                    message("database.create.database.missing.database.keyspace"),
+                    it
+                ) else null
+            }
         }
         row("Cloud Provider:") {
             label(cloudProvider.value)
@@ -46,6 +56,8 @@ class CreateDatabaseDialog(
 
     init {
         title = "Create Astra Database"
+        setOKButtonText("Create")
+        init()
     }
 
     /**
@@ -59,10 +71,11 @@ class CreateDatabaseDialog(
         if (!okAction.isEnabled) {
             return
         }
+        view.apply()
         close(OK_EXIT_CODE)
         launch {
             //TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
-            val databaseInfoCreate = DatabaseInfoCreate(name,keyspace,cloudProvider,tier,1,region)
+            val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, region)
             val response = AstraClient.operationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
                 val databaseId = response.headers()["Location"]
@@ -72,15 +85,10 @@ class CreateDatabaseDialog(
                 val listresponse = AstraClient.operationsApi().listDatabases()
                 val list = listresponse.body()
                 //AstraClient.operationsApi()
-            }
-            else {
+            } else {
                 TODO("notifyError")
             }
         }
     }
 
-    override fun doValidate(): ValidationInfo? = validateDatabaseName()?.let { ValidationInfo(it, view) }
-
-    fun validateDatabaseName(): String? =
-        if (name.isEmpty()) message("database.create.database.missing.database.name") else null
 }

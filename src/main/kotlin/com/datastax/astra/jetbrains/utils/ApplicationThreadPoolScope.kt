@@ -8,5 +8,5 @@ import kotlinx.coroutines.SupervisorJob
 import kotlin.coroutines.CoroutineContext
 
 class ApplicationThreadPoolScope(coroutineName: String) : CoroutineScope {
-    override val coroutineContext: CoroutineContext = /*SupervisorJob()*/ /*+ Dispatchers.ApplicationThreadPool + */CoroutineName(coroutineName)
+    override val coroutineContext: CoroutineContext = SupervisorJob() + Dispatchers.ApplicationThreadPool + CoroutineName(coroutineName)
 }
