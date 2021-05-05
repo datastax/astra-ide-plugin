@@ -57,6 +57,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
+    implementation("com.uchuhimo:konf-toml:0.23.0")
 }
 
 configurations {
@@ -64,7 +65,7 @@ configurations {
         // Exclude dependencies that ship with iDE
         //exclude(group = "org.slf4j")
         exclude(group = "org.jetbrains.kotlin")
-        //exclude(group = "org.jetbrains.kotlinx")
+        exclude(group = "org.jetbrains.kotlinx")
     }
 }
 
