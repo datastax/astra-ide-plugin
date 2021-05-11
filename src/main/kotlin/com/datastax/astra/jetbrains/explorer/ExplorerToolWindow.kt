@@ -1,10 +1,10 @@
 package com.datastax.astra.jetbrains.explorer
 
+import com.datastax.astra.jetbrains.credentials.*
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
@@ -18,10 +18,12 @@ import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.concurrency.Invoker
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
+import java.awt.GridBagLayout
+import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
 
-class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), Disposable {
+class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), ProfileStateChangeNotifier, Disposable {
     private val actionManager = ActionManagerEx.getInstanceEx()
     private val treePanelWrapper = NonOpaquePanel()
 
@@ -33,9 +35,21 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
     private val treePanel = ScrollPaneFactory.createScrollPane(tree)
 
     init {
+        val group = DefaultActionGroup(
+            SettingsSelectorComboBoxAction(project, ChangeProfileSettingsMode.PROFILE),
+            SettingsSelectorComboBoxAction(project, ChangeProfileSettingsMode.TOKEN)
+        )
+        toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, group, true).apply {
+            layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
+        }.component
+
+
         background = UIUtil.getTreeBackground()
         setContent(treePanelWrapper)
         treePanelWrapper.setContent(treePanel)
+
+        project.messageBus.connect(this).subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
+
     }
 
     companion object {
@@ -43,7 +57,24 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             ServiceManager.getService(project, ExplorerToolWindow::class.java)
         const val explorerToolWindowPlace = "ExplorerToolWindow"
     }
+    private fun createInfoPanel(state: ProfileState): JComponent {
+        val panel = NonOpaquePanel(GridBagLayout())
+        return panel
+    }
 
+    override fun profileStateChanged(newProfile: ProfileState) {
+        runInEdt {
+            treePanelWrapper.setContent(
+                when (newProfile) {
+                    is ProfileState.ValidConnection -> {
+                        //invalidateTree()
+                        treePanel
+                    }
+                    else -> createInfoPanel(newProfile)
+                }
+            )
+        }
+    }
     private fun createTree(model: TreeModel): Tree {
         val tree = Tree(model)
         tree.isRootVisible = false

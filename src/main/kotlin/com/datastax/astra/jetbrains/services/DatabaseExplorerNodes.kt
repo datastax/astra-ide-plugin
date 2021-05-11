@@ -17,7 +17,7 @@ class DatabaseParentNode(project: Project) :
     override fun actionGroupName(): String = "astra.explorer.databases"
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        val response = AstraClient.operationsApi().listDatabases()
+        val response = AstraClient.operationsApi(project).listDatabases()
         if (response.isSuccessful) {
             response.body()?.map { DatabaseNode(nodeProject, it) } ?: emptyList()
         } else {

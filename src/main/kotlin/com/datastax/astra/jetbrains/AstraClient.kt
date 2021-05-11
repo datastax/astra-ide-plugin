@@ -1,14 +1,16 @@
 package com.datastax.astra.jetbrains
 
 import com.datastax.astra.devops_v2.apis.OperationsApi
-import com.datastax.astra.jetbrains.credentials.CredentialsClient
+import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.stargate_v2.apis.SchemasApi
+import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.Nullable
 
 object AstraClient {
-    val astraCredClient = CredentialsClient()
-    val accessToken = astraCredClient.token()
+    var accessToken: String = ""
 
-    fun operationsApi(): OperationsApi {
+    fun operationsApi(project: @Nullable Project?): OperationsApi {
+        accessToken = project?.let { ProfileManager.getInstance(it).activeToken?.key.toString() }.toString()
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
                 .createService(OperationsApi::class.java)
     }
