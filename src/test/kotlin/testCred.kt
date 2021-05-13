@@ -10,7 +10,6 @@ import kotlin.IllegalStateException
 class testCred {
 }
 
-
 data class ProfileToken(
     val profile_name: String,
     val token: String
@@ -22,6 +21,7 @@ object AstraProfileFile: ConfigSpec(){
 
 fun main(){
     println(checkFile())
+    verifyToken("AstraCS:slujUFOXpduHKliZZxaijrTw:ba0716b40492ed7be92224a0d6a39f2315291b6d18ab7ee5129306278a1a558f")
     //createConfig()
 try {
     loadConfig()
@@ -33,6 +33,23 @@ try {
 
     loadConfig()
 }
+
+fun verifyToken(profileToken: String): Boolean{
+    var valid = true
+    if(profileToken.length==97)
+        profileToken.split(":").forEachIndexed{ index, element->
+            when (index) {
+                0 -> if (element != "AstraCS") valid = false
+                1 -> if (!(element.length == 24 || element.all{it.isLetterOrDigit()})) valid = false
+                2 -> if (!(element.length == 64 || element.all{it.isLetterOrDigit()})) valid = false
+                else -> {valid = false}
+            }
+        }
+    else
+        valid = false
+    return valid
+}
+
 fun checkFile(): Boolean{
     val configPath = File("${System.getProperty("user.home")}/.astra/config")
     return configPath.exists()

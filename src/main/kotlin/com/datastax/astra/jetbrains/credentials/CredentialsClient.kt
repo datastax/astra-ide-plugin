@@ -1,16 +1,14 @@
 package com.datastax.astra.jetbrains.credentials
 
-import com.uchuhimo.konf.Config
-import com.uchuhimo.konf.ConfigSpec
+import com.datastax.astra.devops_v2.apis.OperationsApi
 
-class CredentialsClient {
-    object ClientConfig: ConfigSpec() {
-        val token by required<String>()
+/*
+Client that uses the operationsApi client for verifying tokens
+ */
+object CredentialsClient {
+    fun operationsApi(token: String): OperationsApi {
+        return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = token)
+            .createService(OperationsApi::class.java)
     }
-    var client = Config{addSpec(ClientConfig)}
-        .from.file("${System.getProperty("user.home")}/.astra/config.toml")
-
-    fun token():String = this.client[ClientConfig.token]
-
 }
 

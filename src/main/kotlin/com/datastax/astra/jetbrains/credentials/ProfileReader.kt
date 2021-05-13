@@ -6,10 +6,8 @@ import com.uchuhimo.konf.source.toml
 import java.io.File
 import java.io.FileNotFoundException
 
-//import com.datastax.astra.jetbrains.credentials.ProfileFileLocation
-
 //TODO: Seperate invalid profile message into two: Authentication and Format
-//TODO: Add profile validation fun and use in getting profiles
+//TODO: Add checking authorization to profile validation
 //TODO: Add watching of file
 
 data class Profiles(val validProfiles: Map<String, ProfileToken>)
@@ -56,12 +54,25 @@ private fun validateProfileFile(profileFile: File): Config =
         throw FileNotFoundException("astra config file not found")
 
 
-
 //TODO: Create this validation function
 //TODO: Call dialog for each of the failed checks
-private fun validateProfile(profileToken: String) {
-    //TODO: Check that token is right format
+private fun validateProfile(token: String) {
+    //Check that token is right format
+    if(token.length==97)
+        token.split(":").forEachIndexed{ index, element->
+            when (index) {
+                0 -> if (element != "AstraCS") throw Exception("WrongTokenFormat")
+                1 -> if (!(element.length == 24 || element.all{it.isLetterOrDigit()})) throw Exception("WrongTokenFormat")
+                2 -> if (!(element.length == 64 || element.all{it.isLetterOrDigit()})) throw Exception("WrongTokenFormat")
+                else -> {throw Exception("WrongTokenFormat")}
+            }
+        }
+    else
+        throw Exception("WrongTokenLength")
+
     //TODO: Check that token can hit DataStax getOrgID on wire
+    //TODO: Implement once this method is added to client
+    //CredentialsClient.operationsApi(token).GETORGIDMETHOD()
 }
 
 data class ProfileToken(
