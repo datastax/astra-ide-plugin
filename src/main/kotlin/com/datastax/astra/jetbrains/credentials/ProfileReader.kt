@@ -39,6 +39,8 @@ fun validateAndGetProfiles(): Profiles{
     if(invalidProfiles.isNotEmpty())
         invalidProfilesNotification(invalidProfiles)
 
+    //TODO: Add "Empty profile file" notification
+
     //Return empty profile map if none validate
     return Profiles(validProfiles)
 }

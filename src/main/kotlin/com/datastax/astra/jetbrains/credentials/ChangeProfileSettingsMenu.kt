@@ -13,11 +13,14 @@ class ChangeProfileSettingsActionGroup(project: Project) : ComputableActionGroup
 
     private val profileSelector = ChangeProfilesActionGroup(project)
 
+    //TODO: Figure out why default isn't always at the top
     override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> = CachedValueProvider {
         val actions = mutableListOf<AnAction>()
 
         actions.add(Separator.create("Astra Profiles"))
         actions.add(profileSelector)
+        actions.add(Separator.create())
+        actions.add(ActionManager.getInstance().getAction("credentials.upsertCredentials"))
 
         CachedValueProvider.Result.create(actions.toTypedArray(),profileSettingsManager)
     }

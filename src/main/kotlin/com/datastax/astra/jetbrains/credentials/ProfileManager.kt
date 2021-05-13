@@ -39,7 +39,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
         profileMap=validateAndGetProfiles().validProfiles
 
-        //Check if there's any valid profiles. If so check for default in valid profiles. If not use first valid profile
+        //Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
         if(profileMap.isNotEmpty()) {
             if (profileMap.containsKey("default"))
                 selectedProfile = profileMap["default"]
