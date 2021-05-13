@@ -2,50 +2,69 @@ package com.datastax.astra.jetbrains.credentials
 
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.ConfigSpec
+import com.uchuhimo.konf.source.toml
+import java.io.File
+import java.io.FileNotFoundException
 
+//import com.datastax.astra.jetbrains.credentials.ProfileFileLocation
+
+//TODO: Seperate invalid profile message into two: Authentication and Format
 //TODO: Add profile validation fun and use in getting profiles
 //TODO: Add watching of file
 
-data class Profiles(val validProfiles: Map<String, Profile>)
+data class Profiles(val validProfiles: Map<String, ProfileToken>)
 
 fun validateAndGetProfiles(): Profiles{
-    val profileFile = "${System.getProperty("user.home")}/.astra/config"
-    val profileConfig = Config{addSpec(AstraProfileFile)}
-        .from.json.file(profileFile)
-
-    val allProfilesSet = profileConfig[AstraProfileFile.profiles]
-    //Convert the set into a map
-    val allProfiles = Profiles(validProfiles = allProfilesSet.associateBy({it.profile_name},{it}))
-
-    //TODO:Validate Profiles
-    /*val validProfiles = mutableMapOf<String, Profile>()
+    val validProfiles = mutableMapOf<String, ProfileToken>()
     val invalidProfiles = mutableMapOf<String, Exception>()
 
-    allProfiles.forEach {
-        try {
-            validateProfile(it, allProfiles)
-            validProfiles[it.name()] = it
-        } catch (e: Exception) {
-            invalidProfiles[it.name()] = e
+    try{
+        validateProfileFile(ProfileFileLocation.profileFilePath().toFile())[AstraProfileFile.profiles]
+        .forEach {
+            try {
+                //Go through each map entry and remap it to map of valid profiles if it can make simple rest call
+                validateProfile(it.value)
+                validProfiles[it.key] = ProfileToken(it.key, it.value)
+            } catch (e: Exception) {
+                invalidProfiles[it.key] = e
+            }
         }
-    }*/
-    return allProfiles
+    } catch (e: FileNotFoundException){
+        //TODO: Display file doesn't exist notification
+    } catch (e: Exception){
+        //TODO: Display file wrong format (errant key)
+    }
+
+    if(invalidProfiles.isNotEmpty())
+        invalidProfilesNotification(invalidProfiles)
+
+    //Return empty profile map if none validate
+    return Profiles(validProfiles)
 }
+
+private fun validateProfileFile(profileFile: File): Config =
+    //Check that file exists
+    if (profileFile.exists()){
+        //Throws?
+        Config { addSpec(AstraProfileFile) }
+            .from.toml.file(profileFile)
+    }
+    else
+        throw FileNotFoundException("astra config file not found")
+
+
 
 //TODO: Create this validation function
-private fun validateProfile(profile: Profile, allProfiles: Map<String, Profile>) {
+private fun validateProfile(profileToken: String) {
+    //TODO: Check that token is right format
+    //TODO: Check that token can hit DataStax getOrgID on wire
 }
-
-data class Profile(
-    val profile_name: String,
-    val token_collection: Map<String,String>
-)
 
 data class ProfileToken(
     val name: String,
-    val key: String
+    val token: String
 )
 
 object AstraProfileFile: ConfigSpec(){
-    val profiles by required<Set<Profile>>()
+    val profiles by required<Map<String,String>>()
 }

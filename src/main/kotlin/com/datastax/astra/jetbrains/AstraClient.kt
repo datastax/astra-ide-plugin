@@ -10,7 +10,7 @@ object AstraClient {
     var accessToken: String = ""
 
     fun operationsApi(project: @Nullable Project?): OperationsApi {
-        accessToken = project?.let { ProfileManager.getInstance(it).activeToken?.key.toString() }.toString()
+        accessToken = project?.let { ProfileManager.getInstance(it).activeProfile?.token }.toString()
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
                 .createService(OperationsApi::class.java)
     }

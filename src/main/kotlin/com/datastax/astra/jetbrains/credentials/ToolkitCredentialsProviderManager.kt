@@ -7,9 +7,9 @@ package com.datastax.astra.jetbrains.credentials
  * TODO: Deprecate and remove this since it is less efficient than [CredentialsChangeEvent]
  */
 interface ToolkitCredentialsChangeListener {
-    fun providerAdded(profile: Profile) {}
-    fun providerModified(profile: Profile) {}
-    fun providerRemoved(profile: Profile) {}
+    fun providerAdded(profile: ProfileToken) {}
+    fun providerModified(profile: ProfileToken) {}
+    fun providerRemoved(profile: ProfileToken) {}
 }
 
 class CredentialProviderNotFoundException : RuntimeException {

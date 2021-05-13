@@ -17,8 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
  *
  */
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
-    private val profileMap = mutableMapOf<String,Profile>()
-    private var activeTokenMap = mutableMapOf<String,ProfileToken>()
+    private var profileMap = mapOf<String,ProfileToken>()
 
     private val validationJob = AtomicReference<AsyncPromise<ProfileState>>()
 
@@ -34,39 +33,41 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         }
 
     // Internal state is visible ChangeProfileSettingsActionGroup
-    internal var selectedProfile: Profile? = null
-    internal var selectedToken: ProfileToken? = null
+    internal var selectedProfile: ProfileToken? = null
 
     init {
 
-        validateAndGetProfiles().validProfiles.forEach { profileMap[it.key] = it.value }
-        selectedProfile = profileMap["default"]
-        selectedProfile?.let { buildTokenMap(it) }
-        selectedToken = activeTokenMap.entries.first().value
+        profileMap=validateAndGetProfiles().validProfiles
+
+        //Check if there's any valid profiles. If so check for default in valid profiles. If not use first valid profile
+        if(profileMap.isNotEmpty()) {
+            if (profileMap.containsKey("default"))
+                selectedProfile = profileMap["default"]
+            else
+                selectedProfile = profileMap.entries.first().value
+        }
+
+        validateProfileAndSetState(selectedProfile)
+
     }
 
-    fun changeProfile(nextProfile: Profile) {
-        selectedProfile = nextProfile
-        buildTokenMap(nextProfile)
-        selectedToken = activeTokenMap.entries.first().value
-    }
+    fun changeProfile(nextProfile: ProfileToken) {
+        changeFieldsAndNotify{
+            selectedProfile = nextProfile
+        }
 
-    fun changeToken(nextToken: ProfileToken) {
-        selectedToken = nextToken
     }
-
 
     @Synchronized
     private fun changeFieldsAndNotify(fieldUpdateBlock: () -> Unit) {
-        val isInitial = profileState is ProfileState.InitializingToolkit
-        //connectionState = ConnectionState.ValidatingConnection
+        profileState = ProfileState.ValidatingProfile
 
         // Grab the current state stamp
         val modificationStamp = this.modificationCount
 
         fieldUpdateBlock()
 
-        val validateCredentialsResult = validateCredentials(selectedProfile, selectedToken, isInitial)
+        val validateCredentialsResult = validateCredentials(selectedProfile)
         validationJob.getAndSet(validateCredentialsResult)?.cancel()
 
         validateCredentialsResult.onSuccess {
@@ -79,17 +80,21 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         }
     }
 
-    private fun validateCredentials(profile: Profile?, profileToken: ProfileToken?, isInitial: Boolean): AsyncPromise<ProfileState> {
+    private fun validateProfileAndSetState(profile: ProfileToken?){
+        profileState = if (profile != null) ProfileState.ValidConnection(profile) else ProfileState.IncompleteConfiguration(profile)
+    }
+
+    private fun validateCredentials(profile: ProfileToken?): AsyncPromise<ProfileState> {
         val promise = AsyncPromise<ProfileState>()
         ApplicationManager.getApplication().executeOnPooledThread {
-            if (profile == null || profileToken == null) {
-                promise.setResult(ProfileState.IncompleteConfiguration(profile, profileToken))
+            if (profile == null) {
+                promise.setResult(ProfileState.IncompleteConfiguration(profile))
                 return@executeOnPooledThread
             }
 
             var success = true
             try {
-                //validate(credentialsProvider, region)
+
 
                 promise.setResult(ProfileState.ValidConnection(profile))
             } catch (e: Exception) {
@@ -101,29 +106,17 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         return promise
     }
 
-    //Possibly refactor this part
-    private fun buildTokenMap(profile: Profile){
-        activeTokenMap.clear()
-        profile.token_collection.forEach{ activeTokenMap[it.key] = ProfileToken(it.key,it.value)}
-    }
-
     /**
      * Legacy method, should be considered deprecated and avoided since it loads defaults out of band
      */
-    val activeToken: ProfileToken?
-        get() = selectedToken
-
-    /**
-     * Legacy method, should be considered deprecated and avoided since it loads defaults out of band
-     */
-    val activeProfile: Profile?
+    val activeProfile: ProfileToken?
         get() = selectedProfile
 
-    val profiles: Map<String,Profile>
+    /**
+     * Legacy method, should be considered deprecated and avoided since it loads defaults out of band
+     */
+    val profiles: Map<String,ProfileToken>
         get() = profileMap
-
-    val tokens: Map<String,ProfileToken>
-        get() = activeTokenMap
 
     override fun dispose() {
     }
@@ -143,13 +136,13 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
         private val LOGGER = getLogger<ProfileManager>()
         private const val MAX_HISTORY = 5
-        internal val ProfileManager.selectedToken get() = selectedToken
+        internal val ProfileManager.selectedProfile get() = selectedProfile
     }
 
 }
 
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
-    //protected val editCredsAction: AnAction = ActionManager.getInstance().getAction("aws.settings.upsertCredentials")
+    protected val editCredsAction: AnAction = ActionManager.getInstance().getAction("credentials.upsertCredentials")
 
     /**
      * An optional short message to display in places where space is at a premium
@@ -163,28 +156,26 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
     object ValidatingProfile : ProfileState("settings.states.validating", isTerminal = false) {
         override val shortMessage: String = "settings.states.validating.short"
     }
-    class ValidConnection(internal val profile: Profile) :
-        ProfileState("${profile.profile_name}@placehold", isTerminal = true) {
-        override val shortMessage: String = "${profile.profile_name}@placeholdID"
+    class ValidConnection(internal val profile: ProfileToken) :
+        ProfileState("${profile.name}@placehold", isTerminal = true) {
+        override val shortMessage: String = "${profile.name}@placeholdID"
     }
 
-    class IncompleteConfiguration(profile: Profile?, profileToken: ProfileToken?) : ProfileState(
+    class IncompleteConfiguration(profile: ProfileToken?) : ProfileState(
         when {
-            profileToken == null && profile == null -> "settings.none_selected"
-            profileToken == null -> "settings.regions.none_selected"
             profile == null -> "settings.credentials.none_selected"
-            else -> throw IllegalArgumentException("At least one of regionId ($profileToken) or toolkitCredentialsIdentifier ($profile) must be null")
+            else -> throw IllegalArgumentException("($profile) must be null")
         },
         isTerminal = true
     ) {
-        //override val actions: List<AnAction> = listOf(editCredsAction)
+        override val actions: List<AnAction> = listOf(editCredsAction)
     }
 
     class InvalidProfile(private val cause: Exception) :
         ProfileState("settings.states.invalid", isTerminal = true) {
         override val shortMessage = "settings.states.invalid.short"
 
-        //override val actions: List<AnAction> = listOf(RefreshConnectionAction(message("settings.retry")), editCredsAction)
+        override val actions: List<AnAction> = listOf(editCredsAction)
     }
 }
 

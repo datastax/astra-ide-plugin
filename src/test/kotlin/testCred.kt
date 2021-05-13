@@ -4,45 +4,62 @@ import com.uchuhimo.konf.ConfigSpec
 import com.uchuhimo.konf.source.json.toJson
 import com.uchuhimo.konf.source.toml
 import com.uchuhimo.konf.source.toml.toToml
+import java.io.File
+import kotlin.IllegalStateException
 
 class testCred {
 }
 
 
-data class Profile(
+data class ProfileToken(
     val profile_name: String,
-    val token_collection: Map<String,String>
+    val token: String
 )
 
 object AstraProfileFile: ConfigSpec(){
-    val profiles by required<Set<Profile>>()
+    val profiles by required<Map<String,String>>()
 }
 
 fun main(){
-    var profilesTest1 = Config{addSpec(AstraProfileFile)}
+    println(checkFile())
+    //createConfig()
+try {
+    loadConfig()
+} catch (e: IllegalStateException){
+    println("caught illegal state exception")
+} catch (e: Exception){
+    println("caught other exception")
+}
 
-    var mySet = mapOf(
-        "token1" to "blahblah",
-        "token2" to "foobar",
-        "token3" to "someshit"
-    )
-    var mySet2 = mapOf(
-        "token4" to "blahblah",
-        "token5" to "foobar",
-        "token6" to "someshit"
-    )
-    var profile1 = Profile("Profile1",mySet)
-    var profile2 = Profile("Profile2",mySet2)
+    loadConfig()
+}
+fun checkFile(): Boolean{
+    val configPath = File("${System.getProperty("user.home")}/.astra/config")
+    return configPath.exists()
 
+}
 
-    var profileSet = setOf(profile1,profile2)
-
-
-    profilesTest1[AstraProfileFile.profiles] = profileSet
-    profilesTest1.toJson.toFile("${System.getProperty("user.home")}/.astra/config1")
-
+fun loadConfig(){
     var profilesTest2 = Config{addSpec(AstraProfileFile)}
-        .from.json.file("${System.getProperty("user.home")}/.astra/config1")
+        .from.toml.file("${System.getProperty("user.home")}/.astra/config1")
 
     println(profilesTest2.toString())
+}
+
+fun createConfig(){
+    var profilesTest1 = Config{addSpec(AstraProfileFile)}
+
+    var mySet = setOf(
+        ProfileToken("profile1","onetoken"),
+        ProfileToken("funprofile","anothertoken"),
+        ProfileToken("profilefoo","bartoken")
+    )
+    var mySet1 = mapOf(
+        "profile1" to "onetoken",
+        "funprofile" to "anothertoken",
+        "profilefoo" to "bartoken"
+    )
+
+    profilesTest1[AstraProfileFile.profiles] = mySet1
+    profilesTest1.toToml.toFile("${System.getProperty("user.home")}/.astra/config1")
 }

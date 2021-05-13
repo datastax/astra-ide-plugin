@@ -40,6 +40,8 @@
                     class="com.datastax.astra.jetbrains.services.database.DeleteKeyspaceAction"/>
         </group>
 
+        <action class="com.datastax.astra.jetbrains.credentials.CreateOrUpdateProfilesFileAction" id="credentials.upsertCredentials"/>
+
         <!--
         <group id="astra.explorer.streaming" popup="false" compact="false">
             <action id="database.create"

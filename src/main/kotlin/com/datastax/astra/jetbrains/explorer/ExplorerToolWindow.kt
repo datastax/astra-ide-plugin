@@ -36,8 +36,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
     init {
         val group = DefaultActionGroup(
-            SettingsSelectorComboBoxAction(project, ChangeProfileSettingsMode.PROFILE),
-            SettingsSelectorComboBoxAction(project, ChangeProfileSettingsMode.TOKEN)
+            SettingsSelectorComboBoxAction(project),
         )
         toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, group, true).apply {
             layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
