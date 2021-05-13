@@ -30,9 +30,10 @@ fun validateAndGetProfiles(): Profiles{
             }
         }
     } catch (e: FileNotFoundException){
-        //TODO: Display file doesn't exist notification
+        noProfilesFileNotification()
     } catch (e: Exception){
-        //TODO: Display file wrong format (errant key)
+        //TODO: Pass the exception to notify the user what line the error occured on
+        wrongProfilesFormatNotification()
     }
 
     if(invalidProfiles.isNotEmpty())
@@ -55,6 +56,7 @@ private fun validateProfileFile(profileFile: File): Config =
 
 
 //TODO: Create this validation function
+//TODO: Call dialog for each of the failed checks
 private fun validateProfile(profileToken: String) {
     //TODO: Check that token is right format
     //TODO: Check that token can hit DataStax getOrgID on wire

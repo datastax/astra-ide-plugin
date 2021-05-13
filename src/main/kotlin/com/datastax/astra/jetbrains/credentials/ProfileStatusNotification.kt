@@ -32,34 +32,58 @@ class ProfileStatusNotification(private val project: Project) : ProfileStateChan
         }
     }
 }
+
+//TODO:Set up plugin settings to hide these notifications if use wants to
+
 fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
-        val message = invalidProfiles.values.joinToString("\n") { it.message ?: it::class.java.name }
-
-        val errorDialogTitle = "credentials.profile.failed_load"
-        val numErrorMessage = "credentials.profile.refresh_errors"
-
-        //TODO:Set up plugin settings to hide these notifications
-
+        val message = invalidProfiles.keys.joinToString("\n") { it ?: it::class.java.name }
+        val errorDialogTitle = "Invalid Profiles Found"
             notifyInfo(
-                title = "My title",
-                content = "Foobar $numErrorMessage",
+                title = "Invalid DataStax Astra profile(s)",
+                content = "${invalidProfiles.size} invalid profile(s) found. " +
+                        "Edit the file or select 'More Info' to see list of invalid profiles.",
                 notificationActions = listOf(
                     createNotificationExpiringAction(
                         ActionManager.getInstance().getAction("credentials.upsertCredentials")
                     ),
+                    //TODO:Enable this once hiding added
                     //createNotificationExpiringAction(NeverShowAgain()),
                     createShowMoreInfoDialogAction(
-                        "credentials.invalid.more_info",
+                        "More Info",
                         errorDialogTitle,
-                        numErrorMessage,
+                        "The following profiles were found to be invalid:",
                         message
                     )
                 )
             )
 }
 
+fun noProfilesFileNotification() {
+    notifyInfo(
+        title = "Failed to load DataStax Astra profiles",
+        content = "Profiles file not found! Use the link below to create the file.",
+        notificationActions = listOf(
+            createNotificationExpiringAction(
+                ActionManager.getInstance().getAction("credentials.upsertCredentials")
+            )
+            //createNotificationExpiringAction(NeverShowAgain()),
+        )
+    )
+}
+
+fun wrongProfilesFormatNotification() {
+    notifyInfo(
+        title = "Failed to load DataStax Astra profiles",
+        content = "Profiles file contains a format error. Edit the file below.",
+        notificationActions = listOf(
+            createNotificationExpiringAction(
+                ActionManager.getInstance().getAction("credentials.upsertCredentials")
+            )
+            //createNotificationExpiringAction(NeverShowAgain()),
+        )
+    )
+}
 
 //TODO: Notify if format of file is wrong
 //TODO: Notify if no tokens matching format
 //TODO: Notify if failed to authenticate
-//TODO: Notify if no file

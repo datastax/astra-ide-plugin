@@ -95,7 +95,6 @@ fun createNotificationExpiringAction(action: AnAction): NotificationAction = Not
     action.templatePresentation.text
 ) { actionEvent, notification ->
     action.actionPerformed(actionEvent)
-    notification.expire()
 }
 
 fun createShowMoreInfoDialogAction(actionName: String?, title: String?, message: String?, moreInfo: String?) =
