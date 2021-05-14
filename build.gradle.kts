@@ -46,7 +46,7 @@ dependencies {
     //Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
     //or have issues with Linkage errors etc since IntelliJ ships with older kotlin libs
     implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.8.1")
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
