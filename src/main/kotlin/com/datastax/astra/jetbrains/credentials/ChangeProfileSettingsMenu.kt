@@ -29,10 +29,13 @@ class ChangeProfileSettingsActionGroup(project: Project) : ComputableActionGroup
 private class ChangeProfilesActionGroup(project: Project) : ComputableActionGroup(), DumbAware {
     private val profileManager = ProfileManager.getInstance(project)
     override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> =CachedValueProvider{
-
         val actions = mutableListOf<AnAction>()
         profileManager.profiles.forEach {
-            actions.add(ChangeProfileAction(it.value))
+            //Make sure if default is in the list it's at the top
+            if(it.value.name == "default")
+                actions.add(0,ChangeProfileAction(it.value))
+            else
+                actions.add(ChangeProfileAction(it.value))
         }
         CachedValueProvider.Result.create(actions.toTypedArray(), profileManager)
     }

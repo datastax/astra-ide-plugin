@@ -45,8 +45,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
             }
         }
 
-        // open both config and credential files, if they exist
-        // credential file is opened last since it takes precedence over the config file
+        // open both config file, if it exist
         val virtualFiles = listOf(configFile).filter { it.exists() }.map {
             localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException("credentials.could_not_open $it")
         }
@@ -68,7 +67,6 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
                     throw RuntimeException("credentials.could_not_open $it")
 
                 }
-
             }
         }
     }

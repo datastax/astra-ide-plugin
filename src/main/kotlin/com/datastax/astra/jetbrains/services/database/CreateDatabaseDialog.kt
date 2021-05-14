@@ -76,13 +76,13 @@ class CreateDatabaseDialog(
         launch {
             //TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, region)
-            val response = AstraClient.operationsApi(project).createDatabase(databaseInfoCreate)
+            val response = AstraClient.operationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
                 val databaseId = response.headers()["Location"]
                 TODO("refreshExplorerTree")
                 TODO("kick off polling for when database is created")
                 TODO("update presentation of node in tree")
-                val listresponse = AstraClient.operationsApi(project).listDatabases()
+                val listresponse = AstraClient.operationsApi().listDatabases()
                 val list = listresponse.body()
                 //AstraClient.operationsApi()
             } else {

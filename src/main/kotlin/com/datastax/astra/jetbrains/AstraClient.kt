@@ -9,8 +9,7 @@ import org.jetbrains.annotations.Nullable
 object AstraClient {
     var accessToken: String = ""
 
-    fun operationsApi(project: @Nullable Project?): OperationsApi {
-        accessToken = project?.let { ProfileManager.getInstance(it).activeProfile?.token }.toString()
+    fun operationsApi(): OperationsApi {
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
                 .createService(OperationsApi::class.java)
     }
@@ -19,4 +18,7 @@ object AstraClient {
             baseUrl = basePath
         ).createService(SchemasApi::class.java)
     }
+}
+fun test(){
+
 }

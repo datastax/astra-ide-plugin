@@ -21,7 +21,7 @@ object AstraProfileFile: ConfigSpec(){
 
 fun main(){
     println(checkFile())
-    verifyToken("AstraCS:slujUFOXpduHKliZZxaijrTw:ba0716b40492ed7be92224a0d6a39f2315291b6d18ab7ee5129306278a1a558f")
+    //verifyToken("AstraCS:slujUFOXpduHKliZZxaijrTw:ba0716b40492ed7be92224a0d6a39f2315291b6d18ab7ee5129306278a1a558f")
     //createConfig()
 try {
     loadConfig()
@@ -58,7 +58,7 @@ fun checkFile(): Boolean{
 
 fun loadConfig(){
     var profilesTest2 = Config{addSpec(AstraProfileFile)}
-        .from.toml.file("${System.getProperty("user.home")}/.astra/config1")
+        .from.toml.file("${System.getProperty("user.home")}/.astra/config")
 
     println(profilesTest2.toString())
 }

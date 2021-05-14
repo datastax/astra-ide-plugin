@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.credentials
 
+import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.utils.getLogger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -13,7 +14,7 @@ import com.intellij.util.messages.Topic
 import org.jetbrains.concurrency.AsyncPromise
 import java.util.concurrent.atomic.AtomicReference
 
-/** Plugin service that keeps track of profiles and provides tokens for other Astra plugin services
+/** Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
  *
  */
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
@@ -45,8 +46,9 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
                 selectedProfile = profileMap["default"]
             else
                 selectedProfile = profileMap.entries.first().value
-        }
 
+            AstraClient.accessToken= selectedProfile!!.token
+        }
         validateProfileAndSetState(selectedProfile)
 
     }
@@ -55,7 +57,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         changeFieldsAndNotify{
             selectedProfile = nextProfile
         }
-
+        AstraClient.accessToken= selectedProfile!!.token
     }
 
     @Synchronized
@@ -141,6 +143,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
 }
 
+//TODO:Rebase this whole section
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
     protected val editCredsAction: AnAction = ActionManager.getInstance().getAction("credentials.upsertCredentials")
 
