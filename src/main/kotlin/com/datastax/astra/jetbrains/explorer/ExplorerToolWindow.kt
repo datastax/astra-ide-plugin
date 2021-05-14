@@ -1,11 +1,14 @@
 package com.datastax.astra.jetbrains.explorer
 
+import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
+import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.intellij.ide.util.treeView.TreeState
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.ui.PopupHandler
@@ -17,6 +20,8 @@ import com.intellij.ui.tree.StructureTreeModel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.concurrency.Invoker
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.annotations.NotNull
 import java.awt.Component
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
@@ -29,7 +34,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
     private val structureTreeModel =
         StructureTreeModel(treeModel, null, Invoker.forBackgroundPoolWithReadAction(this), this)
-    private val tree = createTree(AsyncTreeModel(structureTreeModel, true, this))
+    val tree = createTree(AsyncTreeModel(structureTreeModel, true, this))
     private val treePanel = ScrollPaneFactory.createScrollPane(tree)
 
     init {
@@ -40,8 +45,32 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
     companion object {
         fun getInstance(project: Project): ExplorerToolWindow =
-            ServiceManager.getService(project, ExplorerToolWindow::class.java)
+            project.getService(ExplorerToolWindow::class.java)
         const val explorerToolWindowPlace = "ExplorerToolWindow"
+    }
+
+    fun invalidateTree(selectedNode: AbstractTreeNode<*>? = null, structure: Boolean = false) {
+        withSavedState(tree) {
+            if (selectedNode != null) {
+                structureTreeModel.invalidate(selectedNode, structure)
+            } else {
+                structureTreeModel.invalidate()
+            }
+        }
+    }
+
+    private fun withSavedState(tree: Tree, block: () -> Unit) {
+        val state = TreeState.createOn(tree)
+        block()
+        state.applyTo(tree)
+    }
+
+    override fun getData(dataId: String): Any? {
+        return if (SELECTED_NODES.`is`(dataId)) {
+            getSelectedNodes<ExplorerNode<*>>()
+        } else {
+            super.getData(dataId)
+        }
     }
 
     private fun createTree(model: TreeModel): Tree {
@@ -92,4 +121,8 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             .filterIsInstance<T>()
             .toList()
     } ?: emptyList<T>()
+}
+
+object ExplorerDataKeys {
+    val SELECTED_NODES = DataKey.create<List<ExplorerNode<*>>>("astra.explorer.explorerNodes")
 }

@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.explorer
 
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -10,6 +11,11 @@ class ExplorerFactory : ToolWindowFactory, DumbAware {
         val explorer = ExplorerToolWindow.getInstance(project)
         val contentManager = toolWindow.contentManager
         val content = contentManager.factory.createContent(explorer, null, false)
+
+        toolWindow.setTitleActions(
+            listOf(ActionManager.getInstance().getAction("astra.explorer.refresh"))
+        )
+
         contentManager.addContent(content)
     }
 }
