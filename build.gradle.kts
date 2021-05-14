@@ -38,7 +38,7 @@ sourceSets {
     }
 }
 
-val retrofitVersion = "2.9.0"
+val retrofitVersion = "2.7.2"
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
 
