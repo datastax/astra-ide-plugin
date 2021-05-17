@@ -3,15 +3,22 @@ package com.datastax.astra.jetbrains.services.database
 import com.datastax.astra.devops_v2.models.DatabaseInfoCreate
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
+import com.datastax.astra.jetbrains.explorer.DatabaseParentNode
+import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
+import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.tree.TreeUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.NotNull
 import java.awt.Component
 import javax.swing.JComponent
+import javax.swing.tree.DefaultMutableTreeNode
 
 class CreateDatabaseDialog(
     private val project: Project,
@@ -78,17 +85,16 @@ class CreateDatabaseDialog(
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, region)
             val response = AstraClient.operationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
-                val databaseId = response.headers()["Location"]
-                TODO("refreshExplorerTree")
-                TODO("kick off polling for when database is created")
-                TODO("update presentation of node in tree")
-                val listresponse = AstraClient.operationsApi().listDatabases()
-                val list = listresponse.body()
-                //AstraClient.operationsApi()
+                val databaseParent =
+                    TreeUtil.findNode(ExplorerToolWindow.getInstance(project).tree.model.root as @NotNull DefaultMutableTreeNode) {
+                        it.userObject is DatabaseParentNode
+                    }?.userObject as DatabaseParentNode
+                databaseParent.clearCache()
+                project.refreshTree(databaseParent, true)
+                //val databaseId = response.headers()["Location"]
             } else {
                 TODO("notifyError")
             }
         }
     }
-
 }

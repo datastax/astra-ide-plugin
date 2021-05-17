@@ -51,6 +51,8 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
+    implementation("com.github.ben-manes.caffeine:caffeine:3.0.2")
+
     // Use JUnit Jupiter API for testing.
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     // Use JUnit Jupiter Engine for testing.

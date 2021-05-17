@@ -42,6 +42,9 @@
 
         <action class="com.datastax.astra.jetbrains.credentials.CreateOrUpdateProfilesFileAction" id="credentials.upsertCredentials"/>
 
+        <action id="astra.explorer.refresh" class="com.datastax.astra.jetbrains.explorer.RefreshExplorerAction" icon="AllIcons.Actions.Refresh"/>
+
+
         <!--
         <group id="astra.explorer.streaming" popup="false" compact="false">
             <action id="database.create"

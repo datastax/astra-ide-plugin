@@ -6,6 +6,11 @@ import com.datastax.astra.stargate_v2.apis.SchemasApi
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.Nullable
 
+import com.datastax.astra.devops_v2.models.Database
+
+import java.net.URI
+
+
 object AstraClient {
     var accessToken: String = ""
 
@@ -13,7 +18,8 @@ object AstraClient {
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
                 .createService(OperationsApi::class.java)
     }
-    fun schemasApi(basePath: String): SchemasApi {
+    fun schemasApiForDatabase(database: Database): SchemasApi {
+        val basePath = database.dataEndpointUrl.orEmpty().removeSuffix(URI(database.dataEndpointUrl).rawPath)
         return com.datastax.astra.stargate_v2.infrastructure.ApiClient(
             baseUrl = basePath
         ).createService(SchemasApi::class.java)
