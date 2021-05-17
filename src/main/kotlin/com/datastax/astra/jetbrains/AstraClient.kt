@@ -12,9 +12,12 @@ import java.net.URI
 
 
 object AstraClient {
+    lateinit var project: Project
     var accessToken: String = ""
+        get() = ProfileManager.getInstance(project).activeProfile?.token.toString()
 
     fun operationsApi(): OperationsApi {
+        println("using token: $accessToken")
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
                 .createService(OperationsApi::class.java)
     }

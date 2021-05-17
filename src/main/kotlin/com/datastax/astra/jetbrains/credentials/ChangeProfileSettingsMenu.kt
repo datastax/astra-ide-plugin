@@ -65,6 +65,10 @@ class SettingsSelectorComboBoxAction(
         updatePresentation(templatePresentation)
     }
 
+    override fun update(e: AnActionEvent) {
+        updatePresentation(e.presentation)
+    }
+
     override fun createPopupActionGroup(button: JComponent?) = DefaultActionGroup(ChangeProfileSettingsActionGroup(project))
 
     private fun updatePresentation(presentation: Presentation) {

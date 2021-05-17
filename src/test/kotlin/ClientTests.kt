@@ -10,10 +10,11 @@ import org.junit.jupiter.api.Test
 
 class ClientTests {
     var dataContext = DataManager.getInstance().dataContext
-    var project: Project? = dataContext.getData(DataConstants.PROJECT) as Project?
+
 
     @Test
     fun testCreateDatabase() = runBlocking {
+        AstraClient.project = dataContext.getData(DataConstants.PROJECT) as Project
         val databaseInfoCreate =
             DatabaseInfoCreate(
                 "gmc_retro",
@@ -23,7 +24,7 @@ class ClientTests {
                 1,
                 "us-west-2"
             )
-        val response = AstraClient.operationsApi(project).createDatabase(databaseInfoCreate)
+        val response = AstraClient.operationsApi().createDatabase(databaseInfoCreate)
         val databaseId = response.headers()["Location"]
         println(response.isSuccessful)
         println(databaseId)
@@ -33,7 +34,8 @@ class ClientTests {
 
     @Test
     fun testListDatabases() = runBlocking {
-        val foo = AstraClient.operationsApi(project).listDatabases(null, null, null, null)
+        AstraClient.project = dataContext.getData(DataConstants.PROJECT) as Project
+        val foo = AstraClient.operationsApi().listDatabases(null, null, null, null)
         println(foo.isSuccessful)
         foo.body()?.forEach {
             println(it.dataEndpointUrl)

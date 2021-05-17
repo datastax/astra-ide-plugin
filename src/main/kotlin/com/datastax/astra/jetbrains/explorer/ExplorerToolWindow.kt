@@ -43,6 +43,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
         StructureTreeModel(treeModel, null, Invoker.forBackgroundPoolWithReadAction(this), this)
     val tree = createTree(AsyncTreeModel(structureTreeModel, true, this))
     private val treePanel = ScrollPaneFactory.createScrollPane(tree)
+    private val profileManager = ProfileManager.getInstance(project)
 
     init {
         val group = DefaultActionGroup(
@@ -58,7 +59,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
         treePanelWrapper.setContent(treePanel)
 
         project.messageBus.connect(this).subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
-
+        profileStateChanged(profileManager.profileState)
     }
 
     companion object {
@@ -76,7 +77,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             treePanelWrapper.setContent(
                 when (newProfile) {
                     is ProfileState.ValidConnection -> {
-                        //invalidateTree()
+                        invalidateTree()
                         treePanel
                     }
                     else -> createInfoPanel(newProfile)

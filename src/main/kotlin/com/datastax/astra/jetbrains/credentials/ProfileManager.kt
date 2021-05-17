@@ -57,7 +57,6 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         changeFieldsAndNotify{
             selectedProfile = nextProfile
         }
-        AstraClient.accessToken= selectedProfile!!.token
     }
 
     @Synchronized
