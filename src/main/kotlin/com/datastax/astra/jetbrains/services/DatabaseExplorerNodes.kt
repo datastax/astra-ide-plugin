@@ -32,6 +32,9 @@ val fetchDB: (suspend (key: String) -> Response<List<Database>>) = {
 class DatabaseParentNode(project: Project) :
     ExplorerNode<String>(project, "Databases", null),
     ResourceActionNode, ResourceParentNode {
+    init{
+        AstraClient.project=project
+    }
 
     private var children = mutableMapOf<String, DatabaseNode>()
 
