@@ -15,7 +15,7 @@ import com.datastax.astra.stargate_v2.models.ColumnDefinition
 import com.datastax.astra.stargate_v2.models.PrimaryKey
 import com.datastax.astra.stargate_v2.models.TableOptions
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -27,16 +27,16 @@ import com.squareup.moshi.Json
  */
 
 data class TableAdd (
-    @Json(name = "name")
+    @SerializedName("name")
     val name: kotlin.String,
-    @Json(name = "columnDefinitions")
+    @SerializedName("columnDefinitions")
     val columnDefinitions: kotlin.collections.List<ColumnDefinition>,
-    @Json(name = "primaryKey")
+    @SerializedName("primaryKey")
     val primaryKey: PrimaryKey,
     /* Determines whether to create a new table if a table with the same name exists. Attempting to create an existing table returns an error unless this option is true. */
-    @Json(name = "ifNotExists")
+    @SerializedName("ifNotExists")
     val ifNotExists: kotlin.Boolean? = null,
-    @Json(name = "tableOptions")
+    @SerializedName("tableOptions")
     val tableOptions: TableOptions? = null
 )
 

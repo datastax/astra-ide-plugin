@@ -5,7 +5,6 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
-import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -21,7 +20,7 @@ class DeleteDatabaseAction
             if (DeleteDatabaseDialog(this.nodeProject).showAndGet()) {
                 val databaseNode = this
                 launch {
-                    var response = AstraClient.operationsApi().terminateDatabase(databaseNode.database.id)
+                    var response = AstraClient.dbOperationsApi().terminateDatabase(databaseNode.database.id)
                     if (response.isSuccessful) {
                         databaseNode.database = databaseNode.database.copy(status = StatusEnum.TERMINATING)
                     } else {

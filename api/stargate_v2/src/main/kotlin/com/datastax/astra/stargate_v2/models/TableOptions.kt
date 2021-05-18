@@ -13,7 +13,7 @@ package com.datastax.astra.stargate_v2.models
 
 import com.datastax.astra.stargate_v2.models.ClusteringExpression
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -23,9 +23,9 @@ import com.squareup.moshi.Json
 
 data class TableOptions (
     /* Defines the Time To Live (TTL), which determines the time period (in seconds) to expire data. If the value is >0, TTL is enabled for the entire table and an expiration timestamp is added to each column. The maximum value is 630720000 (20 years). A new TTL timestamp is calculated each time the data is updated and the row is removed after the data expires. */
-    @Json(name = "defaultTimeToLive")
+    @SerializedName("defaultTimeToLive")
     val defaultTimeToLive: kotlin.Int? = null,
-    @Json(name = "clusteringExpression")
+    @SerializedName("clusteringExpression")
     val clusteringExpression: kotlin.collections.List<ClusteringExpression>? = null
 )
 

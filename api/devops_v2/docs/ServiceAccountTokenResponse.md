@@ -4,7 +4,7 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**token** | **kotlin.String** | The application token. Use this token in each request. |  [optional]
+**token** | **kotlin.String** | The application token to use in each request. |  [optional]
 
 
 

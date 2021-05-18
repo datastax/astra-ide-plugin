@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 val fetchDB: (suspend (key: String) -> Response<List<Database>>) = {
-    AstraClient.operationsApi().listDatabases()
+    AstraClient.dbOperationsApi().listDatabases()
 }
 
 class DatabaseParentNode(project: Project) :
@@ -93,7 +93,7 @@ class DatabaseNode(nodeProject: Project, database: Database) :
         val explorerToolWindow = ExplorerToolWindow.getInstance(nodeProject)
         return flow {
             while (isActive) {
-                emit(AstraClient.operationsApi().getDatabase(database.id))
+                emit(AstraClient.dbOperationsApi().getDatabase(database.id))
                 delay(2000)
             }
         }.transform {

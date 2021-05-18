@@ -26,11 +26,11 @@ interface DataApi {
      * @param requestBody  
      * @return [kotlin.collections.Map<kotlin.String, kotlin.String>]
      */
-    @POST("v2/keyspaces/{keyspace-id}/{table-id}")
+    @POST("api/rest/v2/keyspaces/{keyspace-id}/{table-id}")
     suspend fun addRows(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Body requestBody: kotlin.collections.Map<kotlin.String, kotlin.String>): Response<kotlin.collections.Map<kotlin.String, kotlin.String>>
 
     /**
-     * Delete a row
+     * Delete a row by primary key
      * 
      * Responses:
      *  - 204: No Content
@@ -43,7 +43,7 @@ interface DataApi {
      * @param primaryKey Value from the primary key column for the table. Define composite keys by separating values with slashes (&#x60;val1/val2...&#x60;) in the order they were defined. &lt;/br&gt; For example, if the composite key was defined as &#x60;PRIMARY KEY(race_year, race_name)&#x60; then the primary key in the path would be &#x60;race_year/race_name&#x60;  
      * @return [Unit]
      */
-    @DELETE("v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
+    @DELETE("api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
     suspend fun deleteRows(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Path("primary-key") primaryKey: kotlin.String): Response<Unit>
 
     /**
@@ -63,14 +63,14 @@ interface DataApi {
      * @param pageSize restrict the number of returned items (optional)
      * @param pageState move the cursor to a particular result (optional)
      * @param sort keys to sort by (optional)
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse2003]
      */
-    @GET("v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
+    @GET("api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
     suspend fun getRows(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Path("primary-key") primaryKey: kotlin.String, @Query("fields") fields: kotlin.String? = null, @Query("page-size") pageSize: kotlin.Int? = null, @Query("page-state") pageState: kotlin.String? = null, @Query("sort") sort: kotlin.collections.Map<kotlin.String, kotlin.String>? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<InlineResponse2003>
 
     /**
-     * Replace a row
+     * Replace a row by primary key
      * 
      * Responses:
      *  - 200: resource updated
@@ -83,10 +83,10 @@ interface DataApi {
      * @param tableId table name 
      * @param primaryKey Value from the primary key column for the table. Define composite keys by separating values with slashes (&#x60;val1/val2...&#x60;) in the order they were defined. &lt;/br&gt; For example, if the composite key was defined as &#x60;PRIMARY KEY(race_year, race_name)&#x60; then the primary key in the path would be &#x60;race_year/race_name&#x60;  
      * @param requestBody document 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse2004]
      */
-    @PUT("v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
+    @PUT("api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
     suspend fun replaceRows(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Path("primary-key") primaryKey: kotlin.String, @Body requestBody: kotlin.collections.Map<kotlin.String, kotlin.String>, @Query("raw") raw: kotlin.Boolean? = null): Response<InlineResponse2004>
 
     /**
@@ -106,14 +106,14 @@ interface DataApi {
      * @param pageSize restrict the number of returned items (optional)
      * @param pageState move the cursor to a particular result (optional)
      * @param sort keys to sort by (optional)
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse2003]
      */
-    @GET("v2/keyspaces/{keyspace-id}/{table-id}")
+    @GET("api/rest/v2/keyspaces/{keyspace-id}/{table-id}")
     suspend fun searchTable(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Query("where") where: kotlin.Any? = null, @Query("fields") fields: kotlin.String? = null, @Query("page-size") pageSize: kotlin.Int? = null, @Query("page-state") pageState: kotlin.String? = null, @Query("sort") sort: kotlin.collections.Map<kotlin.String, kotlin.String>? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<InlineResponse2003>
 
     /**
-     * Update a row
+     * Update a row by primary key
      * 
      * Responses:
      *  - 200: resource updated
@@ -126,10 +126,10 @@ interface DataApi {
      * @param tableId table name 
      * @param primaryKey Value from the primary key column for the table. Define composite keys by separating values with slashes (&#x60;val1/val2...&#x60;) in the order they were defined. &lt;/br&gt; For example, if the composite key was defined as &#x60;PRIMARY KEY(race_year, race_name)&#x60; then the primary key in the path would be &#x60;race_year/race_name&#x60;  
      * @param requestBody document 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse2004]
      */
-    @PATCH("v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
+    @PATCH("api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key}")
     suspend fun updateRows(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Path("primary-key") primaryKey: kotlin.String, @Body requestBody: kotlin.collections.Map<kotlin.String, kotlin.String>, @Query("raw") raw: kotlin.Boolean? = null): Response<InlineResponse2004>
 
 }

@@ -13,7 +13,7 @@ package com.datastax.astra.stargate_v2.models
 
 import com.datastax.astra.stargate_v2.models.Datacenter
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -22,9 +22,9 @@ import com.squareup.moshi.Json
  */
 
 data class Keyspace (
-    @Json(name = "name")
+    @SerializedName("name")
     val name: kotlin.String,
-    @Json(name = "datacenters")
+    @SerializedName("datacenters")
     val datacenters: kotlin.collections.List<Datacenter>? = null
 )
 

@@ -1,14 +1,14 @@
 package com.datastax.astra.jetbrains.credentials
 
-import com.datastax.astra.devops_v2.apis.OperationsApi
+import com.datastax.astra.devops_v2.apis.DBOperationsApi
 
 /*
 Client that uses the operationsApi client for verifying tokens
  */
 object CredentialsClient {
-    fun operationsApi(token: String): OperationsApi {
+    fun operationsApi(token: String): DBOperationsApi {
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = token)
-            .createService(OperationsApi::class.java)
+            .createService(DBOperationsApi::class.java)
     }
 }
 
