@@ -9,7 +9,14 @@
     <!-- https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
 
+    <projectListeners>
+        <listener class="com.datastax.astra.jetbrains.credentials.ProfileStatusNotification"
+                  topic="com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier"/>
+    </projectListeners>
+
     <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceInterface="com.datastax.astra.jetbrains.credentials.ProfileManager"
+                        serviceImplementation="com.datastax.astra.jetbrains.credentials.ProfileManager"/>
 
         <projectService serviceImplementation="com.datastax.astra.jetbrains.explorer.ExplorerToolWindow"/>
         <toolWindow id="astra.explorer" anchor="left" secondary="true"
@@ -39,7 +46,10 @@
                     class="com.datastax.astra.jetbrains.services.database.OpenTableAction"/>
         </group>
 
+        <action class="com.datastax.astra.jetbrains.credentials.CreateOrUpdateProfilesFileAction" id="credentials.upsertCredentials"/>
+
         <action id="astra.explorer.refresh" class="com.datastax.astra.jetbrains.explorer.RefreshExplorerAction" icon="AllIcons.Actions.Refresh"/>
+
 
         <!--
         <group id="astra.explorer.streaming" popup="false" compact="false">
