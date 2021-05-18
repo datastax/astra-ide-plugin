@@ -11,6 +11,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
+import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeUIHelper
@@ -23,6 +24,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.annotations.NotNull
 import java.awt.Component
+import java.awt.event.MouseEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
 
@@ -80,6 +82,13 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
         TreeUIHelper.getInstance().installTreeSpeedSearch(tree)
 
+        object: DoubleClickListener() {
+            override fun onDoubleClick(event: MouseEvent): Boolean {
+                val path = tree.getClosestPathForLocation(event.x, event.y)
+                ((path?.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? ExplorerNode<*>)?.onDoubleClick()
+                return true
+            }
+        }.installOn(tree)
 
         tree.addMouseListener(object : PopupHandler() {
             override fun invokePopup(comp: Component?, x: Int, y: Int) {
