@@ -7,6 +7,7 @@ import okhttp3.RequestBody
 
 import com.datastax.astra.stargate_v2.models.ColumnDefinition
 import com.datastax.astra.stargate_v2.models.Error
+import com.datastax.astra.stargate_v2.models.IndexDefinition
 import com.datastax.astra.stargate_v2.models.InlineResponse200
 import com.datastax.astra.stargate_v2.models.InlineResponse2001
 import com.datastax.astra.stargate_v2.models.InlineResponse2002
@@ -34,6 +35,25 @@ interface SchemasApi {
      */
     @POST("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}/columns")
     suspend fun createColumn(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Body columnDefinition: ColumnDefinition): Response<InlineResponse201>
+
+    /**
+     * Create an index
+     * 
+     * Responses:
+     *  - 201: resource created
+     *  - 400: Bad Request
+     *  - 401: Unauthorized
+     *  - 409: Conflict
+     *  - 500: Internal server error
+     * 
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
+     * @param keyspaceId keyspace name 
+     * @param tableId table name 
+     * @param indexDefinition  
+     * @return [kotlin.String]
+     */
+    @POST("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}/indexes")
+    suspend fun createIndex(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Body indexDefinition: IndexDefinition): Response<kotlin.String>
 
     /**
      * Create a table
@@ -71,6 +91,24 @@ interface SchemasApi {
     suspend fun deleteColumn(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Path("column-id") columnId: kotlin.String): Response<Unit>
 
     /**
+     * Delete an index
+     * 
+     * Responses:
+     *  - 204: No Content
+     *  - 400: Bad Request
+     *  - 401: Unauthorized
+     *  - 500: Internal server error
+     * 
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
+     * @param keyspaceId keyspace name 
+     * @param tableId table name 
+     * @param indexId index name 
+     * @return [Unit]
+     */
+    @DELETE("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}/indexes/{index-id}")
+    suspend fun deleteIndex(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Path("index-id") indexId: kotlin.String): Response<Unit>
+
+    /**
      * Delete a table
      * 
      * Responses:
@@ -99,7 +137,7 @@ interface SchemasApi {
      * @param keyspaceId keyspace name 
      * @param tableId table name 
      * @param columnId column name 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [ColumnDefinition]
      */
     @GET("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}/columns/{column-id}")
@@ -117,11 +155,29 @@ interface SchemasApi {
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
      * @param keyspaceId keyspace name 
      * @param tableId table name 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse2002]
      */
     @GET("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}/columns")
     suspend fun getColumns(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Query("raw") raw: kotlin.Boolean? = null): Response<InlineResponse2002>
+
+    /**
+     * List indexes for a given table
+     * 
+     * Responses:
+     *  - 200: 
+     *  - 401: Unauthorized
+     *  - 404: Not Found
+     *  - 500: Internal server error
+     * 
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
+     * @param keyspaceId keyspace name 
+     * @param tableId table name 
+     * @param raw Unwrap results. (optional, default to false)
+     * @return [kotlin.collections.List<kotlin.collections.List<kotlin.Any>>]
+     */
+    @GET("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}/indexes")
+    suspend fun getIndexes(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("keyspace-id") keyspaceId: kotlin.String, @Path("table-id") tableId: kotlin.String, @Query("raw") raw: kotlin.Boolean? = null): Response<kotlin.collections.List<kotlin.collections.List<kotlin.Any>>>
 
     /**
      * Get a keyspace using the {keyspace-id}
@@ -135,7 +191,7 @@ interface SchemasApi {
      * 
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
      * @param keyspaceId keyspace name 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [Keyspace]
      */
     @GET("api/rest/v2/schemas/keyspaces/{keyspace-id}")
@@ -150,7 +206,7 @@ interface SchemasApi {
      *  - 500: Internal server error
      * 
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse200]
      */
     @GET("api/rest/v2/schemas/keyspaces")
@@ -168,7 +224,7 @@ interface SchemasApi {
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
      * @param keyspaceId keyspace name 
      * @param tableId table name 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [Table]
      */
     @GET("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables/{table-id}")
@@ -185,7 +241,7 @@ interface SchemasApi {
      * 
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
      * @param keyspaceId keyspace name 
-     * @param raw unwrap results (optional, default to false)
+     * @param raw Unwrap results. (optional, default to false)
      * @return [InlineResponse2001]
      */
     @GET("api/rest/v2/schemas/keyspaces/{keyspace-id}/tables")

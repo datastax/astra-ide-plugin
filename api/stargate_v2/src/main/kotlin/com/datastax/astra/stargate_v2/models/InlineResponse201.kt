@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -20,7 +20,7 @@ import com.squareup.moshi.Json
  */
 
 data class InlineResponse201 (
-    @Json(name = "name")
+    @SerializedName("name")
     val name: kotlin.String? = null
 )
 

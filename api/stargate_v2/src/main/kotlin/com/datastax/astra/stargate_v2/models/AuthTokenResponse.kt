@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -20,7 +20,7 @@ import com.squareup.moshi.Json
  */
 
 data class AuthTokenResponse (
-    @Json(name = "authToken")
+    @SerializedName("authToken")
     val authToken: kotlin.String? = null
 )
 

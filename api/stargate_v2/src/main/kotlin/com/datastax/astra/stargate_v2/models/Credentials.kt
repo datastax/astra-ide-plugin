@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * User credentials for authenticating
@@ -22,10 +22,10 @@ import com.squareup.moshi.Json
 
 data class Credentials (
     /* Username, must be ASTRA_DB_USERNAME */
-    @Json(name = "username")
+    @SerializedName("username")
     val username: kotlin.String,
     /* Password, must be ASTRA_DB_PASSWORD */
-    @Json(name = "password")
+    @SerializedName("password")
     val password: kotlin.String
 )
 

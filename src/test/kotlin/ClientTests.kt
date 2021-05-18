@@ -24,7 +24,7 @@ class ClientTests {
                 1,
                 "us-west-2"
             )
-        val response = AstraClient.operationsApi().createDatabase(databaseInfoCreate)
+        val response = AstraClient.dbOperationsApi().createDatabase(databaseInfoCreate)
         val databaseId = response.headers()["Location"]
         println(response.isSuccessful)
         println(databaseId)
@@ -35,7 +35,7 @@ class ClientTests {
     @Test
     fun testListDatabases() = runBlocking {
         AstraClient.project = dataContext.getData(DataConstants.PROJECT) as Project
-        val foo = AstraClient.operationsApi().listDatabases(null, null, null, null)
+        val foo = AstraClient.dbOperationsApi().listDatabases(null, null, null, null)
         println(foo.isSuccessful)
         foo.body()?.forEach {
             println(it.dataEndpointUrl)

@@ -1,16 +1,15 @@
 package com.datastax.astra.stargate_v2.infrastructure
 
-import com.squareup.moshi.JsonDataException
-import com.squareup.moshi.Moshi
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParseException
 import retrofit2.Response
 
-@Throws(JsonDataException::class)
-inline fun <reified T> Response<*>.getErrorResponse(serializerBuilder: Moshi.Builder = Serializer.moshiBuilder): T? {
-    val serializer = serializerBuilder.build()
-    val parser = serializer.adapter(T::class.java)
-    val response = errorBody()?.string()
-    if (response != null) {
-        return parser.fromJson(response)
+@Throws(JsonParseException::class)
+inline fun <reified T> Response<*>.getErrorResponse(serializerBuilder: GsonBuilder = Serializer.gsonBuilder): T? {
+    val serializer = serializerBuilder.create()
+    val reader = errorBody()?.charStream()
+    if (reader != null) {
+        return serializer.fromJson(reader, T::class.java)
     }
     return null
 }

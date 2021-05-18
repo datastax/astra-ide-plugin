@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -21,9 +21,9 @@ import com.squareup.moshi.Json
  */
 
 data class Datacenter (
-    @Json(name = "name")
+    @SerializedName("name")
     val name: kotlin.String,
-    @Json(name = "replicas")
+    @SerializedName("replicas")
     val replicas: kotlin.Int
 )
 

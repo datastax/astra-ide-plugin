@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -23,13 +23,13 @@ import com.squareup.moshi.Json
 
 data class ColumnDefinition (
     /* Name for the column, which must be unique. */
-    @Json(name = "name")
+    @SerializedName("name")
     val name: kotlin.String,
     /* The type of data allowed in the column. */
-    @Json(name = "typeDefinition")
+    @SerializedName("typeDefinition")
     val typeDefinition: ColumnDefinition.TypeDefinition,
     /* Denotes whether the column is shared by all rows of a partition. */
-    @Json(name = "static")
+    @SerializedName("static")
     val static: kotlin.Boolean? = null
 ) {
 
@@ -38,36 +38,36 @@ data class ColumnDefinition (
      * Values: ASCII,TEXT,VARCHAR,TINYINT,SMALLINT,INT,BIGINT,VARINT,DECIMAL,FLOAT,DOUBLE,DATE,DATE_RANGE_TYPE,DURATION,TIME,TIMESTAMP,UUID,TIMEUUID,BLOB,BOOLEAN,COUNTER,INET,POINT_TYPE,LINE_STRING_TYPE,POLYGON_TYPE,FROZEN,LIST,MAP,SET,TUPLE
      */
     enum class TypeDefinition(val value: kotlin.String) {
-        @Json(name = "ascii") ASCII("ascii"),
-        @Json(name = "text") TEXT("text"),
-        @Json(name = "varchar") VARCHAR("varchar"),
-        @Json(name = "tinyint") TINYINT("tinyint"),
-        @Json(name = "smallint") SMALLINT("smallint"),
-        @Json(name = "int") INT("int"),
-        @Json(name = "bigint") BIGINT("bigint"),
-        @Json(name = "varint") VARINT("varint"),
-        @Json(name = "decimal") DECIMAL("decimal"),
-        @Json(name = "float") FLOAT("float"),
-        @Json(name = "double") DOUBLE("double"),
-        @Json(name = "date") DATE("date"),
-        @Json(name = "DateRangeType") DATE_RANGE_TYPE("DateRangeType"),
-        @Json(name = "duration") DURATION("duration"),
-        @Json(name = "time") TIME("time"),
-        @Json(name = "timestamp") TIMESTAMP("timestamp"),
-        @Json(name = "uuid") UUID("uuid"),
-        @Json(name = "timeuuid") TIMEUUID("timeuuid"),
-        @Json(name = "blob") BLOB("blob"),
-        @Json(name = "boolean") BOOLEAN("boolean"),
-        @Json(name = "counter") COUNTER("counter"),
-        @Json(name = "inet") INET("inet"),
-        @Json(name = "PointType") POINT_TYPE("PointType"),
-        @Json(name = "LineStringType") LINE_STRING_TYPE("LineStringType"),
-        @Json(name = "PolygonType") POLYGON_TYPE("PolygonType"),
-        @Json(name = "frozen") FROZEN("frozen"),
-        @Json(name = "list") LIST("list"),
-        @Json(name = "map") MAP("map"),
-        @Json(name = "set") SET("set"),
-        @Json(name = "tuple") TUPLE("tuple");
+        @SerializedName(value = "ascii") ASCII("ascii"),
+        @SerializedName(value = "text") TEXT("text"),
+        @SerializedName(value = "varchar") VARCHAR("varchar"),
+        @SerializedName(value = "tinyint") TINYINT("tinyint"),
+        @SerializedName(value = "smallint") SMALLINT("smallint"),
+        @SerializedName(value = "int") INT("int"),
+        @SerializedName(value = "bigint") BIGINT("bigint"),
+        @SerializedName(value = "varint") VARINT("varint"),
+        @SerializedName(value = "decimal") DECIMAL("decimal"),
+        @SerializedName(value = "float") FLOAT("float"),
+        @SerializedName(value = "double") DOUBLE("double"),
+        @SerializedName(value = "date") DATE("date"),
+        @SerializedName(value = "DateRangeType") DATE_RANGE_TYPE("DateRangeType"),
+        @SerializedName(value = "duration") DURATION("duration"),
+        @SerializedName(value = "time") TIME("time"),
+        @SerializedName(value = "timestamp") TIMESTAMP("timestamp"),
+        @SerializedName(value = "uuid") UUID("uuid"),
+        @SerializedName(value = "timeuuid") TIMEUUID("timeuuid"),
+        @SerializedName(value = "blob") BLOB("blob"),
+        @SerializedName(value = "boolean") BOOLEAN("boolean"),
+        @SerializedName(value = "counter") COUNTER("counter"),
+        @SerializedName(value = "inet") INET("inet"),
+        @SerializedName(value = "PointType") POINT_TYPE("PointType"),
+        @SerializedName(value = "LineStringType") LINE_STRING_TYPE("LineStringType"),
+        @SerializedName(value = "PolygonType") POLYGON_TYPE("PolygonType"),
+        @SerializedName(value = "frozen") FROZEN("frozen"),
+        @SerializedName(value = "list") LIST("list"),
+        @SerializedName(value = "map") MAP("map"),
+        @SerializedName(value = "set") SET("set"),
+        @SerializedName(value = "tuple") TUPLE("tuple");
     }
 }
 

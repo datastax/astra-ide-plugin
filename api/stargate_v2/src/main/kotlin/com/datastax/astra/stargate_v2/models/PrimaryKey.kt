@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * Defines a column list for the primary key. Can be either a single column, compound primary key, or composite partition key. Provide multiple columns for the partition key to define a composite partition key.
@@ -22,10 +22,10 @@ import com.squareup.moshi.Json
 
 data class PrimaryKey (
     /* Name of the column or columns that constitute the partition key. */
-    @Json(name = "partitionKey")
+    @SerializedName("partitionKey")
     val partitionKey: kotlin.collections.List<kotlin.String>,
     /* Name of the column or columns that constitute the clustering key. */
-    @Json(name = "clusteringKey")
+    @SerializedName("clusteringKey")
     val clusteringKey: kotlin.collections.List<kotlin.String>? = null
 )
 

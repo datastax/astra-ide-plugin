@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **terminationTime** | **kotlin.String** | TerminationTime in ISO RFC3339 format |  [optional]
 **storage** | [**Storage**](Storage.md) |  |  [optional]
 **availableActions** | [**inline**](#kotlin.collections.List&lt;AvailableActionsEnum&gt;) |  |  [optional]
-**message** | **kotlin.String** | Message to the customer about the cluster |  [optional]
+**message** | **kotlin.String** | Message to the customer about the cluster. |  [optional]
 **studioUrl** | **kotlin.String** |  |  [optional]
 **grafanaUrl** | **kotlin.String** |  |  [optional]
 **cqlshUrl** | **kotlin.String** |  |  [optional]
@@ -25,7 +25,7 @@ Name | Type | Description | Notes
 ## Enum: availableActions
 Name | Value
 ---- | -----
-availableActions | park, unpark, resize, resetPassword, addKeyspace, addDatacenters, terminateDatacenter, getCreds, terminate, suspend, removeKeyspace, addTable, removeMigrationProxy, launchMigrationProxy
+availableActions | park, unpark, resize, resetPassword, addKeyspace, addDatacenters, terminateDatacenter, getCreds, terminate, removeKeyspace, addTable, removeMigrationProxy, launchMigrationProxy
 
 
 

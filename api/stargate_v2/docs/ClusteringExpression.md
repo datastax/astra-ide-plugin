@@ -4,8 +4,8 @@
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**column** | **kotlin.String** |  | 
-**order** | [**inline**](#OrderEnum) |  | 
+**column** | **kotlin.String** | The name of the column to order by. | 
+**order** | [**inline**](#OrderEnum) | The clustering order. | 
 
 
 <a name="OrderEnum"></a>

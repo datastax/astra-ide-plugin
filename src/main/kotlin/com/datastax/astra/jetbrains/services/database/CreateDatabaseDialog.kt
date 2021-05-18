@@ -7,7 +7,6 @@ import com.datastax.astra.jetbrains.explorer.DatabaseParentNode
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
@@ -83,7 +82,7 @@ class CreateDatabaseDialog(
         launch {
             //TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, region)
-            val response = AstraClient.operationsApi().createDatabase(databaseInfoCreate)
+            val response = AstraClient.dbOperationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
                 val databaseParent =
                     TreeUtil.findNode(ExplorerToolWindow.getInstance(project).tree.model.root as @NotNull DefaultMutableTreeNode) {

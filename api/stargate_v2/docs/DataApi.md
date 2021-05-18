@@ -4,12 +4,12 @@ All URIs are relative to *https://-.apps.astra.datastax.com*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**addRows**](DataApi.md#addRows) | **POST** v2/keyspaces/{keyspace-id}/{table-id} | Add rows
-[**deleteRows**](DataApi.md#deleteRows) | **DELETE** v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Delete a row
-[**getRows**](DataApi.md#getRows) | **GET** v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Get a row
-[**replaceRows**](DataApi.md#replaceRows) | **PUT** v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Replace a row
-[**searchTable**](DataApi.md#searchTable) | **GET** v2/keyspaces/{keyspace-id}/{table-id} | Search a table
-[**updateRows**](DataApi.md#updateRows) | **PATCH** v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Update a row
+[**addRows**](DataApi.md#addRows) | **POST** api/rest/v2/keyspaces/{keyspace-id}/{table-id} | Add rows
+[**deleteRows**](DataApi.md#deleteRows) | **DELETE** api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Delete a row by primary key
+[**getRows**](DataApi.md#getRows) | **GET** api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Get a row
+[**replaceRows**](DataApi.md#replaceRows) | **PUT** api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Replace a row by primary key
+[**searchTable**](DataApi.md#searchTable) | **GET** api/rest/v2/keyspaces/{keyspace-id}/{table-id} | Search a table
+[**updateRows**](DataApi.md#updateRows) | **PATCH** api/rest/v2/keyspaces/{keyspace-id}/{table-id}/{primary-key} | Update a row by primary key
 
 
 
@@ -57,7 +57,7 @@ No authorization required
  - **Accept**: application/json, */*
 
 
-Delete a row
+Delete a row by primary key
 
 ### Example
 ```kotlin
@@ -120,7 +120,7 @@ val fields : kotlin.String = fields_example // kotlin.String | URL escaped, comm
 val pageSize : kotlin.Int = 56 // kotlin.Int | restrict the number of returned items
 val pageState : kotlin.String = pageState_example // kotlin.String | move the cursor to a particular result
 val sort : kotlin.collections.Map<kotlin.String, kotlin.String> =  // kotlin.collections.Map<kotlin.String, kotlin.String> | keys to sort by
-val raw : kotlin.Boolean = true // kotlin.Boolean | unwrap results
+val raw : kotlin.Boolean = true // kotlin.Boolean | Unwrap results.
 
 launch(Dispatchers.IO) {
     val result : InlineResponse2003 = webService.getRows(xCassandraToken, keyspaceId, tableId, primaryKey, fields, pageSize, pageState, sort, raw)
@@ -139,7 +139,7 @@ Name | Type | Description  | Notes
  **pageSize** | **kotlin.Int**| restrict the number of returned items | [optional]
  **pageState** | **kotlin.String**| move the cursor to a particular result | [optional]
  **sort** | [**kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;**](kotlin.String.md)| keys to sort by | [optional] [enum: asc, desc]
- **raw** | **kotlin.Boolean**| unwrap results | [optional] [default to false]
+ **raw** | **kotlin.Boolean**| Unwrap results. | [optional] [default to false]
 
 ### Return type
 
@@ -155,7 +155,7 @@ No authorization required
  - **Accept**: application/json, */*
 
 
-Replace a row
+Replace a row by primary key
 
 ### Example
 ```kotlin
@@ -171,7 +171,7 @@ val keyspaceId : kotlin.String = keyspaceId_example // kotlin.String | keyspace 
 val tableId : kotlin.String = tableId_example // kotlin.String | table name
 val primaryKey : kotlin.String = primaryKey_example // kotlin.String | Value from the primary key column for the table. Define composite keys by separating values with slashes (`val1/val2...`) in the order they were defined. </br> For example, if the composite key was defined as `PRIMARY KEY(race_year, race_name)` then the primary key in the path would be `race_year/race_name` 
 val requestBody : kotlin.collections.Map<kotlin.String, kotlin.String> =  // kotlin.collections.Map<kotlin.String, kotlin.String> | document
-val raw : kotlin.Boolean = true // kotlin.Boolean | unwrap results
+val raw : kotlin.Boolean = true // kotlin.Boolean | Unwrap results.
 
 launch(Dispatchers.IO) {
     val result : InlineResponse2004 = webService.replaceRows(xCassandraToken, keyspaceId, tableId, primaryKey, requestBody, raw)
@@ -187,7 +187,7 @@ Name | Type | Description  | Notes
  **tableId** | **kotlin.String**| table name |
  **primaryKey** | **kotlin.String**| Value from the primary key column for the table. Define composite keys by separating values with slashes (&#x60;val1/val2...&#x60;) in the order they were defined. &lt;/br&gt; For example, if the composite key was defined as &#x60;PRIMARY KEY(race_year, race_name)&#x60; then the primary key in the path would be &#x60;race_year/race_name&#x60;  |
  **requestBody** | [**kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;**](kotlin.String.md)| document |
- **raw** | **kotlin.Boolean**| unwrap results | [optional] [default to false]
+ **raw** | **kotlin.Boolean**| Unwrap results. | [optional] [default to false]
 
 ### Return type
 
@@ -222,7 +222,7 @@ val fields : kotlin.String = fields_example // kotlin.String | URL escaped, comm
 val pageSize : kotlin.Int = 56 // kotlin.Int | restrict the number of returned items
 val pageState : kotlin.String = pageState_example // kotlin.String | move the cursor to a particular result
 val sort : kotlin.collections.Map<kotlin.String, kotlin.String> =  // kotlin.collections.Map<kotlin.String, kotlin.String> | keys to sort by
-val raw : kotlin.Boolean = true // kotlin.Boolean | unwrap results
+val raw : kotlin.Boolean = true // kotlin.Boolean | Unwrap results.
 
 launch(Dispatchers.IO) {
     val result : InlineResponse2003 = webService.searchTable(xCassandraToken, keyspaceId, tableId, where, fields, pageSize, pageState, sort, raw)
@@ -241,7 +241,7 @@ Name | Type | Description  | Notes
  **pageSize** | **kotlin.Int**| restrict the number of returned items | [optional]
  **pageState** | **kotlin.String**| move the cursor to a particular result | [optional]
  **sort** | [**kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;**](kotlin.String.md)| keys to sort by | [optional] [enum: asc, desc]
- **raw** | **kotlin.Boolean**| unwrap results | [optional] [default to false]
+ **raw** | **kotlin.Boolean**| Unwrap results. | [optional] [default to false]
 
 ### Return type
 
@@ -257,7 +257,7 @@ No authorization required
  - **Accept**: application/json, */*
 
 
-Update a row
+Update a row by primary key
 
 ### Example
 ```kotlin
@@ -273,7 +273,7 @@ val keyspaceId : kotlin.String = keyspaceId_example // kotlin.String | keyspace 
 val tableId : kotlin.String = tableId_example // kotlin.String | table name
 val primaryKey : kotlin.String = primaryKey_example // kotlin.String | Value from the primary key column for the table. Define composite keys by separating values with slashes (`val1/val2...`) in the order they were defined. </br> For example, if the composite key was defined as `PRIMARY KEY(race_year, race_name)` then the primary key in the path would be `race_year/race_name` 
 val requestBody : kotlin.collections.Map<kotlin.String, kotlin.String> =  // kotlin.collections.Map<kotlin.String, kotlin.String> | document
-val raw : kotlin.Boolean = true // kotlin.Boolean | unwrap results
+val raw : kotlin.Boolean = true // kotlin.Boolean | Unwrap results.
 
 launch(Dispatchers.IO) {
     val result : InlineResponse2004 = webService.updateRows(xCassandraToken, keyspaceId, tableId, primaryKey, requestBody, raw)
@@ -289,7 +289,7 @@ Name | Type | Description  | Notes
  **tableId** | **kotlin.String**| table name |
  **primaryKey** | **kotlin.String**| Value from the primary key column for the table. Define composite keys by separating values with slashes (&#x60;val1/val2...&#x60;) in the order they were defined. &lt;/br&gt; For example, if the composite key was defined as &#x60;PRIMARY KEY(race_year, race_name)&#x60; then the primary key in the path would be &#x60;race_year/race_name&#x60;  |
  **requestBody** | [**kotlin.collections.Map&lt;kotlin.String, kotlin.String&gt;**](kotlin.String.md)| document |
- **raw** | **kotlin.Boolean**| unwrap results | [optional] [default to false]
+ **raw** | **kotlin.Boolean**| Unwrap results. | [optional] [default to false]
 
 ### Return type
 

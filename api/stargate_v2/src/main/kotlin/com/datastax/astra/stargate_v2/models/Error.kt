@@ -12,7 +12,7 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * A description of an error state
@@ -22,10 +22,10 @@ import com.squareup.moshi.Json
 
 data class Error (
     /* A human readable description of the error state */
-    @Json(name = "description")
+    @SerializedName("description")
     val description: kotlin.String? = null,
     /* The code referencing the error state */
-    @Json(name = "code")
+    @SerializedName("code")
     val code: kotlin.Int? = null
 )
 

@@ -12,28 +12,30 @@
 package com.datastax.astra.stargate_v2.models
 
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * Order rows storage to make use of the on-disk sorting of columns. Specifying order can make query results more efficient.
- * @param column 
- * @param order 
+ * @param column The name of the column to order by.
+ * @param order The clustering order.
  */
 
 data class ClusteringExpression (
-    @Json(name = "column")
+    /* The name of the column to order by. */
+    @SerializedName("column")
     val column: kotlin.String,
-    @Json(name = "order")
+    /* The clustering order. */
+    @SerializedName("order")
     val order: ClusteringExpression.Order
 ) {
 
     /**
-     * 
+     * The clustering order.
      * Values: ASC,DESC
      */
     enum class Order(val value: kotlin.String) {
-        @Json(name = "ASC") ASC("ASC"),
-        @Json(name = "DESC") DESC("DESC");
+        @SerializedName(value = "ASC") ASC("ASC"),
+        @SerializedName(value = "DESC") DESC("DESC");
     }
 }
 

@@ -15,7 +15,7 @@ import com.datastax.astra.stargate_v2.models.ColumnDefinition
 import com.datastax.astra.stargate_v2.models.PrimaryKey
 import com.datastax.astra.stargate_v2.models.TableOptions
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 /**
  * 
@@ -27,15 +27,15 @@ import com.squareup.moshi.Json
  */
 
 data class Table (
-    @Json(name = "name")
+    @SerializedName("name")
     val name: kotlin.String? = null,
-    @Json(name = "keyspace")
+    @SerializedName("keyspace")
     val keyspace: kotlin.String? = null,
-    @Json(name = "columnDefinitions")
+    @SerializedName("columnDefinitions")
     val columnDefinitions: kotlin.collections.List<ColumnDefinition>? = null,
-    @Json(name = "primaryKey")
+    @SerializedName("primaryKey")
     val primaryKey: PrimaryKey? = null,
-    @Json(name = "tableOptions")
+    @SerializedName("tableOptions")
     val tableOptions: TableOptions? = null
 )
 
