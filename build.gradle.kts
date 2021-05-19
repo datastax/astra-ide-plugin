@@ -40,7 +40,7 @@ sourceSets {
 
 val retrofitVersion = "2.7.2"
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.16.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.0")
 
     //BEGIN Dependencies for OpenApi clients
     //Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
