@@ -168,12 +168,12 @@ class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Datab
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
         AstraClient.schemasApiForDatabase(database)
             .getTables(AstraClient.accessToken, keyspace.name, null).body()?.data?.map {
-                TableNode(nodeProject, it)
+                TableNode(nodeProject, it, database)
             } ?: emptyList()
     }
 }
 
-class TableNode(project: Project, val table: Table) :
+class TableNode(project: Project, val table: Table, val database: Database) :
     ExplorerNode<String>(project, table.name.orEmpty(), null),
     ResourceActionNode {
 
@@ -181,7 +181,7 @@ class TableNode(project: Project, val table: Table) :
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick() {
-        openEditor(nodeProject, table)
+        openEditor(nodeProject, table, database)
     }
 }
 

@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.datastax.astra.devops_v2.models.Database
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.*
 import com.intellij.openapi.project.PossiblyDumbAware
@@ -7,7 +8,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import java.beans.PropertyChangeListener
-import javax.swing.JComponent
 
 class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
 
@@ -15,7 +15,8 @@ class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
 
     override fun accept(project: Project, file: VirtualFile) = file is TableVirtualFile
 
-    override fun createEditor(project: Project, file: VirtualFile): FileEditor = TableViewerEditor()
+    override fun createEditor(project: Project, file: VirtualFile): FileEditor =
+        TableViewerEditor(project, file as TableVirtualFile)
 
     override fun getEditorTypeId() = EDITOR_TYPE_ID
 
@@ -26,9 +27,10 @@ class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
     }
 }
 
-class TableViewerEditor : UserDataHolderBase(), FileEditor{
+class TableViewerEditor(project: Project, tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
 
-    private val tablePanel: TableViewerPanel = TableViewerPanel()
+    private val tablePanel: TableViewerPanel =
+        TableViewerPanel(this, project, tableVirtualFile.table, tableVirtualFile.database)
 
     override fun dispose() {}
 
@@ -51,11 +53,11 @@ class TableViewerEditor : UserDataHolderBase(), FileEditor{
     override fun getCurrentLocation(): FileEditorLocation? = null
 }
 
-fun openEditor(project: Project, table: com.datastax.astra.stargate_v2.models.Table): Editor? {
+fun openEditor(project: Project, table: com.datastax.astra.stargate_v2.models.Table, database: Database): Editor? {
     return FileEditorManager.getInstance(project).openTextEditor(
         OpenFileDescriptor(
             project,
-            TableVirtualFile()
+            TableVirtualFile(table, database)
         ),
         true
     )

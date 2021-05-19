@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class OpenTableAction : DumbAwareAction(message("table.open.title"), null, null) {
     override fun actionPerformed(e: AnActionEvent) {
         e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? TableNode }?.singleOrNull()?.run {
-            openEditor(this.nodeProject, this.table)
+            openEditor(this.nodeProject, this.table, this.database)
         }
     }
 }
