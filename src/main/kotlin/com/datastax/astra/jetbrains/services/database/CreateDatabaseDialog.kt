@@ -15,9 +15,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
-import com.intellij.ui.layout.cellPanel
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.selected
+import com.intellij.ui.RightAlignedLabelUI
+import com.intellij.ui.layout.*
 import com.intellij.util.ui.tree.TreeUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -56,9 +55,6 @@ class CreateDatabaseDialog(
     val azureButton = JRadioButton("Azure")
     var providerGroup = ButtonGroup()
 
-
-    var regionsList: MutableList<RegionCombination> = mutableListOf()
-
     //TODO: Generate these ComboBoxes based on the providers listed in allRegions
     var awsRegionsComboBox = ComboBox<DatabaseComboBoxItem>()
     var gcpRegionsComboBox = ComboBox<DatabaseComboBoxItem>()
@@ -95,23 +91,22 @@ class CreateDatabaseDialog(
             }
         }
         row("Cloud Provider:") {
-            awsButton()
-            gcpButton()
-            azureButton()
+            cell {
+                awsButton()
+                gcpButton()
+                azureButton()
+            }
         }
         row("Tier:") {
-            //Thought I needed to do this but I don't since they only support creating serverless from rest
-            //This kind of works but only updates when provider changes
-            //createActionLabel(awsRegionsComboBox.item.regionInfo.tier,awsRegionsComboBox.actionPerformed())
-            /*label(awsRegionsComboBox.item.regionInfo.tier).visibleIf(awsButton.selected)
-            label(gcpRegionsComboBox.item.regionInfo.tier).visibleIf(gcpButton.selected)
-            label(azureRegionsComboBox.item.regionInfo.tier).visibleIf(azureButton.selected)*/
             label(tier.value)
         }
-        row("Regions:") {
-            awsRegionsComboBox().visibleIf(awsButton.selected)
-            gcpRegionsComboBox().visibleIf(gcpButton.selected)
-            azureRegionsComboBox().visibleIf(azureButton.selected)
+        row {
+            label("Region:")
+            cell{
+                awsRegionsComboBox().visibleIf(awsButton.selected).withLeftGap().component.setMinimumAndPreferredWidth(160)
+                gcpRegionsComboBox().visibleIf(gcpButton.selected).withLeftGap().component.setMinimumAndPreferredWidth(160)
+                azureRegionsComboBox().visibleIf(azureButton.selected).withLeftGap().component.setMinimumAndPreferredWidth(160)
+            }
         }
 
     }
