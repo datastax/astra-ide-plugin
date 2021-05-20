@@ -133,24 +133,26 @@ class CreateDatabaseDialog(
         if (!okAction.isEnabled) {
             return
         }
+
+        //This is where we designate where to make a DB based on the selection
+        when {
+            awsButton.selected() -> {
+                cloudProvider=DatabaseInfoCreate.CloudProvider.AWS
+                region = awsRegionsComboBox.selectedItem.toString()
+            }
+            gcpButton.selected() -> {
+                cloudProvider=DatabaseInfoCreate.CloudProvider.GCP
+                region = gcpRegionsComboBox.selectedItem.toString()
+            }
+            azureButton.selected() -> {
+                //Can't do this
+                //TODO: Fail gracefully
+            }
+        }
+
         view.apply()
         close(OK_EXIT_CODE)
         launch {
-            //This is where we designate where to make a DB based on the selection
-            when(providerGroup.selection){
-                awsButton -> {
-                    cloudProvider=DatabaseInfoCreate.CloudProvider.AWS
-                    region = awsRegionsComboBox.item.regionInfo.region
-                }
-                gcpButton -> {
-                    cloudProvider=DatabaseInfoCreate.CloudProvider.GCP
-                    region = gcpRegionsComboBox.item.regionInfo.region
-                }
-                azureButton -> {
-                    //Can't do this
-                    //TODO: Fail gracefully
-                }
-            }
 
             //TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, region)
