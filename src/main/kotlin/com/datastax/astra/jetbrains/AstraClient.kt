@@ -18,7 +18,6 @@ object AstraClient {
         get() = ProfileManager.getInstance(project).activeProfile?.token.toString()
 
     fun dbOperationsApi(): DBOperationsApi {
-        println("using token: $accessToken")
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
                 .createService(DBOperationsApi::class.java)
     }
