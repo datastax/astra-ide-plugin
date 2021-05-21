@@ -21,6 +21,7 @@
         <projectService serviceImplementation="com.datastax.astra.jetbrains.explorer.ExplorerToolWindow"/>
         <toolWindow id="astra.explorer" anchor="left" secondary="true"
                     factoryClass="com.datastax.astra.jetbrains.explorer.ExplorerFactory"/>
+        <fileEditorProvider implementation="com.datastax.astra.jetbrains.services.database.TableViewerEditorProvider"/>
     </extensions>
 
     <actions>
@@ -38,6 +39,11 @@
         <group id="astra.explorer.databases.keyspace" popup="true" compact="false">
             <action id="keyspace.delete"
                     class="com.datastax.astra.jetbrains.services.database.DeleteKeyspaceAction"/>
+        </group>
+
+        <group id="astra.explorer.databases.table" popup="true" compact="false">
+            <action id="table.open"
+                    class="com.datastax.astra.jetbrains.services.database.OpenTableAction"/>
         </group>
 
         <action class="com.datastax.astra.jetbrains.credentials.CreateOrUpdateProfilesFileAction" id="credentials.upsertCredentials"/>

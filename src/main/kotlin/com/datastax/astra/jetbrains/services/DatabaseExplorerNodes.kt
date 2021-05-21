@@ -4,6 +4,7 @@ import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
+import com.datastax.astra.jetbrains.services.database.openEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_v2.models.Keyspace
 import com.datastax.astra.stargate_v2.models.Table
@@ -167,13 +168,21 @@ class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Datab
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
         AstraClient.schemasApiForDatabase(database)
             .getTables(AstraClient.accessToken, keyspace.name, null).body()?.data?.map {
-                TableNode(nodeProject, it)
+                TableNode(nodeProject, it, database)
             } ?: emptyList()
     }
 }
 
-class TableNode(project: Project, val table: Table) : ExplorerNode<String>(project, table.name.orEmpty(), null) {
+class TableNode(project: Project, val table: Table, val database: Database) :
+    ExplorerNode<String>(project, table.name.orEmpty(), null),
+    ResourceActionNode {
+
+    override fun actionGroupName(): String = "astra.explorer.databases.table"
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
+
+    override fun onDoubleClick() {
+        openEditor(nodeProject, table, database)
+    }
 }
 
 private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
