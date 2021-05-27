@@ -79,6 +79,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             treePanelWrapper.setContent(
                 when (newProfile) {
                     is ProfileState.ValidConnection -> {
+                        clearCacheMap()
                         invalidateTree()
                         treePanel
                     }

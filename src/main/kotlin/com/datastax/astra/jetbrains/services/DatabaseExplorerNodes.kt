@@ -34,6 +34,7 @@ class DatabaseParentNode(project: Project) :
     ExplorerNode<String>(project, "Databases", null),
     ResourceActionNode, ResourceParentNode {
     init{
+        //Pass project object to astraclient so it can acquire tokens from profile manager
         AstraClient.project=project
     }
 
@@ -187,6 +188,12 @@ class TableNode(project: Project, val table: Table, val database: Database) :
 
 private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
 private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()
+
+fun clearCacheMap(){
+    cacheMap[fetchDB::class].also {
+        it?.asMap()?.remove("")
+    }
+}
 
 suspend fun <K, V> cached(
     key: K,
