@@ -13,6 +13,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.datastax.astra.jetbrains.MessagesBundle.message
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 
@@ -20,7 +21,7 @@ import java.io.File
 class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     private val writer: ConfigFileWriter,
     private val configFile: File
-) : AnAction("Edit DataStax Profiles File"), DumbAware {
+) : AnAction(message("credentials.file.edit")), DumbAware {
     @Suppress("unused")
     constructor() : this(
         DefaultConfigFileWriter,
@@ -47,7 +48,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
         // open both config file, if it exist
         val virtualFiles = listOf(configFile).filter { it.exists() }.map {
-            localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException("credentials.could_not_open $it")
+            localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException(message("credentials.file.could_not_open", it))
         }
 
         val fileEditorManager = FileEditorManager.getInstance(project)
@@ -64,7 +65,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
                 }
 
                 if (fileEditorManager.openTextEditor(OpenFileDescriptor(project, it), true) == null) {
-                    throw RuntimeException("credentials.could_not_open $it")
+                    throw RuntimeException(message("credentials.file.could_not_open", it))
 
                 }
             }
@@ -73,9 +74,9 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
     private fun confirm(project: Project, file: File): Boolean = Messages.showOkCancelDialog(
         project,
-        "Credentials file $file does not exist. Create it?",
-        "Create Credentials File",
-        "Create",
+        message("credentials.file.confirm_create",file),
+        message("credentials.file.confirm_create.title"),
+        message("credentials.file.confirm_create.okay"),
         Messages.getCancelButton(),
         AllIcons.General.QuestionDialog,
         null
