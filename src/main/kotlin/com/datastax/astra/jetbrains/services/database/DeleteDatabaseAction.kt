@@ -5,6 +5,7 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
+import com.datastax.astra.jetbrains.explorer.isProcessing
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -29,5 +30,11 @@ class DeleteDatabaseAction
                 }
             }
         }
+    }
+
+    //If DB is processing grey out access to delete database
+    override fun update(e: AnActionEvent) {
+        if(e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.database?.status?.isProcessing() == true)
+            e.presentation.setEnabled(false)
     }
 }
