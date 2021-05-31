@@ -69,6 +69,7 @@ class DatabaseParentNode(project: Project) :
     fun clearCache() = run {
         //This is how to force removal
         //Need the lambda not 'inline' though because it's used as the key in the map
+        val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
         cacheMap[fetchDB::class].also {
             it?.asMap()?.remove("")
         }
