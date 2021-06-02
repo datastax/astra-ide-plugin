@@ -6,6 +6,8 @@ import com.datastax.astra.jetbrains.utils.createNotificationExpiringAction
 import com.datastax.astra.jetbrains.utils.createShowMoreInfoDialogAction
 import com.datastax.astra.jetbrains.utils.notifyInfo
 import com.datastax.astra.jetbrains.utils.notifyWarn
+import com.intellij.ide.BrowserUtil
+import com.intellij.ui.components.ActionLink
 
 class ProfileStatusNotification(private val project: Project) : ProfileStateChangeNotifier {
     private val actionManager = ActionManager.getInstance()
@@ -34,7 +36,6 @@ class ProfileStatusNotification(private val project: Project) : ProfileStateChan
 }
 
 //TODO:Set up plugin settings to hide these notifications if use wants to
-
 fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
         val message = invalidProfiles.keys.joinToString("\n") { it ?: it::class.java.name }
         val errorDialogTitle = "Invalid Profiles Found"
@@ -61,12 +62,12 @@ fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
 fun noProfilesFileNotification() {
     notifyInfo(
         title = "Failed to load DataStax Astra profiles",
-        content = "Profiles file not found! Use the link below to create the file.",
+        content = "Profiles file not found! Select register below if you need an account.\nOtherwise select edit to insert credentials.",
         notificationActions = listOf(
+            createNotificationExpiringAction( UserRegisterAction()),
             createNotificationExpiringAction(
                 ActionManager.getInstance().getAction("credentials.upsertCredentials")
             )
-            //createNotificationExpiringAction(NeverShowAgain()),
         )
     )
 }
