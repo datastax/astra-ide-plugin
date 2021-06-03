@@ -14,6 +14,7 @@ abstract class ExplorerNode<T>(val nodeProject: Project, value: T, private val n
         }
     }
 
+    open fun onDoubleClick() {}
     open fun displayName() = value.toString()
     override fun toString(): String = displayName()
 }

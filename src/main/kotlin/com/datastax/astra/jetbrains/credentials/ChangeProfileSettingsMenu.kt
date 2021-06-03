@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.credentials
 
+import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.actions.ComputableActionGroup
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
@@ -13,11 +14,10 @@ class ChangeProfileSettingsActionGroup(project: Project) : ComputableActionGroup
 
     private val profileSelector = ChangeProfilesActionGroup(project)
 
-    //TODO: Figure out why default isn't always at the top
     override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> = CachedValueProvider {
         val actions = mutableListOf<AnAction>()
 
-        actions.add(Separator.create("Astra Profiles"))
+        actions.add(Separator.create(message("credentials.profile.list")))
         actions.add(profileSelector)
         actions.add(Separator.create())
         actions.add(ActionManager.getInstance().getAction("credentials.upsertCredentials"))
@@ -74,7 +74,7 @@ class SettingsSelectorComboBoxAction(
     private fun updatePresentation(presentation: Presentation) {
         val (short, long) = profileSettingsManager.selectedProfile?.let {
             it.name to "Profile:${it.name}"
-        } ?: "No token selected" to null
+        } ?: message("credentials.profile.unselected") to null
         presentation.text = short
         presentation.description = long
     }
