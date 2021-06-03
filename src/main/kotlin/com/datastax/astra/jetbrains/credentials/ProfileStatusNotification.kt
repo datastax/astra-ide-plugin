@@ -1,14 +1,14 @@
 package com.datastax.astra.jetbrains.credentials
 
+import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.Project
 import com.datastax.astra.jetbrains.utils.createNotificationExpiringAction
 import com.datastax.astra.jetbrains.utils.createShowMoreInfoDialogAction
 import com.datastax.astra.jetbrains.utils.notifyInfo
 import com.datastax.astra.jetbrains.utils.notifyWarn
-import com.intellij.ide.BrowserUtil
-import com.intellij.ui.components.ActionLink
 
+//TODO: Remove this class because I don't think its needed for profile manager function
 class ProfileStatusNotification(private val project: Project) : ProfileStateChangeNotifier {
     private val actionManager = ActionManager.getInstance()
     override fun profileStateChanged(newState: ProfileState) {
@@ -35,14 +35,13 @@ class ProfileStatusNotification(private val project: Project) : ProfileStateChan
     }
 }
 
-//TODO:Set up plugin settings to hide these notifications if use wants to
+//TODO:Set up plugin settings to hide these notifications if user wants to
 fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
         val message = invalidProfiles.keys.joinToString("\n") { it ?: it::class.java.name }
-        val errorDialogTitle = "Invalid Profiles Found"
+        val errorDialogTitle = message("credentials.profile.invalid.title")
             notifyInfo(
-                title = "Invalid DataStax Astra profile(s)",
-                content = "${invalidProfiles.size} invalid profile(s) found. " +
-                        "Edit the file or select 'More Info' to see list of invalid profiles.",
+                title = message("credentials.profile.invalid.title"),
+                content = message("credentials.profile.invalid.count_message",invalidProfiles.size),
                 notificationActions = listOf(
                     createNotificationExpiringAction(
                         ActionManager.getInstance().getAction("credentials.upsertCredentials")
@@ -50,9 +49,9 @@ fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
                     //TODO:Enable this once hiding added
                     //createNotificationExpiringAction(NeverShowAgain()),
                     createShowMoreInfoDialogAction(
-                        "More Info",
+                        message("credentials.profile.invalid.more_info"),
                         errorDialogTitle,
-                        "The following profiles were found to be invalid:",
+                        message("credentials.profile.invalid.message"),
                         message
                     )
                 )
@@ -61,8 +60,8 @@ fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
 
 fun noProfilesFileNotification() {
     notifyInfo(
-        title = "Failed to load DataStax Astra profiles",
-        content = "Profiles file not found! Select register below if you need an account.\nOtherwise select edit to insert credentials.",
+        title = message("credentials.file.load_failed.title"),
+        content = message("credentials.file.not_found"),
         notificationActions = listOf(
             createNotificationExpiringAction( UserRegisterAction()),
             createNotificationExpiringAction(
@@ -74,8 +73,8 @@ fun noProfilesFileNotification() {
 
 fun wrongProfilesFormatNotification() {
     notifyInfo(
-        title = "Failed to load DataStax Astra profiles",
-        content = "Profiles file contains a format error. Edit the file below.",
+        title = message("credentials.file.load_failed.title"),
+        content = message("credentials.file.invalid_format"),
         notificationActions = listOf(
             createNotificationExpiringAction(
                 ActionManager.getInstance().getAction("credentials.upsertCredentials")

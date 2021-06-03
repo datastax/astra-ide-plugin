@@ -9,6 +9,6 @@ import com.intellij.openapi.project.DumbAware
 //Creates an action that links to an external resource
 class UserRegisterAction () : AnAction("Register"), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
-        BrowserUtil.browse("https://astra.datastax.com/register")
+        BrowserUtil.browse(message("credentials.register.link"))
     }
 }

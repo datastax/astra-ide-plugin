@@ -33,6 +33,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.getRequiredData(PlatformDataKeys.PROJECT)
 
+        //TODO: Remove checking for other file
         // if both config does not exist, (try to)create a new config file
         if (!configFile.exists()) {
             if (confirm(project, configFile)) {
