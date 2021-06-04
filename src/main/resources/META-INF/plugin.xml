@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>astra.toolkit</id>
-    <name>Astra Toolkit</name>
-    <vendor>DataStax</vendor>
+    <name>DataStax Astra</name>
+    <vendor url="https://www.datastax.com">DataStax</vendor>
 
     <resource-bundle>MessagesBundle</resource-bundle>
 
