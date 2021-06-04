@@ -22,12 +22,23 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
-import retrofit2.Response
+import retrofit2.HttpException
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
-val fetchDB: (suspend (key: String) -> Response<List<Database>>) = {
-    AstraClient.dbOperationsApi().listDatabases()
+val fetchDatabases: (suspend (key: String) -> List<Database>) = {
+    val response = AstraClient.dbOperationsApi().listDatabases()
+    if (response.isSuccessful) response.body()!! else throw HttpException(response)
+}
+
+val fetchKeyspaces: (suspend (database: Database) -> List<Keyspace>?) = {
+    val response = AstraClient.schemasApiForDatabase(it).getKeyspaces(AstraClient.accessToken, null)
+    if (response.isSuccessful) response.body()?.data else throw HttpException(response)
+}
+
+val fetchTables : (suspend (database: Database, keyspace: Keyspace) -> List<Table>?) = { database: Database, keyspace: Keyspace ->
+    val response = AstraClient.schemasApiForDatabase(database).getTables(AstraClient.accessToken, keyspace.name, null)
+    if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
 class DatabaseParentNode(project: Project) :
@@ -44,13 +55,12 @@ class DatabaseParentNode(project: Project) :
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
 
-        val response = cached("", loader = fetchDB)
-        if (response.isSuccessful) {
-            //Remove any children not present in response
+        try {
+            val dbList = cached("", loader = fetchDatabases)
             children = children.filterKeys { key ->
-                response.body().orEmpty().map { it.id }.contains(key)
+                dbList.map { it.id }.contains(key)
             } as MutableMap<String, DatabaseNode>
-            response.body()?.forEach {
+            dbList.forEach {
                 val node = children.get(it.id)
                 if (node != null) {
                     if (!node.database.equals(it)) {
@@ -62,17 +72,18 @@ class DatabaseParentNode(project: Project) :
                     children[it.id] = DatabaseNode(nodeProject, it)
                 }
             }
-        } else {
+            children.toList().map { it.second }
+        } catch (e: Exception) {
             children.clear()
+            throw e
         }
-        children.toList().map { it.second }
     }
 
     fun clearCache() = run {
         //This is how to force removal
         //Need the lambda not 'inline' though because it's used as the key in the map
         val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
-        cacheMap[fetchDB::class].also {
+        cacheMap[fetchDatabases::class].also {
             it?.asMap()?.remove("")
         }
     }
@@ -93,7 +104,6 @@ class DatabaseNode(nodeProject: Project, database: Database) :
 
     @OptIn(InternalCoroutinesApi::class)
     fun pollForUpdates(): Job {
-        val explorerToolWindow = ExplorerToolWindow.getInstance(nodeProject)
         return flow {
             while (isActive) {
                 emit(AstraClient.dbOperationsApi().getDatabase(database.id))
@@ -151,10 +161,9 @@ class DatabaseNode(nodeProject: Project, database: Database) :
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        AstraClient.schemasApiForDatabase(database)
-            .getKeyspaces(AstraClient.accessToken, null).body()?.data?.map {
-                KeyspaceNode(nodeProject, it, database)
-            } ?: emptyList()
+        cached(database, loader = fetchKeyspaces)?.map {
+            KeyspaceNode(nodeProject, it, database)
+        } ?: emptyList()
     }
 }
 
@@ -168,10 +177,9 @@ class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Datab
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        AstraClient.schemasApiForDatabase(database)
-            .getTables(AstraClient.accessToken, keyspace.name, null).body()?.data?.map {
-                TableNode(nodeProject, it, database)
-            } ?: emptyList()
+        fetchTables(database, keyspace)?.map {
+            TableNode(nodeProject, it, database)
+        } ?: emptyList()
     }
 }
 
@@ -192,7 +200,7 @@ private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCac
 
 fun clearCacheMap(){
     val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
-    cacheMap[fetchDB::class].also {
+    cacheMap[fetchDatabases::class].also {
         it?.asMap()?.remove("")
     }
 }
