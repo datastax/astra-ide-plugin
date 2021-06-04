@@ -18,6 +18,7 @@ class RefreshExplorerAction(text: String = message("explorer.refresh.description
     }
 
     override fun actionPerformed(e: AnActionEvent) {
+        //TODO:This is where we should record telemetry on the refresh button
         e.getRequiredData(LangDataKeys.PROJECT).refreshTree()
     }
 }

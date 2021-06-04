@@ -67,6 +67,8 @@ dependencies {
 
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
     implementation("com.uchuhimo:konf-toml:0.23.0")
+
+    implementation("com.segment.analytics.java:analytics:+")
 }
 
 configurations {
