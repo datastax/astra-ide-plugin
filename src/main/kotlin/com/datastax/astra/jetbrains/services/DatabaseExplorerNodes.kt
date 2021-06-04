@@ -191,6 +191,7 @@ private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
 private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()
 
 fun clearCacheMap(){
+    val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
     cacheMap[fetchDB::class].also {
         it?.asMap()?.remove("")
     }
