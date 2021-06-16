@@ -9,7 +9,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
-import com.intellij.util.ExceptionUtil
 import com.intellij.util.messages.Topic
 import org.jetbrains.concurrency.AsyncPromise
 import java.util.concurrent.atomic.AtomicReference
@@ -144,7 +143,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
 //TODO:Rebase this whole section
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
-    protected val editCredsAction: AnAction = ActionManager.getInstance().getAction("credentials.upsertCredentials")
+    protected val editProfiles: AnAction = ActionManager.getInstance().getAction("credentials.upsert")
 
     /**
      * An optional short message to display in places where space is at a premium
@@ -170,14 +169,14 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
         },
         isTerminal = true
     ) {
-        override val actions: List<AnAction> = listOf(editCredsAction)
+        override val actions: List<AnAction> = listOf(editProfiles)
     }
 
     class InvalidProfile(private val cause: Exception) :
         ProfileState("settings.states.invalid", isTerminal = true) {
         override val shortMessage = "settings.states.invalid.short"
 
-        override val actions: List<AnAction> = listOf(editCredsAction)
+        override val actions: List<AnAction> = listOf(editProfiles)
     }
 }
 
