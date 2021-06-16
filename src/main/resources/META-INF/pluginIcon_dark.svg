@@ -3,8 +3,8 @@
     <title>pluginIcon_dark</title>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="astra-negative-square" transform="translate(2.000000, 2.000000)" fill-rule="nonzero">
-            <rect id="Rectangle" fill="#FFFFFF" x="0" y="0" width="36" height="36"></rect>
-            <path d="M12.9353746,8.39851402 L4.16742852,31.8352509 L11.4351342,31.8352509 L18.0694677,11.5656371 L24.7037358,31.8352509 L31.9714415,31.8352509 L23.2034954,8.39851402 C21.4032333,3.73121611 14.8022937,3.56450819 12.9353746,8.39851402 Z" id="Path" fill="#EB6C34"></path>
+            <rect id="Rectangle" fill="#EB6C34" x="0" y="0" width="36" height="36"></rect>
+            <path d="M12.9353746,8.39851402 L4.16742852,31.8352509 L11.4351342,31.8352509 L18.0694677,11.5656371 L24.7037358,31.8352509 L31.9714415,31.8352509 L23.2034954,8.39851402 C21.4032333,3.73121611 14.8022937,3.56450819 12.9353746,8.39851402 Z" id="Path" fill="#FFFFFF"></path>
         </g>
     </g>
 </svg>
