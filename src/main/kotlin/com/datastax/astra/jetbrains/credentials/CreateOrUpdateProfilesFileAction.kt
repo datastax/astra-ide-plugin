@@ -33,21 +33,20 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.getRequiredData(PlatformDataKeys.PROJECT)
 
-        //TODO: Remove checking for other file
-        // if both config does not exist, (try to)create a new config file
+        // if config does not exist, (try to) create a new config file
         if (!configFile.exists()) {
             if (confirm(project, configFile)) {
                 try {
                     writer.createFile(configFile)
                 } finally {
-                    //This had AWS telemetry in it
+                    //TODO: Possibly add telemetry here when profile file created
                 }
             } else {
                 return
             }
         }
 
-        // open both config file, if it exist
+        // This was a list of two file types changed to one, since we only have one profile file
         val virtualFiles = listOf(configFile).filter { it.exists() }.map {
             localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException(message("credentials.file.could_not_open", it))
         }
@@ -67,7 +66,6 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
                 if (fileEditorManager.openTextEditor(OpenFileDescriptor(project, it), true) == null) {
                     throw RuntimeException(message("credentials.file.could_not_open", it))
-
                 }
             }
         }

@@ -13,8 +13,8 @@ import com.intellij.util.messages.Topic
 import org.jetbrains.concurrency.AsyncPromise
 import java.util.concurrent.atomic.AtomicReference
 
-/** Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
- *
+/**
+ * Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
  */
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
     private var profileMap = mapOf<String,ProfileToken>()
@@ -92,17 +92,12 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
                 return@executeOnPooledThread
             }
 
-            var success = true
             try {
-
-
                 promise.setResult(ProfileState.ValidConnection(profile))
             } catch (e: Exception) {
 
-            } finally {
             }
         }
-
         return promise
     }
 
@@ -124,12 +119,13 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
     companion object {
         /***
          * MessageBus topic for when the active credential profile or region is changed
+         * Defining it here lets us not define it in the plugin.xml
+         * TODO: Find out if defining a notifier this way is still acceptable per IntelliJ best practices
          */
         val CONNECTION_SETTINGS_STATE_CHANGED: Topic<ProfileStateChangeNotifier> = Topic.create(
             "AWS Account setting changed",
             ProfileStateChangeNotifier::class.java
         )
-
 
         @JvmStatic
         fun getInstance(project: Project): ProfileManager = ServiceManager.getService(project, ProfileManager::class.java)
@@ -142,6 +138,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 }
 
 //TODO:Rebase this whole section
+// Add verification to make sure token wasn't removed since loading check occurred
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
     protected val editProfiles: AnAction = ActionManager.getInstance().getAction("credentials.upsert")
 
@@ -169,13 +166,6 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
         },
         isTerminal = true
     ) {
-        override val actions: List<AnAction> = listOf(editProfiles)
-    }
-
-    class InvalidProfile(private val cause: Exception) :
-        ProfileState("settings.states.invalid", isTerminal = true) {
-        override val shortMessage = "settings.states.invalid.short"
-
         override val actions: List<AnAction> = listOf(editProfiles)
     }
 }
