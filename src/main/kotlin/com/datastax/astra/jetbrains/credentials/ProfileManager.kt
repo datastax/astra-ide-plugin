@@ -36,8 +36,11 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
     internal var selectedProfile: ProfileToken? = null
 
     init {
+        loadProfiles()
+    }
 
-        profileMap=validateAndGetProfiles().validProfiles
+    fun loadProfiles(){
+        profileMap = validateAndGetProfiles().validProfiles
 
         //Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
         if(profileMap.isNotEmpty()) {
@@ -48,8 +51,9 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
             AstraClient.accessToken= selectedProfile!!.token
         }
+        //TODO: Revisit this and see do something less clunky
         validateProfileAndSetState(selectedProfile)
-
+        changeProfile(selectedProfile!!)
     }
 
     fun changeProfile(nextProfile: ProfileToken) {
@@ -123,7 +127,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
          * TODO: Find out if defining a notifier this way is still acceptable per IntelliJ best practices
          */
         val CONNECTION_SETTINGS_STATE_CHANGED: Topic<ProfileStateChangeNotifier> = Topic.create(
-            "AWS Account setting changed",
+            "DataStax Astra profile changed",
             ProfileStateChangeNotifier::class.java
         )
 
@@ -138,6 +142,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 }
 
 //TODO:Rebase this whole section
+// Fix messages
 // Add verification to make sure token wasn't removed since loading check occurred
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
     protected val editProfiles: AnAction = ActionManager.getInstance().getAction("credentials.upsert")

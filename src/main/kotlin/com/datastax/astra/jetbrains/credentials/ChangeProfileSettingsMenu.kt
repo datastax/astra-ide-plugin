@@ -20,6 +20,8 @@ class ChangeProfileSettingsActionGroup(project: Project) : ComputableActionGroup
         actions.add(profileSelector)
         actions.add(Separator.create())
         actions.add(ActionManager.getInstance().getAction("credentials.upsert"))
+        actions.add(Separator.create())
+        actions.add(ReloadProfilesAction())
 
         CachedValueProvider.Result.create(actions.toTypedArray(),profileSettingsManager)
     }
