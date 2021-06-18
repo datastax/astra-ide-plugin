@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.devops_v2.models.AvailableRegionCombination
 import com.datastax.astra.devops_v2.models.DatabaseInfoCreate
 import com.datastax.astra.jetbrains.AstraClient
@@ -7,7 +8,9 @@ import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseParentNode
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.explorer.refreshTree
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
@@ -124,8 +127,23 @@ class CreateDatabaseDialog(
                 databaseParent.clearCache()
                 project.refreshTree(databaseParent, true)
                 //val databaseId = response.headers()["Location"]
+
+                TelemetryManager.trackAction(
+                    "Create Database", mapOf(
+                        "dbName" to name,
+                        "dbID" to response.headers()["Location"].toString(),
+                        "projectName" to project.name,
+                    )
+                )
             } else {
-                TODO("notifyError")
+                TelemetryManager.trackAction(
+                    "Create Database Failed", mapOf(
+                        "dbName" to name,
+                        "projectName" to project.name,
+                        "httpError" to response.getErrorResponse<Any?>().toString(),
+                        "httpResponse" to response.toString(),
+                    )
+                )
             }
         }
     }

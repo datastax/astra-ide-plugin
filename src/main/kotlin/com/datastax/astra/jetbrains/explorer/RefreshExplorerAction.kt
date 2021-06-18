@@ -19,6 +19,7 @@ class RefreshExplorerAction(text: String = message("explorer.refresh.description
 
     override fun actionPerformed(e: AnActionEvent) {
         //TODO:This is where we should record telemetry on the refresh button
+        // But would send many records if clicked a lot and AWS doesn't record this afaik
         e.getRequiredData(LangDataKeys.PROJECT).refreshTree()
     }
 }

@@ -164,7 +164,7 @@ interface DBOperationsApi {
      * @return [kotlin.collections.List<Organization>]
      */
     @GET("v2/currentOrg")
-    suspend fun getCurrentOrganization(): Response<kotlin.collections.List<Organization>>
+    suspend fun getCurrentOrganization(): Response<Organization>
 
     /**
      * Finds database by ID

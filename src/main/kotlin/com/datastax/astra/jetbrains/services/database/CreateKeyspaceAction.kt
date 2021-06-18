@@ -1,11 +1,13 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.explorer.isProcessing
 import com.datastax.astra.jetbrains.explorer.refreshTree
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.DumbAwareAction
@@ -28,6 +30,23 @@ class CreateKeyspaceAction
                     if (resp.isSuccessful) {
                         delay(10000)
                         dbNode.nodeProject.refreshTree(dbNode, true)
+                        TelemetryManager.trackAction(
+                            "Create Keyspace", mapOf(
+                                "ksName" to keyspace,
+                                "dbID" to dbNode.toString(),
+                                "projectName" to e.getRequiredData(PlatformDataKeys.PROJECT).name
+                            )
+                        )
+                    } else{
+                        TelemetryManager.trackAction(
+                            "Create Keyspace Failed", mapOf(
+                                "ksName" to keyspace,
+                                "dbID" to dbNode.toString(),
+                                "projectName" to e.getRequiredData(PlatformDataKeys.PROJECT).name,
+                                "httpError" to resp.getErrorResponse<Any?>().toString(),
+                                "httpResponse" to resp.toString(),
+                            )
+                        )
                     }
                 }
             }

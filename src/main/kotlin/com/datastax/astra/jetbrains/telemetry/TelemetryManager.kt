@@ -1,108 +1,93 @@
 package com.datastax.astra.jetbrains.telemetry
 
+import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.credentials.CredentialsClient
+import com.datastax.astra.jetbrains.credentials.ProfileManager
+import com.intellij.openapi.application.ApplicationInfo
 import com.segment.analytics.Analytics
 import com.segment.analytics.messages.GroupMessage
 import com.segment.analytics.messages.IdentifyMessage
 import com.segment.analytics.messages.TrackMessage
+import kotlinx.coroutines.runBlocking
+import java.util.UUID.randomUUID
 
-class TelemetryManager {
+//TODO: See testTelemetry for example of the functions
+//TODO: Rewrite this as a service and not a static class
+// Possibly expand this into more than one class at that time
+object TelemetryManager {
+    //TODO: Figure out safest way to store this
     var telClient = Analytics.builder("DVku2hfmrgixOIBzcDWwadEqtOMVVxkU").build()
-    //TODO: Implement something to keep this userID current for use in other calls
-    // Handle situation where user has no tokens since they haven't registered
-    var userIDHash = 0
-    //TODO: See testTelemetry for example of the functions
 
-    //TODO:Track orgID as groupID
-    //TODO:Identify user (use token and hash with other data?)
+    //Might not need to store a local version if written as a service
+    var knownToken = ""
+    var knownOrg = ""
+    var anonMode = false
+
+    //Make sure the "user" hasn't changed
+    //TODO: Make this an active process that occurs as part of the credential change process
+    fun checkCreds(){
+        val activeToken = ProfileManager.getInstance(AstraClient.project).activeProfile?.token.toString()
+        //If there were no tokens to use don't change the profile change since we can't without an ID
+        //This should be cleaner once moved into a service
+        if(activeToken != knownToken && activeToken != "null"){
+            knownToken = activeToken
+            runBlocking {
+                knownOrg = CredentialsClient.operationsApi(activeToken).getCurrentOrganization().body()!!.id
+            }
+            //TODO: Re-enable this with userID change
+            /*if(activeOrg != knownOrg){
+                knownOrg = activeOrg
+                trackOrgChange()
+            }*/
+            anonMode = false
+            trackProfileChange()
+        }
+        //Only track a user if there's not currently a userID
+        else if(!anonMode && knownOrg == ""){
+            knownOrg = randomUUID().toString()
+            anonMode = true
+            trackProfileChange()
+        }
+    }
 
     //TODO: Build this for changing tokens
-    //Possibly associate new token hash with the old via alias
     fun trackProfileChange(){
-        //TODO: Either implement here or implement and call the hash function here
         telClient.enqueue(
             IdentifyMessage.builder()
                 //TODO: Figure out what all to track
-                .userId("f4ca124298")
+                .userId(knownOrg)
                 .traits(mapOf(
                     //TODO: Figure out what all to track
-                    "name" to "Michael Bolton",
-                    "email" to "mbolton@example.com")
-                )
-        );
-        //TODO:
-        // IF new ORG ID is different from previous call trackOrgChange
-    }
-
-    fun trackOrgChange(){
-        telClient.enqueue(
-            GroupMessage.builder("some-group-id")
-                .userId("$userIDHash")
-                .traits(mapOf(
-                    //TODO: Figure out what all to track
-                    "name" to "Org Name",
-                    "size" to "Number of users")
-                )
-        )
-    }
-
-
-    fun trackCreateDB(){
-        telClient.enqueue(
-            TrackMessage.builder("Create Database")
-                .userId("$userIDHash")
-                .properties(mapOf(
-                    "Status" to "Information about plugin when refresh clicked"
-                    )
-                )
-        )
-    }
-
-
-    fun trackDeleteDB(){
-        telClient.enqueue(
-            TrackMessage.builder("Delete Database")
-                .userId("$userIDHash")
-                .properties(mapOf(
-                    "Status" to "Information about plugin when refresh clicked"
-                    )
-                )
-        )
-    }
-
-
-    fun trackCreateKS(){
-        telClient.enqueue(
-            TrackMessage.builder("Create Keyspace")
-                .userId("$userIDHash")
-                .properties(mapOf(
-                    "Status" to "Information about plugin when refresh clicked"
+                    "idea ver" to ApplicationInfo.getInstance().getStrictVersion(),
+                    "anonymous" to anonMode.toString(),
                     )
                 )
         )
     }
 
     //TODO: Add to RefreshExplorerAction
-    fun trackManualRefresh(){
+    //TODO: Add to UserRegisterAction
+    fun trackAction(actionName: String, actionMetaData: Map<String,String>){
+        checkCreds()
         telClient.enqueue(
-            TrackMessage.builder("Plugin Refreshed")
-                .userId("$userIDHash")
-                .properties(mapOf(
-                    "Status" to "Information about plugin when refresh clicked"
-                    )
-                )
+            TrackMessage.builder(actionName)
+                .userId(knownOrg)
+                .properties(actionMetaData)
         )
     }
 
-    //TODO: Add to UserRegisterAction
-    fun trackRegister(){
+    //TODO:Track orgID through groupID once a way to track users is identified
+    // Possibly associate users through aliases
+    /*fun trackOrgChange(){
         telClient.enqueue(
-            TrackMessage.builder("Register Link")
-            .userId("Anonymous user?")
-            .properties(mapOf(
-                "Meta" to "Information about plugin when user clicked Register"
+            GroupMessage.builder("some-group-id")
+                .userId(activeOrg)
+                .traits(mapOf(
+                    //TODO: Figure out what all to track
+                    "name" to "Org Name",
+                    "size" to "Number of users")
                 )
-            )
         )
-    }
+    }*/
 
 }
