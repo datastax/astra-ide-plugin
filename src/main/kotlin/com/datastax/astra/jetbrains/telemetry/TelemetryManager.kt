@@ -8,6 +8,7 @@ import com.segment.analytics.Analytics
 import com.segment.analytics.messages.GroupMessage
 import com.segment.analytics.messages.IdentifyMessage
 import com.segment.analytics.messages.TrackMessage
+import com.uchuhimo.konf.ConfigSpec
 import kotlinx.coroutines.runBlocking
 import java.util.UUID.randomUUID
 
@@ -16,7 +17,8 @@ import java.util.UUID.randomUUID
 // Possibly expand this into more than one class at that time
 object TelemetryManager {
     //TODO: Figure out safest way to store this
-    var telClient = Analytics.builder("DVku2hfmrgixOIBzcDWwadEqtOMVVxkU").build()
+
+    var telClient = Analytics.builder(this::class.java.getResource("/telConfig").readText()).build()
 
     //Might not need to store a local version if written as a service
     var knownToken = ""
