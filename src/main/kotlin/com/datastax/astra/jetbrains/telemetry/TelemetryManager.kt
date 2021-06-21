@@ -8,7 +8,7 @@ import com.segment.analytics.Analytics
 import com.segment.analytics.messages.GroupMessage
 import com.segment.analytics.messages.IdentifyMessage
 import com.segment.analytics.messages.TrackMessage
-import com.uchuhimo.konf.ConfigSpec
+
 import kotlinx.coroutines.runBlocking
 import java.util.UUID.randomUUID
 
@@ -16,8 +16,10 @@ import java.util.UUID.randomUUID
 //TODO: Rewrite this as a service and not a static class
 // Possibly expand this into more than one class at that time
 object TelemetryManager {
-    //TODO: Figure out safest way to store this
+    //TODO: Determine what all to track long term for:
+    // Crud Actions, External Actions, Changing Users (use aliases?)
 
+    //TODO: Figure out safest way to store this
     var telClient = Analytics.builder(this::class.java.getResource("/telConfig").readText()).build()
 
     //Might not need to store a local version if written as a service
@@ -56,7 +58,6 @@ object TelemetryManager {
     fun trackProfileChange(){
         telClient.enqueue(
             IdentifyMessage.builder()
-                //TODO: Figure out what all to track
                 .userId(knownOrg)
                 .traits(mapOf(
                     //TODO: Figure out what all to track
@@ -78,6 +79,95 @@ object TelemetryManager {
         )
     }
 
+    fun trackDevOpsCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean,){
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder("DevOps CRUD")
+                .userId(knownOrg)
+                .properties(mapOf(
+                    "resource" to resourceType,
+                    "name" to resourceName,
+                    "operation" to operation.toString(),
+                    "completed" to completed.toString(),
+                )
+                )
+        )
+    }
+
+    //Same as above but with an extra data load for kludging extra features
+    fun trackDevOpsCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean, extraData: Map<String,String>,){
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder("DevOps CRUD")
+                .userId(knownOrg)
+                .properties(mapOf(
+                    "resource" to resourceType,
+                    "name" to resourceName,
+                    "operation" to operation.toString(),
+                    "completed" to completed.toString(),
+                )+extraData
+                )
+        )
+    }
+
+    fun trackStargateCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean,){
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder("Stargate CRUD")
+                .userId(knownOrg)
+                .properties(mapOf(
+                    "resource" to resourceType,
+                    "name" to resourceName,
+                    "operation" to operation.toString(),
+                    "completed" to completed.toString(),
+                    )
+                )
+        )
+    }
+
+    //Same as above but with an extra data load for kludging extra features
+    fun trackStargateCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean, extraData: Map<String,String>){
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder("Stargate CRUD")
+                .userId(knownOrg)
+                .properties(mapOf(
+                    "resource" to resourceType,
+                    "name" to resourceName,
+                    "operation" to operation.toString(),
+                    "completed" to completed.toString(),
+                    )+extraData
+                )
+        )
+    }
+
+    //For tracking behaviors outside the plugin
+    fun trackClick(actionTarget: ClickTarget, actionBehavior: String){
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder("Click Action")
+                .userId(knownOrg)
+                .properties(mapOf(
+                    "target" to actionTarget.toString(),
+                    "type" to actionBehavior,
+                    )
+                )
+        )
+    }
+
+    fun trackClick(actionTarget: ClickTarget, actionBehavior: String, extraData: Map<String, String>){
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder("Click Action")
+                .userId(knownOrg)
+                .properties(mapOf(
+                    "target" to actionTarget.toString(),
+                    "type" to actionBehavior,
+                    )+extraData
+                )
+        )
+    }
+
     //TODO:Track orgID through groupID once a way to track users is identified
     // Possibly associate users through aliases
     /*fun trackOrgChange(){
@@ -92,4 +182,10 @@ object TelemetryManager {
         )
     }*/
 
+}
+enum class CrudEnum {
+    CREATE, READ, UPDATE, DELETE
+}
+enum class ClickTarget {
+    BUTTON,LINK
 }

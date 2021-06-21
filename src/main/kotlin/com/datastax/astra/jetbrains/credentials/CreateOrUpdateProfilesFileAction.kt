@@ -1,9 +1,9 @@
 package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackAction
+import com.datastax.astra.jetbrains.telemetry.ClickTarget
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
 import com.intellij.icons.AllIcons
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -43,10 +43,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
                 try {
                     writer.createFile(configFile)
                 } finally {
-                    trackAction("Create Profile File", mapOf(
-                        "projectName" to project.name
-                        )
-                    )
+                    trackClick(ClickTarget.BUTTON,"create profile file")
                 }
             } else {
                 return

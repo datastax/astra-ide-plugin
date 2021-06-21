@@ -8,7 +8,9 @@ import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseParentNode
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.explorer.refreshTree
+import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
@@ -128,22 +130,9 @@ class CreateDatabaseDialog(
                 project.refreshTree(databaseParent, true)
                 //val databaseId = response.headers()["Location"]
 
-                TelemetryManager.trackAction(
-                    "Create Database", mapOf(
-                        "dbName" to name,
-                        "dbID" to response.headers()["Location"].toString(),
-                        "projectName" to project.name,
-                    )
-                )
+                trackDevOpsCrud("Database", name, CrudEnum.CREATE,true)
             } else {
-                TelemetryManager.trackAction(
-                    "Create Database Failed", mapOf(
-                        "dbName" to name,
-                        "projectName" to project.name,
-                        "httpError" to response.getErrorResponse<Any?>().toString(),
-                        "httpResponse" to response.toString(),
-                    )
-                )
+                trackDevOpsCrud("Database", name, CrudEnum.CREATE,false,mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
             }
         }
     }

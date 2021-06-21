@@ -7,7 +7,9 @@ import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.explorer.isProcessing
+import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -27,24 +29,10 @@ class DeleteDatabaseAction
                     var response = AstraClient.dbOperationsApi().terminateDatabase(databaseNode.database.id)
                     if (response.isSuccessful) {
                         databaseNode.database = databaseNode.database.copy(status = StatusEnum.TERMINATING)
-                        TelemetryManager.trackAction(
-                            "Delete Database", mapOf(
-                                "dbName" to databaseNode.database.info.name!!,
-                                "dbID" to databaseNode.database.id,
-                                "projectName" to e.getRequiredData(PlatformDataKeys.PROJECT).name,
-                            )
-                        )
+                        trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.DELETE, true)
                     } else {
                         //TODO("implement unsuccessful delete handling")
-                        TelemetryManager.trackAction(
-                            "Delete Database Failed", mapOf(
-                                "dbName" to databaseNode.database.info.name!!,
-                                "dbID" to databaseNode.database.id,
-                                "projectName" to e.getRequiredData(PlatformDataKeys.PROJECT).name,
-                                "httpError" to response.getErrorResponse<Any?>().toString(),
-                                "httpResponse" to response.toString(),
-                            )
-                        )
+                        trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.CREATE,false,mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
                     }
                 }
             }
