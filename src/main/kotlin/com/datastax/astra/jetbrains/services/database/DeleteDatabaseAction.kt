@@ -1,13 +1,18 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.explorer.isProcessing
+import com.datastax.astra.jetbrains.telemetry.CrudEnum
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -24,8 +29,10 @@ class DeleteDatabaseAction
                     var response = AstraClient.dbOperationsApi().terminateDatabase(databaseNode.database.id)
                     if (response.isSuccessful) {
                         databaseNode.database = databaseNode.database.copy(status = StatusEnum.TERMINATING)
+                        trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.DELETE, true)
                     } else {
-                        TODO("implement unsuccessful delete handling")
+                        //TODO("implement unsuccessful delete handling")
+                        trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.CREATE,false,mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
                     }
                 }
             }

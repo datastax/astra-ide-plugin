@@ -1,11 +1,14 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.explorer.isProcessing
 import com.datastax.astra.jetbrains.explorer.refreshTree
+import com.datastax.astra.jetbrains.telemetry.CrudEnum
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.DumbAwareAction
@@ -28,6 +31,9 @@ class CreateKeyspaceAction
                     if (resp.isSuccessful) {
                         delay(10000)
                         dbNode.nodeProject.refreshTree(dbNode, true)
+                        trackDevOpsCrud("Keyspace", keyspace, CrudEnum.CREATE, true)
+                    } else{
+                        trackDevOpsCrud("Keyspace", keyspace, CrudEnum.CREATE,false,mapOf("httpError" to resp.getErrorResponse<Any?>().toString(), "httpResponse" to resp.toString()))
                     }
                 }
             }
