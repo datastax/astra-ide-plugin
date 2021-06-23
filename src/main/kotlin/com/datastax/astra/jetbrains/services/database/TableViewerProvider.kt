@@ -53,7 +53,7 @@ class TableViewerEditor(project: Project, tableVirtualFile: TableVirtualFile) : 
     override fun getCurrentLocation(): FileEditorLocation? = null
 }
 
-fun openEditor(project: Project, table: com.datastax.astra.stargate_v2.models.Table, database: Database): Editor? {
+fun openEditor(project: Project, table: com.datastax.astra.stargate_rest_v2.models.Table, database: Database): Editor? {
     return FileEditorManager.getInstance(project).openTextEditor(
         OpenFileDescriptor(
             project,

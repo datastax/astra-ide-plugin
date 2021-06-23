@@ -6,8 +6,8 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.services.database.openEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.datastax.astra.stargate_v2.models.Keyspace
-import com.datastax.astra.stargate_v2.models.Table
+import com.datastax.astra.stargate_rest_v2.models.Keyspace
+import com.datastax.astra.stargate_rest_v2.models.Table
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.ide.projectView.PresentationData
