@@ -32,6 +32,7 @@ sourceSets {
         java {
             srcDir("api/devops_v2/src/main")
             srcDir("api/stargate_rest_v2/src/main")
+            srcDir("api/stargate_document_v2/src/main")
         }
     }
 }
