@@ -5,8 +5,8 @@ import java.nio.file.Path
 
 class ProfileFileLocation {
     companion object{
-        fun profileFilePath(): Path{
-            return File("${System.getProperty("user.home")}/.astra/config").toPath()
+        fun profileFilePath(): File{
+            return File("${System.getProperty("user.home")}/.astra/config")
         }
     }
 }

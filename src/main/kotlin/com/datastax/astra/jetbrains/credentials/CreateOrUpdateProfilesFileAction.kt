@@ -25,7 +25,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     @Suppress("unused")
     constructor() : this(
         DefaultConfigFileWriter,
-        ProfileFileLocation.profileFilePath().toFile()
+        ProfileFileLocation.profileFilePath()
     )
 
     private val localFileSystem = LocalFileSystem.getInstance()

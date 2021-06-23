@@ -1,6 +1,7 @@
 package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.credentials.ProfileReader.validateAndGetProfiles
 import com.datastax.astra.jetbrains.utils.getLogger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -50,10 +51,13 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
                 selectedProfile = profileMap.entries.first().value
 
             AstraClient.accessToken= selectedProfile!!.token
+
+            validateProfileAndSetState(selectedProfile)
+            changeProfile(selectedProfile!!)
         }
         //TODO: Revisit this and see do something less clunky
-        validateProfileAndSetState(selectedProfile)
-        changeProfile(selectedProfile!!)
+
+
     }
 
     fun changeProfile(nextProfile: ProfileToken) {

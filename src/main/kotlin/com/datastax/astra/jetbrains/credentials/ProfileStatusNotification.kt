@@ -55,6 +55,18 @@ fun wrongProfilesFormatNotification() {
     )
 }
 
+fun profileFileModifiedNotification() {
+    notifyInfo(
+        title = message("credentials.file.modified.title"),
+        content = message("credentials.file.modified.message"),
+        notificationActions = listOf(
+            createNotificationExpiringAction(ReloadProfilesAction()),
+            //createNotificationExpiringAction(NeverShowAgain()),
+        )
+    )
+}
+
+
 //TODO: Notify if format of file is wrong
 //TODO: Notify if no tokens matching format
 //TODO: Notify if failed to authenticate
