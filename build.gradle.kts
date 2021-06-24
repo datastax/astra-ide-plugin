@@ -103,7 +103,7 @@ changelog {
 detekt {
     config = files("./detekt-config.yml")
     buildUponDefaultConfig = true
-
+    ignoreFailures = true
     reports {
         html.enabled = false
         xml.enabled = false
