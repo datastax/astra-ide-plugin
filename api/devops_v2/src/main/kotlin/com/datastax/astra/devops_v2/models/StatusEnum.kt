@@ -11,16 +11,14 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
-* 
+*
 * Values: ACTIVE,PENDING,PREPARING,PREPARED,INITIALIZING,PARKED,PARKING,UNPARKING,TERMINATED,TERMINATING,RESIZING,ERROR,MAINTENANCE,UNKNOWN
 */
 
 enum class StatusEnum(val value: kotlin.String) {
-
 
     @SerializedName(value = "ACTIVE")
     ACTIVE("ACTIVE"),
@@ -64,13 +62,11 @@ enum class StatusEnum(val value: kotlin.String) {
     @SerializedName(value = "UNKNOWN")
     UNKNOWN("UNKNOWN");
 
-
     /**
-    This override toString avoids using the enum var name and uses the actual api value instead.
-    In cases the var name and value are different, the client would send incorrect enums to the server.
-    **/
+     This override toString avoids using the enum var name and uses the actual api value instead.
+     In cases the var name and value are different, the client would send incorrect enums to the server.
+     **/
     override fun toString(): String {
         return value
     }
 }
-

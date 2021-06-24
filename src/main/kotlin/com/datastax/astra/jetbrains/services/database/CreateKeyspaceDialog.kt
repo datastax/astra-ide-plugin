@@ -1,7 +1,5 @@
 package com.datastax.astra.jetbrains.services.database
 
-import com.datastax.astra.devops_v2.models.DatabaseInfoCreate
-import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.DatabaseNode
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
@@ -10,7 +8,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.layout.panel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.awt.Component
 import javax.swing.JComponent
 
@@ -68,5 +65,4 @@ class CreateKeyspaceDialog(
 
          */
     }
-
 }

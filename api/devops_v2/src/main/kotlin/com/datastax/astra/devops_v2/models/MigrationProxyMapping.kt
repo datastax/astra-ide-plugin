@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -22,7 +21,7 @@ import com.google.gson.annotations.SerializedName
  * @param rackNodeOrdinal The number of the node in a given rack, starting with 0.
  */
 
-data class MigrationProxyMapping (
+data class MigrationProxyMapping(
     /* IP on which the node currently in use is accessible. */
     @SerializedName("originIP")
     val originIP: kotlin.String,
@@ -36,4 +35,3 @@ data class MigrationProxyMapping (
     @SerializedName("rackNodeOrdinal")
     val rackNodeOrdinal: kotlin.Int
 )
-

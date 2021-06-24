@@ -11,18 +11,16 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.UserResponse
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
- * @param orgID 
- * @param orgName 
+ *
+ * @param orgID
+ * @param orgName
  * @param users an array of users in the organization
  */
 
-data class GetOrganizationUsersResponse (
+data class GetOrganizationUsersResponse(
     @SerializedName("orgID")
     val orgID: kotlin.String,
     @SerializedName("orgName")
@@ -31,4 +29,3 @@ data class GetOrganizationUsersResponse (
     @SerializedName("users")
     val users: kotlin.collections.List<UserResponse>
 )
-

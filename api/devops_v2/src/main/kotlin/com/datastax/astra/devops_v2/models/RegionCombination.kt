@@ -11,19 +11,17 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.Costs
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * RegionCombination defines a tier, cloud provider, and region combination.
- * @param tier 
- * @param cloudProvider 
- * @param region 
- * @param cost 
+ * @param tier
+ * @param cloudProvider
+ * @param region
+ * @param cost
  */
 
-data class RegionCombination (
+data class RegionCombination(
     @SerializedName("tier")
     val tier: kotlin.String,
     @SerializedName("cloudProvider")
@@ -33,4 +31,3 @@ data class RegionCombination (
     @SerializedName("cost")
     val cost: Costs
 )
-

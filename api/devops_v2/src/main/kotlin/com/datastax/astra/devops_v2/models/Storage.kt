@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -22,7 +21,7 @@ import com.google.gson.annotations.SerializedName
  * @param usedStorage UsedStorage in GB.
  */
 
-data class Storage (
+data class Storage(
     /* NodeCount for the cluster. */
     @SerializedName("nodeCount")
     val nodeCount: kotlin.Int,
@@ -36,4 +35,3 @@ data class Storage (
     @SerializedName("usedStorage")
     val usedStorage: kotlin.Int? = null
 )
-

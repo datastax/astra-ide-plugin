@@ -13,8 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class CreateKeyspaceAction
-    : DumbAwareAction(message("keyspace.create.title"), null, null),
+class CreateKeyspaceAction :
+    DumbAwareAction(message("keyspace.create.title"), null, null),
     CoroutineScope by ApplicationThreadPoolScope("Database") {
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -34,9 +34,9 @@ class CreateKeyspaceAction
         }
     }
 
-    //If DB is processing grey out access to creating a keyspace
+    // If DB is processing grey out access to creating a keyspace
     override fun update(e: AnActionEvent) {
-        if(e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.database?.status?.isProcessing() == true)
+        if (e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.database?.status?.isProcessing() == true)
             e.presentation.setEnabled(false)
     }
 }

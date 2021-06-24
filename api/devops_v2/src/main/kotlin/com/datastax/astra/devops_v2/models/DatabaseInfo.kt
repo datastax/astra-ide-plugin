@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -27,7 +26,7 @@ import com.google.gson.annotations.SerializedName
  * @param additionalKeyspaces Additional keyspaces names in database.
  */
 
-data class DatabaseInfo (
+data class DatabaseInfo(
     /* Name of the database--user friendly identifier. */
     @SerializedName("name")
     val name: kotlin.String? = null,
@@ -73,4 +72,3 @@ data class DatabaseInfo (
         @SerializedName(value = "serverless") SERVERLESS("serverless");
     }
 }
-

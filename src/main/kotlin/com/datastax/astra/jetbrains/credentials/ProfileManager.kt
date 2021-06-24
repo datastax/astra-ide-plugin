@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference
  * Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
  */
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
-    private var profileMap = mapOf<String,ProfileToken>()
+    private var profileMap = mapOf<String, ProfileToken>()
 
     private val validationJob = AtomicReference<AsyncPromise<ProfileState>>()
 
@@ -40,28 +40,26 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         loadProfiles()
     }
 
-    fun loadProfiles(){
+    fun loadProfiles() {
         profileMap = validateAndGetProfiles().validProfiles
 
-        //Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
-        if(profileMap.isNotEmpty()) {
+        // Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
+        if (profileMap.isNotEmpty()) {
             if (profileMap.containsKey("default"))
                 selectedProfile = profileMap["default"]
             else
                 selectedProfile = profileMap.entries.first().value
 
-            AstraClient.accessToken= selectedProfile!!.token
+            AstraClient.accessToken = selectedProfile!!.token
 
             validateProfileAndSetState(selectedProfile)
             changeProfile(selectedProfile!!)
         }
-        //TODO: Revisit this and see do something less clunky
-
-
+        // TODO: Revisit this and see do something less clunky
     }
 
     fun changeProfile(nextProfile: ProfileToken) {
-        changeFieldsAndNotify{
+        changeFieldsAndNotify {
             selectedProfile = nextProfile
         }
     }
@@ -88,7 +86,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         }
     }
 
-    private fun validateProfileAndSetState(profile: ProfileToken?){
+    private fun validateProfileAndSetState(profile: ProfileToken?) {
         profileState = if (profile != null) ProfileState.ValidConnection(profile) else ProfileState.IncompleteConfiguration(profile)
     }
 
@@ -103,7 +101,6 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
             try {
                 promise.setResult(ProfileState.ValidConnection(profile))
             } catch (e: Exception) {
-
             }
         }
         return promise
@@ -118,7 +115,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
     /**
      * Legacy method, should be considered deprecated and avoided since it loads defaults out of band
      */
-    val profiles: Map<String,ProfileToken>
+    val profiles: Map<String, ProfileToken>
         get() = profileMap
 
     override fun dispose() {
@@ -142,10 +139,9 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         private const val MAX_HISTORY = 5
         internal val ProfileManager.selectedProfile get() = selectedProfile
     }
-
 }
 
-//TODO:Rebase this whole section
+// TODO:Rebase this whole section
 // Fix messages
 // Add verification to make sure token wasn't removed since loading check occurred
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {

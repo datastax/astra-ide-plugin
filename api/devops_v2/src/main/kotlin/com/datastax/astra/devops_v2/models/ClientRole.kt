@@ -11,20 +11,18 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * An individual clientID and associated roles.
  * @param clientId the clientID
- * @param roles 
+ * @param roles
  */
 
-data class ClientRole (
+data class ClientRole(
     /* the clientID */
     @SerializedName("clientId")
     val clientId: kotlin.String? = null,
     @SerializedName("roles")
     val roles: kotlin.collections.List<kotlin.String>? = null
 )
-

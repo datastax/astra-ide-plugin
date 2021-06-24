@@ -11,17 +11,14 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.Error
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * Errors is a collection of individual Error objects.
- * @param errors 
+ * @param errors
  */
 
-data class Errors (
+data class Errors(
     @SerializedName("errors")
     val errors: kotlin.collections.List<Error>
 )
-

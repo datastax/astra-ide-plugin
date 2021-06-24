@@ -1,16 +1,12 @@
 package com.datastax.astra.jetbrains
 
 import com.datastax.astra.devops_v2.apis.DBOperationsApi
+import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.credentials.ProfileManager
+import com.datastax.astra.stargate_v2.apis.DataApi
 import com.datastax.astra.stargate_v2.apis.SchemasApi
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.Nullable
-
-import com.datastax.astra.devops_v2.models.Database
-import com.datastax.astra.stargate_v2.apis.DataApi
-
 import java.net.URI
-
 
 object AstraClient {
     lateinit var project: Project
@@ -19,7 +15,7 @@ object AstraClient {
 
     fun dbOperationsApi(): DBOperationsApi {
         return com.datastax.astra.devops_v2.infrastructure.ApiClient(authName = "Bearer", bearerToken = accessToken)
-                .createService(DBOperationsApi::class.java)
+            .createService(DBOperationsApi::class.java)
     }
     fun schemasApiForDatabase(database: Database): SchemasApi {
         val basePath = database.dataEndpointUrl.orEmpty().removeSuffix(URI(database.dataEndpointUrl).rawPath)

@@ -1,4 +1,4 @@
-package com.datastax.astra.jetbrains.explorer;
+package com.datastax.astra.jetbrains.explorer
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope

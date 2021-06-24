@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -22,7 +21,7 @@ import com.google.gson.annotations.SerializedName
  * @param effect Effect this policy will have on the provided resource.
  */
 
-data class Policy (
+data class Policy(
     /* A description of this policy. */
     @SerializedName("description")
     val description: kotlin.String,
@@ -94,4 +93,3 @@ data class Policy (
         @SerializedName(value = "allow") ALLOW("allow");
     }
 }
-

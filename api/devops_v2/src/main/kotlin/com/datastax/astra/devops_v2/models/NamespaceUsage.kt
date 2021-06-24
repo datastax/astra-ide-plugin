@@ -11,19 +11,17 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * A namespace and its usage
- * @param namespace 
- * @param topics 
+ * @param namespace
+ * @param topics
  */
 
-data class NamespaceUsage (
+data class NamespaceUsage(
     @SerializedName("namespace")
     val namespace: kotlin.String? = null,
     @SerializedName("topics")
     val topics: kotlin.collections.List<kotlin.String>? = null
 )
-

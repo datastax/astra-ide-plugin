@@ -11,18 +11,16 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.MigrationProxyMapping
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * Configuration of the migration proxy and mappings of astra node to a customer node currently in use.
  * @param originUsername origin cassandra username
  * @param originPassword origin cassandra password
- * @param mappings 
+ * @param mappings
  */
 
-data class MigrationProxyConfiguration (
+data class MigrationProxyConfiguration(
     /* origin cassandra username */
     @SerializedName("originUsername")
     val originUsername: kotlin.String,
@@ -32,4 +30,3 @@ data class MigrationProxyConfiguration (
     @SerializedName("mappings")
     val mappings: kotlin.collections.List<MigrationProxyMapping>
 )
-

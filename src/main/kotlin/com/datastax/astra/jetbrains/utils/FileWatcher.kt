@@ -1,18 +1,18 @@
-//This is courtesy of Łukasz Wiśniewski (github.com/vishna/watchservice-ktx/)
-//Rewriting this class to simplify it for use as a single file watcher was considered.
-//This would be an inefficient use of time and some features may have a use eventually.
+// This is courtesy of Łukasz Wiśniewski (github.com/vishna/watchservice-ktx/)
+// Rewriting this class to simplify it for use as a single file watcher was considered.
+// This would be an inefficient use of time and some features may have a use eventually.
 package com.datastax.astra.jetbrains.utils
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import java.io.File
 import java.nio.file.*
-import java.nio.file.WatchKey
 import java.nio.file.FileVisitResult
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.SimpleFileVisitor
 import java.nio.file.Files
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardWatchEventKinds.*
+import java.nio.file.WatchKey
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * Watches directory. If file is supplied it will use parent directory. If it's an intent to watch just file,
@@ -68,12 +68,15 @@ class KWatchChannel(
             clear()
         }
         if (mode == Mode.Recursive) {
-            Files.walkFileTree(path, object : SimpleFileVisitor<Path>() {
-                override fun preVisitDirectory(subPath: Path, attrs: BasicFileAttributes): FileVisitResult {
-                    registeredKeys += subPath.register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE)
-                    return FileVisitResult.CONTINUE
+            Files.walkFileTree(
+                path,
+                object : SimpleFileVisitor<Path>() {
+                    override fun preVisitDirectory(subPath: Path, attrs: BasicFileAttributes): FileVisitResult {
+                        registeredKeys += subPath.register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE)
+                        return FileVisitResult.CONTINUE
+                    }
                 }
-            })
+            )
         } else {
             registeredKeys += path.register(watchService, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE)
         }
@@ -89,7 +92,8 @@ class KWatchChannel(
                     file = path.toFile(),
                     tag = tag,
                     kind = KWatchEvent.Kind.Initialized
-                ))
+                )
+            )
 
             var shouldRegisterPath = true
 
@@ -109,7 +113,7 @@ class KWatchChannel(
                         return@forEach
                     }
 
-                    val eventType = when(it.kind()) {
+                    val eventType = when (it.kind()) {
                         ENTRY_CREATE -> KWatchEvent.Kind.Created
                         ENTRY_DELETE -> KWatchEvent.Kind.Deleted
                         else -> KWatchEvent.Kind.Modified
@@ -125,7 +129,8 @@ class KWatchChannel(
                     // to watch subtree we re-register the whole tree
                     if (mode == Mode.Recursive &&
                         event.kind in listOf(KWatchEvent.Kind.Created, KWatchEvent.Kind.Deleted) &&
-                        event.file.isDirectory) {
+                        event.file.isDirectory
+                    ) {
                         shouldRegisterPath = true
                     }
 
@@ -136,8 +141,7 @@ class KWatchChannel(
                     monitorKey.cancel()
                     close()
                     break
-                }
-                else if (isClosedForSend) {
+                } else if (isClosedForSend) {
                     break
                 }
             }

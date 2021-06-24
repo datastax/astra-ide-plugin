@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.credentials
 
+import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -13,11 +14,10 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.datastax.astra.jetbrains.MessagesBundle.message
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 
-//Not sure why constructor is test only
+// Not sure why constructor is test only
 class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     private val writer: ConfigFileWriter,
     private val configFile: File
@@ -39,7 +39,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
                 try {
                     writer.createFile(configFile)
                 } finally {
-                    //TODO: Possibly add telemetry here when profile file created
+                    // TODO: Possibly add telemetry here when profile file created
                 }
             } else {
                 return
@@ -73,7 +73,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
     private fun confirm(project: Project, file: File): Boolean = Messages.showOkCancelDialog(
         project,
-        message("credentials.file.confirm_create",file),
+        message("credentials.file.confirm_create", file),
         message("credentials.file.confirm_create.title"),
         message("credentials.file.confirm_create.okay"),
         Messages.getCancelButton(),

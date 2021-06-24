@@ -1,10 +1,6 @@
 package com.datastax.astra.devops_v2.apis
 
 import com.datastax.astra.devops_v2.infrastructure.CollectionFormats.*
-import retrofit2.http.*
-import retrofit2.Response
-import okhttp3.RequestBody
-
 import com.datastax.astra.devops_v2.models.AvailableRegionCombination
 import com.datastax.astra.devops_v2.models.CapacityUnits
 import com.datastax.astra.devops_v2.models.ClientRoleList
@@ -12,7 +8,6 @@ import com.datastax.astra.devops_v2.models.CreateRoleRequest
 import com.datastax.astra.devops_v2.models.CredsURL
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.DatabaseInfoCreate
-import com.datastax.astra.devops_v2.models.Errors
 import com.datastax.astra.devops_v2.models.GenerateTokenBody
 import com.datastax.astra.devops_v2.models.GenerateTokenResponse
 import com.datastax.astra.devops_v2.models.GetOrganizationUsersResponse
@@ -23,6 +18,8 @@ import com.datastax.astra.devops_v2.models.UpdateRoleRequest
 import com.datastax.astra.devops_v2.models.UserInvite
 import com.datastax.astra.devops_v2.models.UserPassword
 import com.datastax.astra.devops_v2.models.UserResponse
+import retrofit2.Response
+import retrofit2.http.*
 
 interface DBOperationsApi {
     /**
@@ -34,9 +31,9 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 422: The structured data in the request could not be parsed.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
-     * @param keyspaceName Name of database keyspace 
+     *
+     * @param databaseID String representation of the database ID
+     * @param keyspaceName Name of database keyspace
      * @return [Unit]
      */
     @POST("v2/databases/{databaseID}/keyspaces/{keyspaceName}")
@@ -44,7 +41,7 @@ interface DBOperationsApi {
 
     /**
      * Create a role in an organization
-     * 
+     *
      * Responses:
      *  - 201: The request completed successfully and created an object.
      *  - 400: Bad request.
@@ -52,7 +49,7 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 500: A server error occurred.
-     * 
+     *
      * @param createRoleRequest The model for create role body. (optional)
      * @return [Unit]
      */
@@ -68,8 +65,8 @@ interface DBOperationsApi {
      *  - 401: The user is unauthorized to perform the operation.
      *  - 422: The structured data in the request could not be parsed.
      *  - 500: A server error occurred.
-     * 
-     * @param databaseInfoCreate Definition of new database. 
+     *
+     * @param databaseInfoCreate Definition of new database.
      * @return [Unit]
      */
     @POST("v2/databases")
@@ -77,14 +74,14 @@ interface DBOperationsApi {
 
     /**
      * Delete a role by ID
-     * 
+     *
      * Responses:
      *  - 204: The request succeeded and no content is returned in response body.
      *  - 400: Bad request.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
-     * @param roleID id for the role 
+     *
+     * @param roleID id for the role
      * @return [Unit]
      */
     @DELETE("v2/organizations/roles/{roleID}")
@@ -92,14 +89,14 @@ interface DBOperationsApi {
 
     /**
      * Revokes a token
-     * 
+     *
      * Responses:
      *  - 200: The request completed successfully.
      *  - 400: Bad request.
      *  - 403: The user is forbidden to perform the operation.
      *  - 500: A server error occurred.
-     * 
-     * @param clientId clientID to revoke token for 
+     *
+     * @param clientId clientID to revoke token for
      * @return [Unit]
      */
     @DELETE("v2/clientIdSecret/{clientId}")
@@ -115,8 +112,8 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
+     *
+     * @param databaseID String representation of the database ID
      * @return [CredsURL]
      */
     @POST("v2/databases/{databaseID}/secureBundleURL")
@@ -124,13 +121,13 @@ interface DBOperationsApi {
 
     /**
      * Generate token for client
-     * 
+     *
      * Responses:
      *  - 200: successful operation
      *  - 400: Bad request.
      *  - 403: The user is forbidden to perform the operation.
      *  - 500: A server error occurred.
-     * 
+     *
      * @param generateTokenBody The model for generating token for client. (optional)
      * @return [kotlin.collections.List<GenerateTokenResponse>]
      */
@@ -139,13 +136,13 @@ interface DBOperationsApi {
 
     /**
      * Get a list of clients for an org
-     * 
+     *
      * Responses:
      *  - 200: successful operation
      *  - 400: Bad request.
      *  - 403: The user is forbidden to perform the operation.
      *  - 500: A server error occurred.
-     * 
+     *
      * @return [kotlin.collections.List<ClientRoleList>]
      */
     @GET("v2/clientIdSecrets")
@@ -160,7 +157,7 @@ interface DBOperationsApi {
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
+     *
      * @return [kotlin.collections.List<Organization>]
      */
     @GET("v2/currentOrg")
@@ -175,8 +172,8 @@ interface DBOperationsApi {
      *  - 401: The user is unauthorized to perform the operation.
      *  - 404: The specified database was not found.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
+     *
+     * @param databaseID String representation of the database ID
      * @return [Database]
      */
     @GET("v2/databases/{databaseID}")
@@ -191,8 +188,8 @@ interface DBOperationsApi {
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
-     * @param roleID id for the role 
+     *
+     * @param roleID id for the role
      * @return [kotlin.collections.List<Role>]
      */
     @GET("v2/organizations/roles/{roleID}")
@@ -200,13 +197,13 @@ interface DBOperationsApi {
 
     /**
      * Get all roles for an organization
-     * 
+     *
      * Responses:
      *  - 200: successful operation
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
+     *
      * @return [kotlin.collections.List<kotlin.collections.List<Role>>]
      */
     @GET("v2/organizations/roles")
@@ -214,14 +211,14 @@ interface DBOperationsApi {
 
     /**
      * Get an organization&#39;s user
-     * 
+     *
      * Responses:
      *  - 200: OK
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
-     * @param userID id for the user 
+     *
+     * @param userID id for the user
      * @return [UserResponse]
      */
     @GET("v2/organizations/users/{userID}")
@@ -229,12 +226,12 @@ interface DBOperationsApi {
 
     /**
      * Get an organization&#39;s users
-     * 
+     *
      * Responses:
      *  - 200: List of users for the current org
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
+     *
      * @return [GetOrganizationUsersResponse]
      */
     @GET("v2/organizations/users")
@@ -249,7 +246,7 @@ interface DBOperationsApi {
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
+     *
      * @param userInvite  (optional)
      * @return [Unit]
      */
@@ -263,7 +260,7 @@ interface DBOperationsApi {
      *  - 200: successful operation
      *  - 401: The user is unauthorized to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
+     *
      * @return [kotlin.collections.List<AvailableRegionCombination>]
      */
     @GET("v2/availableRegions")
@@ -277,7 +274,7 @@ interface DBOperationsApi {
      *  - 400: Bad request.
      *  - 401: The user is unauthorized to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
+     *
      * @param include Allows filtering so that databases in listed states are returned. (optional, default to nonterminated)
      * @param provider Allows filtering so that databases from a given provider are returned. (optional, default to ALL)
      * @param startingAfter Optional parameter for pagination purposes. Used as this value for starting retrieving a specific page of results. (optional)
@@ -297,8 +294,8 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
+     *
+     * @param databaseID String representation of the database ID
      * @return [Unit]
      */
     @POST("v2/databases/{databaseID}/park")
@@ -306,15 +303,15 @@ interface DBOperationsApi {
 
     /**
      * Remove or uninvite a user from an organization
-     * 
+     *
      * Responses:
      *  - 204: The request succeeded and no content is returned in response body.
      *  - 400: Bad request.
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
-     * @param userID id for the user 
+     *
+     * @param userID id for the user
      * @return [Unit]
      */
     @DELETE("v2/organizations/users/{userID}")
@@ -330,9 +327,9 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
-     * @param userPassword Map containing username and password. The specified password will be updated for the specified database user. 
+     *
+     * @param databaseID String representation of the database ID
+     * @param userPassword Map containing username and password. The specified password will be updated for the specified database user.
      * @return [Unit]
      */
     @POST("v2/databases/{databaseID}/resetPassword")
@@ -348,9 +345,9 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
-     * @param capacityUnits Map containing capacityUnits key with a value greater than the current number of capacity units. The max increment of 3 additional capacity units can be added at one time. 
+     *
+     * @param databaseID String representation of the database ID
+     * @param capacityUnits Map containing capacityUnits key with a value greater than the current number of capacity units. The max increment of 3 additional capacity units can be added at one time.
      * @return [Unit]
      */
     @POST("v2/databases/{databaseID}/resize")
@@ -366,8 +363,8 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
+     *
+     * @param databaseID String representation of the database ID
      * @param preparedStateOnly For internal use only. Used to safely terminate prepared databases. (optional, default to false)
      * @return [Unit]
      */
@@ -384,8 +381,8 @@ interface DBOperationsApi {
      *  - 404: The specified database was not found.
      *  - 409: The database is not in a valid state to perform the operation.
      *  - 5XX: A server error occurred.
-     * 
-     * @param databaseID String representation of the database ID 
+     *
+     * @param databaseID String representation of the database ID
      * @return [Unit]
      */
     @POST("v2/databases/{databaseID}/unpark")
@@ -400,8 +397,8 @@ interface DBOperationsApi {
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
-     * @param roleID id for the role 
+     *
+     * @param roleID id for the role
      * @param updateRoleRequest The model for update role body (optional)
      * @return [kotlin.collections.List<Role>]
      */
@@ -410,19 +407,18 @@ interface DBOperationsApi {
 
     /**
      * Update organization roles for a user
-     * 
+     *
      * Responses:
      *  - 204: The request succeeded and no content is returned in response body.
      *  - 400: Bad request.
      *  - 403: The user is forbidden to perform the operation.
      *  - 404: The specified database was not found.
      *  - 500: A server error occurred.
-     * 
-     * @param userID id for the user 
+     *
+     * @param userID id for the user
      * @param roleInviteRequest  (optional)
      * @return [Unit]
      */
     @PUT("v2/organizations/users/{userID}/roles")
     suspend fun updateRolesForUserInOrganization(@Path("userID") userID: kotlin.String, @Body roleInviteRequest: RoleInviteRequest? = null): Response<Unit>
-
 }

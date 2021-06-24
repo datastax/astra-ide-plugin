@@ -12,14 +12,14 @@ This can probably be slimmed down since anytime the profile is changed this clas
 Contains a blocking function for updating the regions
  */
 class CreateDatabaseGetRegions(project: Project) {
-    companion object{
+    companion object {
         lateinit var currentProject: Project
         var recentProfile: String = ""
         lateinit var regionsList: List<AvailableRegionCombination>
 
         fun getRegions(): List<AvailableRegionCombination> {
             val activeProfile = ProfileManager.getInstance(AstraClient.project).activeProfile?.name.toString()
-            if (recentProfile == activeProfile){
+            if (recentProfile == activeProfile) {
                 return regionsList
             }
             recentProfile = activeProfile
@@ -28,7 +28,7 @@ class CreateDatabaseGetRegions(project: Project) {
         }
 
         fun updateRegions() {
-            runBlocking { regionsList = AstraClient.dbOperationsApi().listAvailableRegions().body().orEmpty()}
+            runBlocking { regionsList = AstraClient.dbOperationsApi().listAvailableRegions().body().orEmpty() }
         }
     }
 
@@ -37,6 +37,4 @@ class CreateDatabaseGetRegions(project: Project) {
         recentProfile = ProfileManager.getInstance(AstraClient.project).activeProfile?.name.toString()
         updateRegions()
     }
-
-
 }

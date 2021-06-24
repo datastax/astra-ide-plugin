@@ -1,12 +1,10 @@
 package com.datastax.astra.jetbrains.services.database
 
-import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.layout.panel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import javax.swing.JComponent
 
 class DeleteDatabaseDialog(

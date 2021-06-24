@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -24,7 +23,7 @@ import com.google.gson.annotations.SerializedName
  * @param region Region refers to the cloud region.
  */
 
-data class DatabaseInfoCreate (
+data class DatabaseInfoCreate(
     /* Name of the database--user friendly identifier. */
     @SerializedName("name")
     val name: kotlin.String,
@@ -62,4 +61,3 @@ data class DatabaseInfoCreate (
         @SerializedName(value = "serverless") SERVERLESS("serverless");
     }
 }
-

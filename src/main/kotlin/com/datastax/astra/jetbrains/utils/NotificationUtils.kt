@@ -13,7 +13,7 @@ import com.intellij.ui.ScrollPaneFactory
 import javax.swing.JLabel
 import javax.swing.JTextArea
 
-//This was const, but we know our message bundle should be constant (unless changing languages a lot?) so I removed it to play nice with the message bundle
+// This was const, but we know our message bundle should be constant (unless changing languages a lot?) so I removed it to play nice with the message bundle
 private val GROUP_DISPLAY_ID = message("utilities.notification.group_display_id")
 
 private fun notify(type: NotificationType, title: String, content: String = "", project: Project? = null, notificationActions: Collection<AnAction>) {

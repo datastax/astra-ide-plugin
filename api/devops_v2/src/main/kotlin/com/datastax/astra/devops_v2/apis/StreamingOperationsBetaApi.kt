@@ -1,14 +1,12 @@
 package com.datastax.astra.devops_v2.apis
 
 import com.datastax.astra.devops_v2.infrastructure.CollectionFormats.*
-import retrofit2.http.*
-import retrofit2.Response
-import okhttp3.RequestBody
-
 import com.datastax.astra.devops_v2.models.CloudProviderRegionResponse
 import com.datastax.astra.devops_v2.models.TenantClusterPlanResponse
 import com.datastax.astra.devops_v2.models.TenantLimitResponse
 import com.datastax.astra.devops_v2.models.TenantRequest
+import retrofit2.Response
+import retrofit2.http.*
 
 interface StreamingOperationsBetaApi {
     /**
@@ -19,8 +17,8 @@ interface StreamingOperationsBetaApi {
      *  - 401: Authentication failure
      *  - 409: Tenant already exists
      *  - 500: Failed to read the HTTP body
-     * 
-     * @param tenantRequest Request body for tenant creation 
+     *
+     * @param tenantRequest Request body for tenant creation
      * @param topic A topic name for auto-creation (if not specified, no topic is created). (optional)
      * @return [kotlin.collections.List<TenantClusterPlanResponse>]
      */
@@ -35,9 +33,9 @@ interface StreamingOperationsBetaApi {
      *  - 401: Authentication failure
      *  - 429: over rate limit
      *  - 500: Failed to read the HTTP body
-     * 
-     * @param tenant Tenant name 
-     * @param cluster Cluster name 
+     *
+     * @param tenant Tenant name
+     * @param cluster Cluster name
      * @param opt Performs a soft delete that only marks the tenant as deleted in the database (opt&#x3D;soft). (optional)
      * @return [Unit]
      */
@@ -53,8 +51,8 @@ interface StreamingOperationsBetaApi {
      *  - 404: Tenant name not found
      *  - 429: Over rate limit
      *  - 500: Failed to read the HTTP body
-     * 
-     * @param tenant Tenant name 
+     *
+     * @param tenant Tenant name
      * @return [Unit]
      */
     @HEAD("v2/streaming/tenants/{tenant}")
@@ -68,7 +66,7 @@ interface StreamingOperationsBetaApi {
      *  - 401: Authentication failure
      *  - 429: Over rate limit
      *  - 500: Failed to read the HTTP body
-     * 
+     *
      * @return [CloudProviderRegionResponse]
      */
     @GET("v2/streaming/providers")
@@ -82,8 +80,8 @@ interface StreamingOperationsBetaApi {
      *  - 401: Authentication failure
      *  - 429: Over rate limit
      *  - 500: Failed to read the HTTP body
-     * 
-     * @param tenant Tenant name 
+     *
+     * @param tenant Tenant name
      * @return [kotlin.collections.List<TenantLimitResponse>]
      */
     @GET("v2/streaming/tenants/{tenant}/limits")
@@ -97,10 +95,9 @@ interface StreamingOperationsBetaApi {
      *  - 401: Authentication failure
      *  - 429: over rate limit
      *  - 500: Failed to read the HTTP body
-     * 
+     *
      * @return [kotlin.collections.List<TenantClusterPlanResponse>]
      */
     @GET("v2/streaming/tenants")
     suspend fun getTenants(): Response<kotlin.collections.List<TenantClusterPlanResponse>>
-
 }

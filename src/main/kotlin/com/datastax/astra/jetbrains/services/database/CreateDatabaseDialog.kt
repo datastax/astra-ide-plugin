@@ -35,14 +35,14 @@ class CreateDatabaseDialog(
         runBlocking { allRegions = CreateDatabaseGetRegions.getRegions() }
     }
 
-    //Property values for create database params
+    // Property values for create database params
     var name: String = ""
     var keyspace: String = ""
     var cloudProvider = DatabaseInfoCreate.CloudProvider.AWS
     var tier = DatabaseInfoCreate.Tier.SERVERLESS
     val regionForProvider: MutableMap<String, AvailableRegionCombination> = mutableMapOf()
 
-    //UI variables
+    // UI variables
     lateinit var providerButtons: Map<String, JBRadioButton>
 
     val view = panel {
@@ -75,19 +75,21 @@ class CreateDatabaseDialog(
             label(tier.value)
         }
         row("Region:") {
-            cell{
+            cell {
                 allRegions
                     .filter { it.tier == "serverless" }
                     .filter { enumValues<DatabaseInfoCreate.CloudProvider>().any { enum -> enum.value == it.cloudProvider } }
                     .groupBy { it.cloudProvider }
                     .forEach { regionsByProvider ->
                         regionForProvider[regionsByProvider.key] = regionsByProvider.value.first()
-                        comboBox(CollectionComboBoxModel(regionsByProvider.value),
+                        comboBox(
+                            CollectionComboBoxModel(regionsByProvider.value),
                             getter = { regionForProvider[regionsByProvider.key] },
                             setter = { it?.apply { regionForProvider[regionsByProvider.key] = it } },
-                            renderer = listCellRenderer { value, _, _ -> text = value.region })
+                            renderer = listCellRenderer { value, _, _ -> text = value.region }
+                        )
                             .visibleIf(providerButtons[regionsByProvider.key]!!.selected)
-                            //.withLeftGap()//.component.setMinimumAndPreferredWidth(160)
+                        // .withLeftGap()//.component.setMinimumAndPreferredWidth(160)
                     }
             }
         }
@@ -113,7 +115,7 @@ class CreateDatabaseDialog(
         view.apply()
         close(OK_EXIT_CODE)
         launch {
-            //TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
+            // TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, regionForProvider[cloudProvider.value]?.region.orEmpty())
             val response = AstraClient.dbOperationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
@@ -123,7 +125,7 @@ class CreateDatabaseDialog(
                     }?.userObject as DatabaseParentNode
                 databaseParent.clearCache()
                 project.refreshTree(databaseParent, true)
-                //val databaseId = response.headers()["Location"]
+                // val databaseId = response.headers()["Location"]
             } else {
                 TODO("notifyError")
             }

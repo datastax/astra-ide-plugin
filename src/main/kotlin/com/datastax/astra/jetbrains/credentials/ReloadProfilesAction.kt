@@ -1,7 +1,6 @@
 package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
-import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.icons.AllIcons

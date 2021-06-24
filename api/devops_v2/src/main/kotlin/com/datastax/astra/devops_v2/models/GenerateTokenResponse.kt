@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -23,7 +22,7 @@ import com.google.gson.annotations.SerializedName
  * @param token AstraCS:clientId:hex(sha256(secret))
  */
 
-data class GenerateTokenResponse (
+data class GenerateTokenResponse(
     /* The ID of the client (UUID). */
     @SerializedName("clientId")
     val clientId: kotlin.String,
@@ -40,4 +39,3 @@ data class GenerateTokenResponse (
     @SerializedName("token")
     val token: kotlin.String? = null
 )
-

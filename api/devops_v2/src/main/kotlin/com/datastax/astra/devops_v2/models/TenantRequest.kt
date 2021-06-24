@@ -11,19 +11,18 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
- * @param cloudProvider 
- * @param cloudRegion 
- * @param plan 
- * @param tenantName 
- * @param userEmail 
+ *
+ * @param cloudProvider
+ * @param cloudRegion
+ * @param plan
+ * @param tenantName
+ * @param userEmail
  */
 
-data class TenantRequest (
+data class TenantRequest(
     @SerializedName("cloudProvider")
     val cloudProvider: kotlin.String? = null,
     @SerializedName("cloudRegion")
@@ -35,4 +34,3 @@ data class TenantRequest (
     @SerializedName("userEmail")
     val userEmail: kotlin.String? = null
 )
-

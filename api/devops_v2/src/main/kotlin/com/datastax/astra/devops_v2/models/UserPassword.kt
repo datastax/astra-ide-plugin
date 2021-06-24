@@ -11,20 +11,18 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * UserPassword specifies a username and new password. The specified password will be updated for the specified database user.
- * @param username 
+ * @param username
  * @param password New password (min 6 characters)
  */
 
-data class UserPassword (
+data class UserPassword(
     @SerializedName("username")
     val username: kotlin.String? = null,
     /* New password (min 6 characters) */
     @SerializedName("password")
     val password: kotlin.String? = null
 )
-
