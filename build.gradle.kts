@@ -40,23 +40,22 @@ val retrofitVersion = "2.7.2"
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
 
-    //BEGIN Dependencies for OpenApi clients
-    //Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
-    //or have issues with Linkage errors etc since IntelliJ ships with older kotlin libs
+    // BEGIN Dependencies for OpenApi clients
+    // Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
+    // or have issues with Linkage errors etc since IntelliJ ships with older kotlin libs
     implementation("com.squareup.okhttp3:logging-interceptor:4.8.1")
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
-    //Retrofit Gson Conversion
+    // Retrofit Gson Conversion
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 
-    //Retrofit Moshi Conversion
-    //implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
-    //implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
+    // Retrofit Moshi Conversion
+    // implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
+    // implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
 
-    //END Dependencies for OpenApi clients
-
+    // END Dependencies for OpenApi clients
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.0.2")
 
@@ -72,7 +71,7 @@ dependencies {
 configurations {
     runtimeClasspath {
         // Exclude dependencies that ship with iDE
-        //exclude(group = "org.slf4j")
+        // exclude(group = "org.slf4j")
         exclude(group = "org.jetbrains.kotlin")
         exclude(group = "org.jetbrains.kotlinx")
     }
