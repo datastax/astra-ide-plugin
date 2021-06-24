@@ -37,10 +37,6 @@ jobs:
     needs: gradleValidation
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        java-version: [ 8, 11, 15 ]
-    
     steps:
 
       # Setup Java 1.8 environment for the next steps
@@ -48,7 +44,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: ${{ matrix.java-version }}
+          java-version: '16'
 
       # Check out current repository
       - name: Fetch Sources
