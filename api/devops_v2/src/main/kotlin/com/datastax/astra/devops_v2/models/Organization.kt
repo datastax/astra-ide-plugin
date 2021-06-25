@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -19,9 +18,8 @@ import com.google.gson.annotations.SerializedName
  * @param id The organization UUID.
  */
 
-data class Organization (
+data class Organization(
     /* The organization UUID. */
     @SerializedName("id")
     val id: kotlin.String
 )
-

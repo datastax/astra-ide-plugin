@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -20,7 +19,7 @@ import com.google.gson.annotations.SerializedName
  * @param ID API specific error code.
  */
 
-data class Error (
+data class Error(
     /* User-friendly description of error. */
     @SerializedName("message")
     val message: kotlin.String,
@@ -28,4 +27,3 @@ data class Error (
     @SerializedName("ID")
     val ID: kotlin.Int? = null
 )
-

@@ -11,17 +11,15 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
+ *
  * @param token The application token to use in each request.
  */
 
-data class ServiceAccountTokenResponse (
+data class ServiceAccountTokenResponse(
     /* The application token to use in each request. */
     @SerializedName("token")
     val token: kotlin.String? = null
 )
-

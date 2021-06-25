@@ -1,6 +1,7 @@
-package com.datastax.astra.jetbrains.explorer
+package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
+import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -9,17 +10,17 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.project.DumbAware
 import kotlinx.coroutines.CoroutineScope
 
-class RefreshExplorerAction(text: String = message("explorer.refresh.description")) :
-    AnAction(text, null, AllIcons.Actions.Refresh),
+class ReloadProfilesAction(text: String = message("credentials.file.reload")) :
+    AnAction(text, null, AllIcons.Actions.SwapPanels),
     DumbAware,
-    CoroutineScope by ApplicationThreadPoolScope("Explorer") {
+    CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
     override fun update(e: AnActionEvent) {
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        // TODO:This is where we should record telemetry on the refresh button
-        // But would send many records if clicked a lot and AWS doesn't record this afaik
+        val profileSettingsManager = ProfileManager.getInstance(e.getRequiredData(LangDataKeys.PROJECT))
+        profileSettingsManager.loadProfiles()
         e.getRequiredData(LangDataKeys.PROJECT).refreshTree()
     }
 }

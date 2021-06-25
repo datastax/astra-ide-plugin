@@ -11,17 +11,16 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * CloudProviderRegionResponse is a map of cloud provider and its available regions.
- * @param aws 
- * @param gcp 
- * @param azure 
+ * @param aws
+ * @param gcp
+ * @param azure
  */
 
-data class CloudProviderRegionResponse (
+data class CloudProviderRegionResponse(
     @SerializedName("aws")
     val aws: kotlin.collections.List<kotlin.String>? = null,
     @SerializedName("gcp")
@@ -29,4 +28,3 @@ data class CloudProviderRegionResponse (
     @SerializedName("azure")
     val azure: kotlin.collections.List<kotlin.String>? = null
 )
-

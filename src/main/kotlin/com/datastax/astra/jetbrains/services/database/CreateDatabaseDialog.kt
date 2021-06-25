@@ -9,10 +9,8 @@ import com.datastax.astra.jetbrains.explorer.DatabaseParentNode
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
@@ -40,31 +38,35 @@ class CreateDatabaseDialog(
         runBlocking { allRegions = CreateDatabaseGetRegions.getRegions() }
     }
 
-    //Property values for create database params
+    // Property values for create database params
     var name: String = ""
     var keyspace: String = ""
     var cloudProvider = DatabaseInfoCreate.CloudProvider.AWS
     var tier = DatabaseInfoCreate.Tier.SERVERLESS
     val regionForProvider: MutableMap<String, AvailableRegionCombination> = mutableMapOf()
 
-    //UI variables
+    // UI variables
     lateinit var providerButtons: Map<String, JBRadioButton>
 
     val view = panel {
         row("Database Name:") {
             textField(::name).withValidationOnApply {
-                if (it.text.trim().isEmpty()) ValidationInfo(
-                    message("database.create.database.missing.database.name"),
-                    it
-                ) else null
+                if (it.text.trim().isEmpty()) {
+                    ValidationInfo(
+                        message("database.create.database.missing.database.name"),
+                        it
+                    )
+                } else null
             }
         }
         row("Keyspace: ") {
             textField(::keyspace).withValidationOnApply {
-                if (it.text.trim().isEmpty()) ValidationInfo(
-                    message("database.create.database.missing.database.keyspace"),
-                    it
-                ) else null
+                if (it.text.trim().isEmpty()) {
+                    ValidationInfo(
+                        message("database.create.database.missing.database.keyspace"),
+                        it
+                    )
+                } else null
             }
         }
         row("Cloud Provider:") {
@@ -80,19 +82,21 @@ class CreateDatabaseDialog(
             label(tier.value)
         }
         row("Region:") {
-            cell{
+            cell {
                 allRegions
                     .filter { it.tier == "serverless" }
                     .filter { enumValues<DatabaseInfoCreate.CloudProvider>().any { enum -> enum.value == it.cloudProvider } }
                     .groupBy { it.cloudProvider }
                     .forEach { regionsByProvider ->
                         regionForProvider[regionsByProvider.key] = regionsByProvider.value.first()
-                        comboBox(CollectionComboBoxModel(regionsByProvider.value),
+                        comboBox(
+                            CollectionComboBoxModel(regionsByProvider.value),
                             getter = { regionForProvider[regionsByProvider.key] },
                             setter = { it?.apply { regionForProvider[regionsByProvider.key] = it } },
-                            renderer = listCellRenderer { value, _, _ -> text = value.region })
+                            renderer = listCellRenderer { value, _, _ -> text = value.region }
+                        )
                             .visibleIf(providerButtons[regionsByProvider.key]!!.selected)
-                            //.withLeftGap()//.component.setMinimumAndPreferredWidth(160)
+                        // .withLeftGap()//.component.setMinimumAndPreferredWidth(160)
                     }
             }
         }
@@ -118,7 +122,7 @@ class CreateDatabaseDialog(
         view.apply()
         close(OK_EXIT_CODE)
         launch {
-            //TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
+            // TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, regionForProvider[cloudProvider.value]?.region.orEmpty())
             val response = AstraClient.dbOperationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
@@ -128,11 +132,12 @@ class CreateDatabaseDialog(
                     }?.userObject as DatabaseParentNode
                 databaseParent.clearCache()
                 project.refreshTree(databaseParent, true)
-                //val databaseId = response.headers()["Location"]
 
-                trackDevOpsCrud("Database", name, CrudEnum.CREATE,true)
+                // This is disabled for now to reduce potential data leakage
+                // val databaseId = response.headers()["Location"]
+                trackDevOpsCrud("Database", name, CrudEnum.CREATE, true)
             } else {
-                trackDevOpsCrud("Database", name, CrudEnum.CREATE,false,mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
+                trackDevOpsCrud("Database", name, CrudEnum.CREATE, false, mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
             }
         }
     }

@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -19,9 +18,8 @@ import com.google.gson.annotations.SerializedName
  * @param roles The roles for which the token will be generated.
  */
 
-data class GenerateTokenBody (
+data class GenerateTokenBody(
     /* The roles for which the token will be generated. */
     @SerializedName("roles")
     val roles: kotlin.collections.List<kotlin.String>
 )
-

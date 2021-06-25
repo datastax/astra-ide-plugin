@@ -19,8 +19,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 
-
-//Not sure why constructor is test only
+// Not sure why constructor is test only
 class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     private val writer: ConfigFileWriter,
     private val configFile: File
@@ -28,7 +27,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     @Suppress("unused")
     constructor() : this(
         DefaultConfigFileWriter,
-        ProfileFileLocation.profileFilePath().toFile()
+        ProfileFileLocation.profileFilePath()
     )
 
     private val localFileSystem = LocalFileSystem.getInstance()
@@ -36,21 +35,20 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.getRequiredData(PlatformDataKeys.PROJECT)
 
-        //TODO: Remove checking for other file
-        // if both config does not exist, (try to)create a new config file
+        // if config does not exist, (try to) create a new config file
         if (!configFile.exists()) {
             if (confirm(project, configFile)) {
                 try {
                     writer.createFile(configFile)
                 } finally {
-                    trackClick(ClickTarget.BUTTON,"create profile file")
+                    trackClick(ClickTarget.BUTTON, "create profile file")
                 }
             } else {
                 return
             }
         }
 
-        // open both config file, if it exist
+        // This was a list of two file types changed to one, since we only have one profile file
         val virtualFiles = listOf(configFile).filter { it.exists() }.map {
             localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException(message("credentials.file.could_not_open", it))
         }
@@ -70,7 +68,6 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
                 if (fileEditorManager.openTextEditor(OpenFileDescriptor(project, it), true) == null) {
                     throw RuntimeException(message("credentials.file.could_not_open", it))
-
                 }
             }
         }
@@ -78,7 +75,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
     private fun confirm(project: Project, file: File): Boolean = Messages.showOkCancelDialog(
         project,
-        message("credentials.file.confirm_create",file),
+        message("credentials.file.confirm_create", file),
         message("credentials.file.confirm_create.title"),
         message("credentials.file.confirm_create.okay"),
         Messages.getCancelButton(),

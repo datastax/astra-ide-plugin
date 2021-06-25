@@ -21,7 +21,6 @@ import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SortOrder
 
-
 class TableViewerPanel(
     disposable: Disposable,
     val project: Project,
@@ -37,7 +36,7 @@ class TableViewerPanel(
 
         val model = ListTableModel(
             table.columnDefinitions?.map {
-                //TODO: Map each TypeDefinition to the appropriate column info
+                // TODO: Map each TypeDefinition to the appropriate column info
                 AstraColumnInfo(it.name)
             }.orEmpty().toTypedArray(),
             mutableListOf<Map<String, String>>(),
@@ -58,7 +57,6 @@ class TableViewerPanel(
         launch {
             loadInitialTableData()
         }
-
     }
 
     private suspend fun loadInitialTableData() {
@@ -70,7 +68,7 @@ class TableViewerPanel(
                 AstraClient.accessToken,
                 table.keyspace.orEmpty(),
                 table.name.orEmpty(),
-                "rows"//table?.primaryKey?.partitionKey?.joinToString("/").orEmpty()
+                "rows" // table?.primaryKey?.partitionKey?.joinToString("/").orEmpty()
             )
             if (response.isSuccessful) {
                 val rows = response.body()?.data
@@ -78,24 +76,20 @@ class TableViewerPanel(
                     withContext(edtContext) {
                         tableView.listTableModel.items = rows
                     }
-
                 }
             }
-
         } finally {
             withContext(edtContext) {
                 tableView.tableViewModel.fireTableDataChanged()
                 tableView.setPaintBusy(false)
             }
-
         }
     }
 
     override fun dispose() {}
 }
 
-
-//TODO: How to show each type of data
+// TODO: How to show each type of data
 class AstraColumnInfo(name: String) : ColumnInfo<Map<String, String>, String>(name) {
 
     override fun valueOf(item: Map<String, String>?): String? {

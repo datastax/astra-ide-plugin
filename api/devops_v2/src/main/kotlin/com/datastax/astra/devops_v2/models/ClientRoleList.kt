@@ -11,8 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.ClientRole
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -20,9 +18,8 @@ import com.google.gson.annotations.SerializedName
  * @param clients a list of clientId and associated roles.
  */
 
-data class ClientRoleList (
+data class ClientRoleList(
     /* a list of clientId and associated roles. */
     @SerializedName("clients")
     val clients: kotlin.collections.List<ClientRole>? = null
 )
-

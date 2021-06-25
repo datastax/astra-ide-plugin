@@ -11,20 +11,18 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.Policy
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * Details of a user role and its policy details.
  * @param id The unique system generated identifier of the role.
  * @param name The name of the role.
- * @param policy 
+ * @param policy
  * @param lastUpdateDatetime The date and time of the last update on the role.
  * @param lastUpdateUserid The userID of the user who last updated the role.
  */
 
-data class Role (
+data class Role(
     /* The unique system generated identifier of the role. */
     @SerializedName("id")
     val id: kotlin.String? = null,
@@ -40,4 +38,3 @@ data class Role (
     @SerializedName("last_update_userid")
     val lastUpdateUserid: kotlin.String? = null
 )
-

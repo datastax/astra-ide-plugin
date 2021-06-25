@@ -11,7 +11,6 @@ import javax.swing.JComponent
 
 class ChangeProfileSettingsActionGroup(project: Project) : ComputableActionGroup(), DumbAware {
     private val profileSettingsManager = ProfileManager.getInstance(project)
-
     private val profileSelector = ChangeProfilesActionGroup(project)
 
     override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> = CachedValueProvider {
@@ -20,38 +19,41 @@ class ChangeProfileSettingsActionGroup(project: Project) : ComputableActionGroup
         actions.add(Separator.create(message("credentials.profile.list")))
         actions.add(profileSelector)
         actions.add(Separator.create())
-        actions.add(ActionManager.getInstance().getAction("credentials.upsertCredentials"))
+        actions.add(ActionManager.getInstance().getAction("credentials.upsert"))
+        actions.add(Separator.create())
+        actions.add(ReloadProfilesAction())
 
-        CachedValueProvider.Result.create(actions.toTypedArray(),profileSettingsManager)
+        CachedValueProvider.Result.create(actions.toTypedArray(), profileSettingsManager)
     }
 }
 
 private class ChangeProfilesActionGroup(project: Project) : ComputableActionGroup(), DumbAware {
     private val profileManager = ProfileManager.getInstance(project)
-    override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> =CachedValueProvider{
+    override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> = CachedValueProvider {
         val actions = mutableListOf<AnAction>()
         profileManager.profiles.forEach {
-            //Make sure if default is in the list it's at the top
-            if(it.value.name == "default")
-                actions.add(0,ChangeProfileAction(it.value))
-            else
+            // Make sure if default is in the list it's at the top
+            if (it.value.name == "default") {
+                actions.add(0, ChangeProfileAction(it.value))
+            } else {
                 actions.add(ChangeProfileAction(it.value))
+            }
         }
         CachedValueProvider.Result.create(actions.toTypedArray(), profileManager)
     }
 }
 
-private fun getAccountSetting(e: AnActionEvent): ProfileManager =
+private fun getProfileManager(e: AnActionEvent): ProfileManager =
     ProfileManager.getInstance(e.getRequiredData(PlatformDataKeys.PROJECT))
 
 internal class ChangeProfileAction(private val nextProfile: ProfileToken) :
     ToggleAction(nextProfile.name),
     DumbAware {
-    override fun isSelected(e: AnActionEvent): Boolean = getAccountSetting(e).selectedProfile == nextProfile
+    override fun isSelected(e: AnActionEvent): Boolean = getProfileManager(e).selectedProfile == nextProfile
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
         if (state) {
-            getAccountSetting(e).changeProfile(nextProfile)
+            getProfileManager(e).changeProfile(nextProfile)
         }
     }
 }

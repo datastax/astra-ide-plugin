@@ -11,4 +11,3 @@ object CredentialsClient {
             .createService(DBOperationsApi::class.java)
     }
 }
-

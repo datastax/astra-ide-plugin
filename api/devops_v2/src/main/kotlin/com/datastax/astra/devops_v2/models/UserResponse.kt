@@ -11,19 +11,17 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.Role
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
- * @param userID 
- * @param email 
+ *
+ * @param userID
+ * @param email
  * @param status The status of a user within an organization either active or invited
  * @param roles an array of roles the user belongs to for an organization
  */
 
-data class UserResponse (
+data class UserResponse(
     @SerializedName("userID")
     val userID: kotlin.String,
     @SerializedName("email")
@@ -35,4 +33,3 @@ data class UserResponse (
     @SerializedName("roles")
     val roles: kotlin.collections.List<Role>? = null
 )
-

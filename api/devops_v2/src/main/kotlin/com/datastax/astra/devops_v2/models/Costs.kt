@@ -11,22 +11,21 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
- * @param costPerMinCents 
- * @param costPerHourCents 
- * @param costPerDayCents 
- * @param costPerMonthCents 
- * @param costPerMinParkedCents 
- * @param costPerHourParkedCents 
- * @param costPerDayParkedCents 
- * @param costPerMonthParkedCents 
+ *
+ * @param costPerMinCents
+ * @param costPerHourCents
+ * @param costPerDayCents
+ * @param costPerMonthCents
+ * @param costPerMinParkedCents
+ * @param costPerHourParkedCents
+ * @param costPerDayParkedCents
+ * @param costPerMonthParkedCents
  */
 
-data class Costs (
+data class Costs(
     @SerializedName("costPerMinCents")
     val costPerMinCents: kotlin.Double? = null,
     @SerializedName("costPerHourCents")
@@ -44,4 +43,3 @@ data class Costs (
     @SerializedName("costPerMonthParkedCents")
     val costPerMonthParkedCents: kotlin.Double? = null
 )
-

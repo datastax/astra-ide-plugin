@@ -36,17 +36,18 @@ val fetchKeyspaces: (suspend (database: Database) -> List<Keyspace>?) = {
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
-val fetchTables : (suspend (database: Database, keyspace: Keyspace) -> List<Table>?) = { database: Database, keyspace: Keyspace ->
+val fetchTables: (suspend (database: Database, keyspace: Keyspace) -> List<Table>?) = { database: Database, keyspace: Keyspace ->
     val response = AstraClient.schemasApiForDatabase(database).getTables(AstraClient.accessToken, keyspace.name, null)
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
 class DatabaseParentNode(project: Project) :
     ExplorerNode<String>(project, "Databases", null),
-    ResourceActionNode, ResourceParentNode {
-    init{
-        //Pass project object to astraclient so it can acquire tokens from profile manager
-        AstraClient.project=project
+    ResourceActionNode,
+    ResourceParentNode {
+    init {
+        // Pass project object to astraclient so it can acquire tokens from profile manager
+        AstraClient.project = project
     }
 
     private var children = mutableMapOf<String, DatabaseNode>()
@@ -54,7 +55,6 @@ class DatabaseParentNode(project: Project) :
     override fun actionGroupName(): String = "astra.explorer.databases"
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-
         try {
             val dbList = cached("", loader = fetchDatabases)
             children = children.filterKeys { key ->
@@ -64,11 +64,11 @@ class DatabaseParentNode(project: Project) :
                 val node = children.get(it.id)
                 if (node != null) {
                     if (!node.database.equals(it)) {
-                        //Update
+                        // Update
                         node.database = it
                     }
                 } else {
-                    //Add
+                    // Add
                     children[it.id] = DatabaseNode(nodeProject, it)
                 }
             }
@@ -80,8 +80,8 @@ class DatabaseParentNode(project: Project) :
     }
 
     fun clearCache() = run {
-        //This is how to force removal
-        //Need the lambda not 'inline' though because it's used as the key in the map
+        // This is how to force removal
+        // Need the lambda not 'inline' though because it's used as the key in the map
         val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
         cacheMap[fetchDatabases::class].also {
             it?.asMap()?.remove("")
@@ -91,12 +91,13 @@ class DatabaseParentNode(project: Project) :
 
 class DatabaseNode(nodeProject: Project, database: Database) :
     ExplorerNode<String>(nodeProject, database.info.name.orEmpty(), null),
-    ResourceActionNode, ResourceParentNode {
+    ResourceActionNode,
+    ResourceParentNode {
 
     var pollCount = 0
     var polling: Job? = null
 
-    fun pollForUpdatesIfNeeded(): Unit {
+    fun pollForUpdatesIfNeeded() {
         if (polling?.isActive != true && database.status.isProcessing()) {
             polling = pollForUpdates()
         }
@@ -116,8 +117,8 @@ class DatabaseNode(nodeProject: Project, database: Database) :
             if (it.body()?.status?.isProcessing() != true) {
                 pollCount = 0
                 if (it.body()?.status == StatusEnum.TERMINATED) {
-                    //Terminated nodes won't show up in the listDatabases.
-                    //Schedule an update of the Databases tree to remove this node
+                    // Terminated nodes won't show up in the listDatabases.
+                    // Schedule an update of the Databases tree to remove this node
                     (parent as DatabaseParentNode).clearCache()
                     nodeProject.refreshTree(parent, true)
                 } else {
@@ -125,7 +126,7 @@ class DatabaseNode(nodeProject: Project, database: Database) :
                 }
                 emit(it)
             } else {
-                //Force an update of the view
+                // Force an update of the view
                 pollCount++
                 nodeProject.refreshTree(this@DatabaseNode, false)
             }
@@ -145,13 +146,14 @@ class DatabaseNode(nodeProject: Project, database: Database) :
     override fun update(presentation: PresentationData) {
         presentation.let {
             it.addText(displayName(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
-            if (database.status.isProcessing())
+            if (database.status.isProcessing()) {
                 it.addText(
                     ColoredFragment(
                         " ${database.status.value}${".".repeat(pollCount % 4)}",
                         SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
                     )
                 )
+            }
         }
     }
 
@@ -169,7 +171,8 @@ class DatabaseNode(nodeProject: Project, database: Database) :
 
 class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Database) :
     ExplorerNode<String>(project, keyspace.name, null),
-    ResourceActionNode, ResourceParentNode {
+    ResourceActionNode,
+    ResourceParentNode {
 
     override fun actionGroupName(): String = "astra.explorer.databases.keyspace"
     override fun emptyChildrenNode(): ExplorerEmptyNode =
@@ -198,7 +201,7 @@ class TableNode(project: Project, val table: Table, val database: Database) :
 private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
 private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()
 
-fun clearCacheMap(){
+fun clearCacheMap() {
     val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
     cacheMap[fetchDatabases::class].also {
         it?.asMap()?.remove("")
@@ -213,13 +216,14 @@ suspend fun <K, V> cached(
     },
     loader: suspend (K) -> V
 ): V = withContext(cacheContext.coroutineContext) {
-
     val cacheMap = cacheMap as MutableMap<KClass<out suspend (K) -> V>, AsyncLoadingCache<K, V>>
 
-    (cacheMap[loader::class] ?: Caffeine.newBuilder()
-        .cacheConfig()
-        .buildAsync { key: K, _ -> cacheContext.future { loader(key) } }
-        .also { cacheMap[loader::class] = it })
+    (
+        cacheMap[loader::class] ?: Caffeine.newBuilder()
+            .cacheConfig()
+            .buildAsync { key: K, _ -> cacheContext.future { loader(key) } }
+            .also { cacheMap[loader::class] = it }
+        )
         .get(key)
         .await()
 }

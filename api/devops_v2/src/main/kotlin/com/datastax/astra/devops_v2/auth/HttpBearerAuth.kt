@@ -1,10 +1,9 @@
 package com.datastax.astra.devops_v2.auth
 
-import java.io.IOException
-
 import okhttp3.Interceptor
 import okhttp3.Interceptor.Chain
 import okhttp3.Response
+import java.io.IOException
 
 class HttpBearerAuth(
     private var schema: String = "",
@@ -35,5 +34,4 @@ class HttpBearerAuth(
     private fun upperCaseBearer(): String {
         return if (schema.toLowerCase().equals("bearer")) "Bearer" else schema
     }
-
 }
