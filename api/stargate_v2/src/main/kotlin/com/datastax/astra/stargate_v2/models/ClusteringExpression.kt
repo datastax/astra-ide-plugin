@@ -33,7 +33,10 @@ data class ClusteringExpression(
      * Values: ASC,DESC
      */
     enum class Order(val value: kotlin.String) {
-        @SerializedName(value = "ASC") ASC("ASC"),
-        @SerializedName(value = "DESC") DESC("DESC");
+        @SerializedName(value = "ASC")
+        ASC("ASC"),
+
+        @SerializedName(value = "DESC")
+        DESC("DESC");
     }
 }

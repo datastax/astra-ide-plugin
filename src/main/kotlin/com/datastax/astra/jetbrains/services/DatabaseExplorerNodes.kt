@@ -55,7 +55,6 @@ class DatabaseParentNode(project: Project) :
     override fun actionGroupName(): String = "astra.explorer.databases"
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-
         try {
             val dbList = cached("", loader = fetchDatabases)
             children = children.filterKeys { key ->
@@ -147,13 +146,14 @@ class DatabaseNode(nodeProject: Project, database: Database) :
     override fun update(presentation: PresentationData) {
         presentation.let {
             it.addText(displayName(), SimpleTextAttributes.REGULAR_ATTRIBUTES)
-            if (database.status.isProcessing())
+            if (database.status.isProcessing()) {
                 it.addText(
                     ColoredFragment(
                         " ${database.status.value}${".".repeat(pollCount % 4)}",
                         SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
                     )
                 )
+            }
         }
     }
 
@@ -216,7 +216,6 @@ suspend fun <K, V> cached(
     },
     loader: suspend (K) -> V
 ): V = withContext(cacheContext.coroutineContext) {
-
     val cacheMap = cacheMap as MutableMap<KClass<out suspend (K) -> V>, AsyncLoadingCache<K, V>>
 
     (

@@ -27,11 +27,12 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         launch {
             watchChannel.consumeEach { event ->
                 // Only send the message when the file is modified
-                if (event.kind == KWatchEvent.Kind.Modified)
+                if (event.kind == KWatchEvent.Kind.Modified) {
                     if (!fileChangeTriggered) {
                         profileFileModifiedNotification()
                         fileChangeTriggered = true
                     }
+                }
             }
         }
 
@@ -56,8 +57,9 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
             wrongProfilesFormatNotification()
         }
 
-        if (invalidProfiles.isNotEmpty())
+        if (invalidProfiles.isNotEmpty()) {
             invalidProfilesNotification(invalidProfiles)
+        }
 
         // Return profile map, empty if none validated
         return Profiles(validProfiles)
@@ -69,13 +71,14 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
             // Throws?
             Config { addSpec(AstraProfileFile) }
                 .from.toml.file(profileFile)
-        } else
+        } else {
             throw FileNotFoundException("astra config file not found")
+        }
 
     // TODO: Call dialog for each of the failed checks
     private fun validateProfile(token: String) {
         // Check that token is right format
-        if (token.length == 97)
+        if (token.length == 97) {
             token.split(":").forEachIndexed { index, element ->
                 when (index) {
                     0 -> if (element != "AstraCS") throw Exception("TokenWrongFormat")
@@ -86,8 +89,9 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
                     }
                 }
             }
-        else
+        } else {
             throw Exception("TokenWrongFormat")
+        }
 
         // TODO: Re-enable this when the Swagger gets fixed
         // If token has valid format check if it works on the wire

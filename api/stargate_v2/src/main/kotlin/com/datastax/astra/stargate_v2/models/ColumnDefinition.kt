@@ -37,35 +37,94 @@ data class ColumnDefinition(
      * Values: ASCII,TEXT,VARCHAR,TINYINT,SMALLINT,INT,BIGINT,VARINT,DECIMAL,FLOAT,DOUBLE,DATE,DATE_RANGE_TYPE,DURATION,TIME,TIMESTAMP,UUID,TIMEUUID,BLOB,BOOLEAN,COUNTER,INET,POINT_TYPE,LINE_STRING_TYPE,POLYGON_TYPE,FROZEN,LIST,MAP,SET,TUPLE
      */
     enum class TypeDefinition(val value: kotlin.String) {
-        @SerializedName(value = "ascii") ASCII("ascii"),
-        @SerializedName(value = "text") TEXT("text"),
-        @SerializedName(value = "varchar") VARCHAR("varchar"),
-        @SerializedName(value = "tinyint") TINYINT("tinyint"),
-        @SerializedName(value = "smallint") SMALLINT("smallint"),
-        @SerializedName(value = "int") INT("int"),
-        @SerializedName(value = "bigint") BIGINT("bigint"),
-        @SerializedName(value = "varint") VARINT("varint"),
-        @SerializedName(value = "decimal") DECIMAL("decimal"),
-        @SerializedName(value = "float") FLOAT("float"),
-        @SerializedName(value = "double") DOUBLE("double"),
-        @SerializedName(value = "date") DATE("date"),
-        @SerializedName(value = "DateRangeType") DATE_RANGE_TYPE("DateRangeType"),
-        @SerializedName(value = "duration") DURATION("duration"),
-        @SerializedName(value = "time") TIME("time"),
-        @SerializedName(value = "timestamp") TIMESTAMP("timestamp"),
-        @SerializedName(value = "uuid") UUID("uuid"),
-        @SerializedName(value = "timeuuid") TIMEUUID("timeuuid"),
-        @SerializedName(value = "blob") BLOB("blob"),
-        @SerializedName(value = "boolean") BOOLEAN("boolean"),
-        @SerializedName(value = "counter") COUNTER("counter"),
-        @SerializedName(value = "inet") INET("inet"),
-        @SerializedName(value = "PointType") POINT_TYPE("PointType"),
-        @SerializedName(value = "LineStringType") LINE_STRING_TYPE("LineStringType"),
-        @SerializedName(value = "PolygonType") POLYGON_TYPE("PolygonType"),
-        @SerializedName(value = "frozen") FROZEN("frozen"),
-        @SerializedName(value = "list") LIST("list"),
-        @SerializedName(value = "map") MAP("map"),
-        @SerializedName(value = "set") SET("set"),
-        @SerializedName(value = "tuple") TUPLE("tuple");
+        @SerializedName(value = "ascii")
+        ASCII("ascii"),
+
+        @SerializedName(value = "text")
+        TEXT("text"),
+
+        @SerializedName(value = "varchar")
+        VARCHAR("varchar"),
+
+        @SerializedName(value = "tinyint")
+        TINYINT("tinyint"),
+
+        @SerializedName(value = "smallint")
+        SMALLINT("smallint"),
+
+        @SerializedName(value = "int")
+        INT("int"),
+
+        @SerializedName(value = "bigint")
+        BIGINT("bigint"),
+
+        @SerializedName(value = "varint")
+        VARINT("varint"),
+
+        @SerializedName(value = "decimal")
+        DECIMAL("decimal"),
+
+        @SerializedName(value = "float")
+        FLOAT("float"),
+
+        @SerializedName(value = "double")
+        DOUBLE("double"),
+
+        @SerializedName(value = "date")
+        DATE("date"),
+
+        @SerializedName(value = "DateRangeType")
+        DATE_RANGE_TYPE("DateRangeType"),
+
+        @SerializedName(value = "duration")
+        DURATION("duration"),
+
+        @SerializedName(value = "time")
+        TIME("time"),
+
+        @SerializedName(value = "timestamp")
+        TIMESTAMP("timestamp"),
+
+        @SerializedName(value = "uuid")
+        UUID("uuid"),
+
+        @SerializedName(value = "timeuuid")
+        TIMEUUID("timeuuid"),
+
+        @SerializedName(value = "blob")
+        BLOB("blob"),
+
+        @SerializedName(value = "boolean")
+        BOOLEAN("boolean"),
+
+        @SerializedName(value = "counter")
+        COUNTER("counter"),
+
+        @SerializedName(value = "inet")
+        INET("inet"),
+
+        @SerializedName(value = "PointType")
+        POINT_TYPE("PointType"),
+
+        @SerializedName(value = "LineStringType")
+        LINE_STRING_TYPE("LineStringType"),
+
+        @SerializedName(value = "PolygonType")
+        POLYGON_TYPE("PolygonType"),
+
+        @SerializedName(value = "frozen")
+        FROZEN("frozen"),
+
+        @SerializedName(value = "list")
+        LIST("list"),
+
+        @SerializedName(value = "map")
+        MAP("map"),
+
+        @SerializedName(value = "set")
+        SET("set"),
+
+        @SerializedName(value = "tuple")
+        TUPLE("tuple");
     }
 }

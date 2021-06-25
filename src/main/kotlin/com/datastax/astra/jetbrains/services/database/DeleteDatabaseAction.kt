@@ -34,7 +34,8 @@ class DeleteDatabaseAction :
 
     // If DB is processing grey out access to delete database
     override fun update(e: AnActionEvent) {
-        if (e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.database?.status?.isProcessing() == true)
+        if (e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.database?.status?.isProcessing() == true) {
             e.presentation.setEnabled(false)
+        }
     }
 }

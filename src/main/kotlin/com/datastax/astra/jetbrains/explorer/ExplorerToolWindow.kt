@@ -150,10 +150,11 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
     private inline fun <reified T : ExplorerNode<*>> getSelectedNodesSameType(): List<T>? {
         val selectedNodes = getSelectedNodes<T>()
-        return if (selectedNodes.isNotEmpty() && selectedNodes.all { selectedNodes[0]::class.java.isInstance(it) })
+        return if (selectedNodes.isNotEmpty() && selectedNodes.all { selectedNodes[0]::class.java.isInstance(it) }) {
             selectedNodes
-        else
+        } else {
             null
+        }
     }
 
     private inline fun <reified T : ExplorerNode<*>> getSelectedNodes() = tree.selectionPaths?.let {

@@ -61,14 +61,19 @@ data class DatabaseInfo(
      * Values: AWS,GCP
      */
     enum class CloudProvider(val value: kotlin.String) {
-        @SerializedName(value = "AWS") AWS("AWS"),
-        @SerializedName(value = "GCP") GCP("GCP");
+        @SerializedName(value = "AWS")
+        AWS("AWS"),
+
+        @SerializedName(value = "GCP")
+        GCP("GCP");
     }
+
     /**
      * With the exception of classic databases, all databases are serverless. Classic databases can no longer be created with the DevOps API.
      * Values: SERVERLESS
      */
     enum class Tier(val value: kotlin.String) {
-        @SerializedName(value = "serverless") SERVERLESS("serverless");
+        @SerializedName(value = "serverless")
+        SERVERLESS("serverless");
     }
 }

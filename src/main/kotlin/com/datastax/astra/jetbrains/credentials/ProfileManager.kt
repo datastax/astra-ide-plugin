@@ -45,10 +45,11 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
         // Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
         if (profileMap.isNotEmpty()) {
-            if (profileMap.containsKey("default"))
+            if (profileMap.containsKey("default")) {
                 selectedProfile = profileMap["default"]
-            else
+            } else {
                 selectedProfile = profileMap.entries.first().value
+            }
 
             AstraClient.accessToken = selectedProfile!!.token
 

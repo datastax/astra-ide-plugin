@@ -48,17 +48,28 @@ data class IndexDefinition(
      * Values: ORG_PERIOD_APACHE_PERIOD_CASSANDRA_PERIOD_INDEX_PERIOD_SASI_PERIOD_SASI_INDEX,STORAGE_ATTACHED_INDEX
      */
     enum class Type(val value: kotlin.String) {
-        @SerializedName(value = "org.apache.cassandra.index.sasi.SASIIndex") ORG_PERIOD_APACHE_PERIOD_CASSANDRA_PERIOD_INDEX_PERIOD_SASI_PERIOD_SASI_INDEX("org.apache.cassandra.index.sasi.SASIIndex"),
-        @SerializedName(value = "StorageAttachedIndex") STORAGE_ATTACHED_INDEX("StorageAttachedIndex");
+        @SerializedName(value = "org.apache.cassandra.index.sasi.SASIIndex")
+        ORG_PERIOD_APACHE_PERIOD_CASSANDRA_PERIOD_INDEX_PERIOD_SASI_PERIOD_SASI_INDEX("org.apache.cassandra.index.sasi.SASIIndex"),
+
+        @SerializedName(value = "StorageAttachedIndex")
+        STORAGE_ATTACHED_INDEX("StorageAttachedIndex");
     }
+
     /**
      * Index kind for collections.
      * Values: FULL,KEYS,VALUES,ENTRIES
      */
     enum class Kind(val value: kotlin.String) {
-        @SerializedName(value = "FULL") FULL("FULL"),
-        @SerializedName(value = "KEYS") KEYS("KEYS"),
-        @SerializedName(value = "VALUES") VALUES("VALUES"),
-        @SerializedName(value = "ENTRIES") ENTRIES("ENTRIES");
+        @SerializedName(value = "FULL")
+        FULL("FULL"),
+
+        @SerializedName(value = "KEYS")
+        KEYS("KEYS"),
+
+        @SerializedName(value = "VALUES")
+        VALUES("VALUES"),
+
+        @SerializedName(value = "ENTRIES")
+        ENTRIES("ENTRIES");
     }
 }

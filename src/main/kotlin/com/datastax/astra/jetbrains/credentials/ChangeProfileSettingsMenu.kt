@@ -33,10 +33,11 @@ private class ChangeProfilesActionGroup(project: Project) : ComputableActionGrou
         val actions = mutableListOf<AnAction>()
         profileManager.profiles.forEach {
             // Make sure if default is in the list it's at the top
-            if (it.value.name == "default")
+            if (it.value.name == "default") {
                 actions.add(0, ChangeProfileAction(it.value))
-            else
+            } else {
                 actions.add(ChangeProfileAction(it.value))
+            }
         }
         CachedValueProvider.Result.create(actions.toTypedArray(), profileManager)
     }
