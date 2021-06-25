@@ -48,18 +48,22 @@ class CreateDatabaseDialog(
     val view = panel {
         row("Database Name:") {
             textField(::name).withValidationOnApply {
-                if (it.text.trim().isEmpty()) ValidationInfo(
+                if (it.text.trim().isEmpty()) {
+                    ValidationInfo(
                         message("database.create.database.missing.database.name"),
                         it
-                    ) else null
+                    )
+                } else null
             }
         }
         row("Keyspace: ") {
             textField(::keyspace).withValidationOnApply {
-                if (it.text.trim().isEmpty()) ValidationInfo(
+                if (it.text.trim().isEmpty()) {
+                    ValidationInfo(
                         message("database.create.database.missing.database.keyspace"),
                         it
-                    ) else null
+                    )
+                } else null
             }
         }
         row("Cloud Provider:") {
