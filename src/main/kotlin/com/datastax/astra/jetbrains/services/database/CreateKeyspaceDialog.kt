@@ -24,9 +24,9 @@ class CreateKeyspaceDialog(
         row("Keyspace: ") {
             textField(::keyspace).withValidationOnApply {
                 if (it.text.trim().isEmpty()) ValidationInfo(
-                    message("database.create.database.missing.database.keyspace"),
-                    it
-                ) else null
+                        message("database.create.database.missing.database.keyspace"),
+                        it
+                    ) else null
             }
         }
     }

@@ -49,17 +49,17 @@ class CreateDatabaseDialog(
         row("Database Name:") {
             textField(::name).withValidationOnApply {
                 if (it.text.trim().isEmpty()) ValidationInfo(
-                    message("database.create.database.missing.database.name"),
-                    it
-                ) else null
+                        message("database.create.database.missing.database.name"),
+                        it
+                    ) else null
             }
         }
         row("Keyspace: ") {
             textField(::keyspace).withValidationOnApply {
                 if (it.text.trim().isEmpty()) ValidationInfo(
-                    message("database.create.database.missing.database.keyspace"),
-                    it
-                ) else null
+                        message("database.create.database.missing.database.keyspace"),
+                        it
+                    ) else null
             }
         }
         row("Cloud Provider:") {
