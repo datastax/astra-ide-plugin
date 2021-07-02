@@ -14,12 +14,11 @@ import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-
-class UserLoginDialog (
+class UserLoginDialog(
     private val project: Project,
     parent: Component? = null
 ) : DialogWrapper(project, parent, true, IdeModalityType.PROJECT) {
-    //,CoroutineScope by ApplicationThreadPoolScope("Credentials")
+    // ,CoroutineScope by ApplicationThreadPoolScope("Credentials")
 
     val view = JPanel(BorderLayout())
     val myBrowser = JBCefBrowser("https://astra.datastax.com/")
@@ -35,10 +34,10 @@ class UserLoginDialog (
         if (!JBCefApp.isSupported()) {
             // Fallback to an alternative browser-less solution
         }
-        //myBrowser.jbCefClient.setProperty("JS_QUERY_POOL_SIZE", 4)
+        // myBrowser.jbCefClient.setProperty("JS_QUERY_POOL_SIZE", 4)
         view.setPreferredSize(Dimension(450, 365))
         view.add(myBrowser.component, BorderLayout.CENTER)
-        view.add(loginPanel,BorderLayout.NORTH)
+        view.add(loginPanel, BorderLayout.NORTH)
         triggerButton.addActionListener { actionEvent: ActionEvent? ->
             triggerCallback()
         }
@@ -51,7 +50,6 @@ class UserLoginDialog (
         }
 
         init()
-
     }
     override fun createCenterPanel(): JComponent = view
 
@@ -59,22 +57,20 @@ class UserLoginDialog (
 // Inject the query callback into JS
         myBrowser.cefBrowser.executeJavaScript(
             "window.JavaPanelBridge = {" +
-                    "myQuery : function(pageTitle) {" +
-                    myJSQuery.inject("pageTitle") +
-                    "}" +
-                    "};" +
-                    "JavaPanelBridge.myQuery(document.title);",
-            myBrowser.cefBrowser.url, 0
+                "myQuery : function(pageTitle) {" +
+                myJSQuery.inject("pageTitle") +
+                "}" +
+                "};" +
+                "JavaPanelBridge.myQuery(document.title);",
+            myBrowser.cefBrowser.url,
+            0
         )
     }
-    
 
     override fun doOKAction() {
         val clickScript = "document.getElementById('kc-login').click();"
         myBrowser.cefBrowser.executeJavaScript(clickScript, null, 0)
-        //myBrowser.loadURL(myBrowser.cefBrowser.url+"/settings/tokens")
-        //close(OK_EXIT_CODE)
+        // myBrowser.loadURL(myBrowser.cefBrowser.url+"/settings/tokens")
+        // close(OK_EXIT_CODE)
     }
-
-
 }

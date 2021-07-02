@@ -17,8 +17,6 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
-
-
 }
 
 group = properties("pluginGroup")
@@ -27,7 +25,7 @@ version = properties("pluginVersion")
 // Configure project's dependencies
 repositories {
     mavenCentral()
-    maven ( "https://dl.bintray.com/jetbrains/markdown" )
+    maven("https://dl.bintray.com/jetbrains/markdown")
 }
 
 sourceSets {
@@ -72,7 +70,7 @@ dependencies {
 
     implementation("com.segment.analytics.java:analytics:+")
 
-    implementation( "org.jetbrains:markdown:0.1.31")
+    implementation("org.jetbrains:markdown:0.1.31")
 }
 
 configurations {

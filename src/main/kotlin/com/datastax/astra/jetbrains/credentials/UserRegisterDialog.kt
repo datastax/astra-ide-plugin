@@ -5,19 +5,18 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
-import com.intellij.ui.jcef.JBCefJSQuery
+import org.intellij.markdown.*
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.intellij.markdown.*
 
-class UserRegisterDialog (
+class UserRegisterDialog(
     private val project: Project,
     parent: Component? = null
 ) : DialogWrapper(project, parent, true, IdeModalityType.PROJECT) {
-    //,CoroutineScope by ApplicationThreadPoolScope("Credentials")
+    // ,CoroutineScope by ApplicationThreadPoolScope("Credentials")
 
     val view = JPanel(BorderLayout())
 
@@ -37,16 +36,15 @@ class UserRegisterDialog (
 
     override fun createCenterPanel(): JComponent = view
 
-    //When user finished registering load the login page
+    // When user finished registering load the login page
     override fun doOKAction() {
         close(OK_EXIT_CODE)
         UserLoginDialog(project).showAndGet()
     }
 
-    //If user clicks cancel dispose of the current browser session
+    // If user clicks cancel dispose of the current browser session
     override fun doCancelAction() {
-        Disposer.dispose(myBrowser);
+        Disposer.dispose(myBrowser)
         close(CANCEL_EXIT_CODE)
     }
-
 }
