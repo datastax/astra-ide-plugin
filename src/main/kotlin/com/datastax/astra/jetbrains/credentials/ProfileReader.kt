@@ -20,27 +20,24 @@ import java.io.FileNotFoundException
 object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials") {
     var validProfiles = mutableMapOf<String, ProfileToken>()
     var invalidProfiles = mutableMapOf<String, Exception>()
+    lateinit var profileFile: File
 
     fun validateAndGetProfiles(): Profiles {
-        val watchChannel = profileFilePath().asWatchChannel(KWatchChannel.Mode.SingleFile, scope = ApplicationThreadPoolScope("Credentials"))
-        var fileChangeTriggered = false
-        launch {
-            watchChannel.consumeEach { event ->
-                // Only send the message when the file is modified
-                if (event.kind == KWatchEvent.Kind.Modified) {
-                    if (!fileChangeTriggered) {
-                        profileFileModifiedNotification()
-                        fileChangeTriggered = true
-                    }
-                }
-            }
-        }
+
 
         validProfiles.clear()
         invalidProfiles.clear()
 
+
         try {
-            validateProfileFile(profileFilePath())[AstraProfileFile.profiles]
+            profileFile = profileFilePath()
+            if (!profileFile.exists()){
+                throw FileNotFoundException("astra config file not found")
+            }
+
+            startFileWatcher()
+
+            validateProfileFile()[AstraProfileFile.profiles]
                 .forEach {
                     try {
                         // Go through each map entry and remap it to map of valid profiles if it can make simple rest call
@@ -65,7 +62,23 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         return Profiles(validProfiles)
     }
 
-    private fun validateProfileFile(profileFile: File): Config =
+    private fun startFileWatcher(){
+        val watchChannel = profileFile.asWatchChannel(KWatchChannel.Mode.SingleFile, scope = ApplicationThreadPoolScope("Credentials"))
+        var fileChangeTriggered = false
+        launch {
+            watchChannel.consumeEach { event ->
+                // Only send the message when the file is modified
+                if (event.kind == KWatchEvent.Kind.Modified) {
+                    if (!fileChangeTriggered) {
+                        profileFileModifiedNotification()
+                        fileChangeTriggered = true
+                    }
+                }
+            }
+        }
+    }
+
+    private fun validateProfileFile(): Config =
         // Check that file exists
         if (profileFile.exists()) {
             // Throws?
