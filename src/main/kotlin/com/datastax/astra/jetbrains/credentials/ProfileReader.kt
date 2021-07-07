@@ -30,6 +30,7 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
 
 
         try {
+            //TODO: Probably a more elegant way to achieve this
             profileFile = profileFilePath()
             if (!profileFile.exists()){
                 throw FileNotFoundException("astra config file not found")
