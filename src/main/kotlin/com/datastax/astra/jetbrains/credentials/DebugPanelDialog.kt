@@ -12,7 +12,7 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class UserRegisterDialog(
+class DebugPanelDialog (
     private val project: Project,
     parent: Component? = null
 ) : DialogWrapper(project, parent, true, IdeModalityType.PROJECT) {
@@ -23,16 +23,15 @@ class UserRegisterDialog(
     val myBrowser = JBCefBrowser("astra.datastax.com/register")
 
     init {
-
         if (!JBCefApp.isSupported()) {
             // Fallback to an alternative browser-less solution
         }
+
         view.setPreferredSize(Dimension(450, 600))
         view.add(myBrowser.component)
         title = "Register"
         setOKButtonText("Done Registering")
         init()
-        this.setModal(false)
     }
 
     override fun createCenterPanel(): JComponent = view
