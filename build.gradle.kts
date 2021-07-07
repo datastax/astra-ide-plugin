@@ -69,8 +69,6 @@ dependencies {
     implementation("com.uchuhimo:konf-toml:0.23.0")
 
     implementation("com.segment.analytics.java:analytics:+")
-
-    implementation("org.jetbrains:markdown:0.1.31")
 }
 
 configurations {

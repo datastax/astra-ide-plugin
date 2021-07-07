@@ -5,7 +5,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
-import org.intellij.markdown.*
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension

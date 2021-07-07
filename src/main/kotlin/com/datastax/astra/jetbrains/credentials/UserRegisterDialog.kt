@@ -5,8 +5,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
-import org.cef.browser.CefBrowser
-import org.intellij.markdown.*
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -27,7 +25,7 @@ class UserRegisterDialog(
 
 
     val myBrowser = JBCefBrowser("astra.datastax.com/register")
-    
+
 
     init {
 
@@ -35,7 +33,7 @@ class UserRegisterDialog(
             // Fallback to an alternative browser-less solution
         }
         view.setPreferredSize(Dimension(450, 600))
-        view.add(myDevToolsBrowser.component)
+        view.add(myBrowser.component)
         title = "Register"
         setOKButtonText("Done Registering")
         init()
@@ -52,7 +50,7 @@ class UserRegisterDialog(
 
     // If user clicks cancel dispose of the current browser session
     override fun doCancelAction() {
-        Disposer.dispose(myDevToolsBrowser)
+        Disposer.dispose(myBrowser)
         close(CANCEL_EXIT_CODE)
     }
 }
