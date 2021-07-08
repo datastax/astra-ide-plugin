@@ -11,7 +11,7 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class DebugPanelDialog (
+class DebugPanelDialog(
     private val project: Project,
     parent: Component? = null
 ) : DialogWrapper(project, parent, true, IdeModalityType.PROJECT) {

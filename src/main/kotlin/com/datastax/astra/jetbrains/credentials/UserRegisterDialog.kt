@@ -11,7 +11,6 @@ import java.awt.Dimension
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-
 class UserRegisterDialog(
     private val project: Project,
     parent: Component? = null
@@ -20,12 +19,7 @@ class UserRegisterDialog(
 
     val view = JPanel(BorderLayout())
 
-
-
-
-
     val myBrowser = JBCefBrowser("astra.datastax.com/register")
-
 
     init {
 
@@ -37,7 +31,6 @@ class UserRegisterDialog(
         title = "Register"
         setOKButtonText("Done Registering")
         init()
-
     }
 
     override fun createCenterPanel(): JComponent = view
