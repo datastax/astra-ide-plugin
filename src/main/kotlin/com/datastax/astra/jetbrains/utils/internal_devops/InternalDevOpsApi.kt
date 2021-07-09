@@ -15,8 +15,8 @@ interface InternalDevOpsApi {
      * Responses:
      *  - 200: successful operation
      *
-     * @param dstaxCookie id for the role
-     * @param graphQLCommand The model for update role body (optional)
+     * @param dstaxCookie Key for making datastax GQL call
+     * @param graphQLCommand
      * @return [GenerateTokenResponse]
      */
     @Headers("Content-Type: application/json")

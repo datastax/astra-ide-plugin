@@ -23,6 +23,10 @@
         <fileEditorProvider implementation="com.datastax.astra.jetbrains.services.database.TableViewerEditorProvider"/>
     </extensions>
 
+    <extensionPoints >
+        <extensionPoint name="JBCefAppRequiredArgumentsProvider" interface="com.datastax.astra.jetbrains.credentials.JcefProvider"></extensionPoint>
+    </extensionPoints>
+
     <actions>
         <group id="astra.explorer.databases" popup="false" compact="false">
             <action id="database.create"
