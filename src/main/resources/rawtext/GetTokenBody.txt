@@ -1,0 +1,1 @@
+{"operationName":"generateToken","variables":{"input":{"orgId":"","roles":["43745b73-ad46-46e4-b826-c15d06d2cea0"]}},"query":"mutation generateToken($input: GenerateTokenInput\u0021) {generateToken(input: $input){token}}"}

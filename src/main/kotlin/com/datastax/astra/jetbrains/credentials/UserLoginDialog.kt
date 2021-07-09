@@ -10,7 +10,8 @@ import com.intellij.ui.layout.panel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.apache.tools.ant.taskdefs.Execute.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -25,6 +26,7 @@ class UserLoginDialog(
 ) : DialogWrapper(project, parent, true, IdeModalityType.PROJECT),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
+    lateinit var orgID: String
     val myBrowser = JBCefBrowser("https://astra.datastax.com/")
     val myJSQuery = JBCefJSQuery.create(myBrowser)
     val getDom = JBCefJSQuery.create(myBrowser)
@@ -109,21 +111,26 @@ class UserLoginDialog(
         delay(650L)
         while (!astraMainLoaded) {
             delay(350L)
-            if (myBrowser.cefBrowser.url.contains(astraURLBase)) {
-                if (orgIDValid(myBrowser.cefBrowser.url.split("/")[3])) {
-                    astraMainLoaded = true
-                }
+            if (myBrowser.cefBrowser.url.contains(astraURLBase) && myBrowser.cefBrowser.url.length > astraURLBase.length) {
+                astraMainLoaded = orgIDValid(myBrowser.cefBrowser.url.split("/")[3])
             }
         }
         println("URL Changed!")
         delay(500L)
-        myBrowser.cefBrowser.url.split("/").forEach {
-            println(it)
-        }
+
         myBrowser.jbCefCookieManager.getCookies()?.forEach {
             if (it.name == "dstaxprodauthz") {
-                println("Cookie: ${it.name}")
-                println("Value: ${it.value}")
+                val rawBodyNoOrgId = this::class.java.getResource("/rawtext/GetTokenBody.txt").readText()
+                val rawBodyString = rawBodyNoOrgId.substring(0, 64) + orgID + rawBodyNoOrgId.substring(64, rawBodyNoOrgId.lastIndex + 1)
+                val rawBody = rawBodyString.toRequestBody("text/plain".toMediaTypeOrNull())
+                var response = CredentialsClient.internalOpsApi().getDatabaseAdminToken("${it.name}=${it.value}", rawBody)
+
+                println("Body: $rawBodyString")
+                println("Response:")
+                println(response.body()?.data?.generateToken?.token)
+                println(response.code())
+                println(response.message())
+                println(response.headers())
             }
         }
     }
@@ -141,6 +148,7 @@ class UserLoginDialog(
                 }
             }
         }
+        orgID = orgUUID
         return true
     }
 
