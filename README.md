@@ -14,7 +14,7 @@
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-IDE integration for DataStax Astra. Dev ops integration to manage databases, keyspaces and view tables.
+With DataStax Astra for Jetbrains, interact directly with your serverless Cassandra databases right from your IDE. Register for Astra, create a token, and then you can access your databases, keyspaces and tables right from your IDE.
 <!-- Plugin description end -->
 
 ## Installation
