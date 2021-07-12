@@ -21,10 +21,10 @@
         <toolWindow id="astra.explorer" anchor="left" secondary="true"
                     factoryClass="com.datastax.astra.jetbrains.explorer.ExplorerFactory"/>
         <fileEditorProvider implementation="com.datastax.astra.jetbrains.services.database.TableViewerEditorProvider"/>
+        <jcef.appRequiredArgumentsProvider implementation="com.datastax.astra.jetbrains.utils.JcefProvider"/>
     </extensions>
 
     <extensionPoints >
-        <extensionPoint name="JBCefAppRequiredArgumentsProvider" interface="com.datastax.astra.jetbrains.credentials.JcefProvider"></extensionPoint>
     </extensionPoints>
 
     <actions>
