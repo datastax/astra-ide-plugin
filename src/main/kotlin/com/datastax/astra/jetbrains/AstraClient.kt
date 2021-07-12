@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.Nullable
 
 import com.datastax.astra.devops_v2.models.Database
+import com.datastax.astra.stargate_document_v2.apis.DocumentsApi
 import com.datastax.astra.stargate_rest_v2.apis.DataApi
 
 import java.net.URI
@@ -32,5 +33,11 @@ object AstraClient {
         return com.datastax.astra.stargate_rest_v2.infrastructure.ApiClient(
             baseUrl = basePath
         ).createService(DataApi::class.java)
+    }
+    fun documentApiForDatabase(database: Database): DocumentsApi {
+        val basePath = database.dataEndpointUrl.orEmpty().removeSuffix(URI(database.dataEndpointUrl).rawPath)
+        return com.datastax.astra.stargate_document_v2.infrastructure.ApiClient(
+            baseUrl = basePath
+        ).createService(DocumentsApi::class.java)
     }
 }
