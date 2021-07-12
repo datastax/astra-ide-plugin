@@ -25,7 +25,6 @@ version = properties("pluginVersion")
 // Configure project's dependencies
 repositories {
     mavenCentral()
-    maven("https://dl.bintray.com/jetbrains/markdown")
 }
 
 sourceSets {
