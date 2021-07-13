@@ -8,7 +8,8 @@ import com.intellij.openapi.actionSystem.ActionManager
 
 // TODO:Set up plugin settings to hide these notifications if user wants to
 fun invalidProfilesNotification(invalidProfiles: Map<String, Exception>) {
-    val message = invalidProfiles.keys.joinToString("\n") { it ?: it::class.java.name }
+    var message = ""
+    invalidProfiles.forEach { message += "Profile:${it.key}  Error:${it.value.message}\n" }
     val errorDialogTitle = message("credentials.profile.invalid.title")
     notifyInfo(
         title = message("credentials.profile.invalid.title"),

@@ -11,36 +11,29 @@ import com.uchuhimo.konf.source.toml
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import org.apache.tools.ant.taskdefs.Execute.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileNotFoundException
 
-// TODO: Seperate invalid profile message into two: Authentication and Format
-// TODO: Add watching of file
 object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials") {
     var validProfiles = mutableMapOf<String, ProfileToken>()
     var invalidProfiles = mutableMapOf<String, Exception>()
+    lateinit var profileFile: File
 
     fun validateAndGetProfiles(): Profiles {
-        val watchChannel = profileFilePath().asWatchChannel(KWatchChannel.Mode.SingleFile, scope = ApplicationThreadPoolScope("Credentials"))
-        var fileChangeTriggered = false
-        launch {
-            watchChannel.consumeEach { event ->
-                // Only send the message when the file is modified
-                if (event.kind == KWatchEvent.Kind.Modified) {
-                    if (!fileChangeTriggered) {
-                        profileFileModifiedNotification()
-                        fileChangeTriggered = true
-                    }
-                }
-            }
-        }
-
         validProfiles.clear()
         invalidProfiles.clear()
 
         try {
-            validateProfileFile(profileFilePath())[AstraProfileFile.profiles]
+            // TODO: Probably a more elegant way to achieve this
+            profileFile = profileFilePath()
+            if (!profileFile.exists()) {
+                throw FileNotFoundException("astra config file not found")
+            }
+
+            startFileWatcher()
+
+            importProfileFile()[AstraProfileFile.profiles]
                 .forEach {
                     try {
                         // Go through each map entry and remap it to map of valid profiles if it can make simple rest call
@@ -53,7 +46,7 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         } catch (e: FileNotFoundException) {
             noProfilesFileNotification()
         } catch (e: Exception) {
-            // TODO: Pass the exception to notify the user what line the error occured on
+            // TODO: Pass the exception to notify the user what line the error occurred on
             wrongProfilesFormatNotification()
         }
 
@@ -65,17 +58,28 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         return Profiles(validProfiles)
     }
 
-    private fun validateProfileFile(profileFile: File): Config =
-        // Check that file exists
-        if (profileFile.exists()) {
-            // Throws?
+    // TODO: Handle watching the file even if it gets deleted. Don't allow deletion to crash plugin
+    private fun startFileWatcher() {
+        val watchChannel = profileFile.asWatchChannel(KWatchChannel.Mode.SingleFile, scope = ApplicationThreadPoolScope("Credentials"))
+        var fileChangeTriggered = false
+        launch {
+            watchChannel.consumeEach { event ->
+                // Only send the message when the file is modified
+                if (event.kind == KWatchEvent.Kind.Modified) {
+                    if (!fileChangeTriggered) {
+                        profileFileModifiedNotification()
+                        fileChangeTriggered = true
+                    }
+                }
+            }
+        }
+    }
+
+    private fun importProfileFile(): Config =
             Config { addSpec(AstraProfileFile) }
                 .from.toml.file(profileFile)
-        } else {
-            throw FileNotFoundException("astra config file not found")
-        }
 
-    // TODO: Call dialog for each of the failed checks
+
     private fun validateProfile(token: String) {
         // Check that token is right format
         if (token.length == 97) {
@@ -93,12 +97,11 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
             throw Exception("TokenWrongFormat")
         }
 
-        // TODO: Re-enable this when the Swagger gets fixed
         // If token has valid format check if it works on the wire
-        /*runBlocking {
-        if (!CredentialsClient.operationsApi(token).getCurrentOrganization().isSuccessful)
-            throw Exception("TokenAuthFailed")
-    }*/
+        runBlocking {
+            if (!CredentialsClient.operationsApi(token).getCurrentOrganization().isSuccessful)
+                throw Exception("TokenAuthFailed")
+        }
     }
 }
 
