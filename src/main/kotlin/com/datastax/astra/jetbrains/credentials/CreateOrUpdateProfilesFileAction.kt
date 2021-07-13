@@ -30,8 +30,6 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
         ProfileFileLocation.profileFilePath()
     )
 
-
-
     private val localFileSystem = LocalFileSystem.getInstance()
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -85,24 +83,22 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
         null
     ) == Messages.OK
 
-
-    fun createWithGenToken(project: Project, token: String){
+    fun createWithGenToken(project: Project, token: String) {
         DefaultConfigFileWriter.token = token
         // if config does not exist, (try to) create a new config file
         if (!configFile.exists()) {
             try {
                 writer.createFile(configFile)
             } finally {
-                //TODO: Add telemetry for this behavior
-                //trackClick(ClickTarget.BUTTON, "create profile file")
+                // TODO: Add telemetry for this behavior
+                // trackClick(ClickTarget.BUTTON, "create profile file")
             }
         }
-        //TODO: Make it so that tokens can be added without creating a new file
-        else{
-
+        // TODO: Make it so that tokens can be added without creating a new file
+        else {
         }
 
-        //Reset so token isnt lingering somewhere
+        // Reset so token isnt lingering somewhere
         DefaultConfigFileWriter.token = ""
 
         // This was a list of two file types changed to one, since we only have one profile file
@@ -177,11 +173,10 @@ object DefaultConfigFileWriter : ConfigFileWriter {
             parent.setExecutable(false, false)
             parent.setExecutable(true)
         }
-        if(token == "") {
+        if (token == "") {
             file.writeText(TEMPLATE)
-        }
-        else{
-            val modifyTemplate = TEMPLATE.replace("bearertoken",token)
+        } else {
+            val modifyTemplate = TEMPLATE.replace("bearertoken", token)
             file.writeText(modifyTemplate)
         }
 

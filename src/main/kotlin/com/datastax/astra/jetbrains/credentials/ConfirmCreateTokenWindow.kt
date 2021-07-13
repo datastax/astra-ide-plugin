@@ -1,6 +1,5 @@
 package com.datastax.astra.jetbrains.credentials
 
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.WindowWrapper
@@ -23,7 +22,6 @@ class ConfirmCreateTokenWindow(
 
     init {
         confirmButton.addActionListener { actionEvent: ActionEvent? ->
-
         }
 
         window = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, view)
@@ -46,5 +44,3 @@ class ConfirmCreateTokenWindow(
         return Point(x, y)
     }
 }
-
-
