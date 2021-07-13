@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.apache.tools.ant.taskdefs.Execute.launch
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -34,7 +33,7 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
 
             startFileWatcher()
 
-            validateProfileFile()[AstraProfileFile.profiles]
+            importProfileFile()[AstraProfileFile.profiles]
                 .forEach {
                     try {
                         // Go through each map entry and remap it to map of valid profiles if it can make simple rest call
@@ -59,6 +58,7 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         return Profiles(validProfiles)
     }
 
+    // TODO: Handle watching the file even if it gets deleted. Don't allow deletion to crash plugin
     private fun startFileWatcher() {
         val watchChannel = profileFile.asWatchChannel(KWatchChannel.Mode.SingleFile, scope = ApplicationThreadPoolScope("Credentials"))
         var fileChangeTriggered = false
@@ -75,15 +75,10 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         }
     }
 
-    private fun validateProfileFile(): Config =
-        // Check that file exists
-        if (profileFile.exists()) {
-            // Throws?
+    private fun importProfileFile(): Config =
             Config { addSpec(AstraProfileFile) }
                 .from.toml.file(profileFile)
-        } else {
-            throw FileNotFoundException("astra config file not found")
-        }
+
 
     private fun validateProfile(token: String) {
         // Check that token is right format
