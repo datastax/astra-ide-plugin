@@ -1,26 +1,20 @@
 package com.datastax.astra.jetbrains.credentials
 
-import com.datastax.astra.jetbrains.services.database.CreateKeyspaceDialog
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.openapi.ui.WindowWrapperBuilder
 import com.intellij.ui.jcef.JBCefBrowser
-import com.intellij.ui.layout.panel
 import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.Point
+import java.awt.*
 import java.awt.event.ActionEvent
-import javax.swing.JButton
-import javax.swing.JPanel
+import javax.swing.*
+import javax.swing.BorderFactory.createEmptyBorder
 
 class GetTokenAction :
 //TODO: Add all strings to messageBundle
@@ -47,8 +41,8 @@ class GetTokenAction :
                 .build().apply {
                     show()
                     //Change size after or it won't apply since show() overrides those settings
-                    window.setLocation(getLocation(window.location, window.size, loginSize))
-                    window.setSize(loginSize)
+                    window.location = getLocation(window.location, window.size, loginSize)
+                    window.size = loginSize
                 }
 
             loginState = browserResponse()
@@ -77,20 +71,37 @@ class GetTokenAction :
 
 
     fun createConfirmWindow(project: Project) {
-        val view: JPanel = JPanel(BorderLayout())
-        //val desiredSize = Dimension(460, 777)
+        val view = JPanel(BorderLayout(6,6))
+        //val desiredSize = Dimension(350, 200)
         val confirmButton = JButton("Agree and Generate Token")
+        val cancelButton = JButton("Disagree and Cancel")
         lateinit var confirmWindow: WindowWrapper
         confirmButton.addActionListener { actionEvent: ActionEvent? ->
             launch {
                 confirmTokenGen(project, confirmWindow)
             }
         }
-        val textPanel = panel {
-            row("A token will be created under your datastax account and inserted into the ~/home/.astra/config file. If this file doesn't exist it will be created. Click confirm below to generate a token and save it to the Astra profile file."){}
+        cancelButton.addActionListener { actionEvent: ActionEvent? ->
+            cancelTokenGen(project, confirmWindow)
         }
-        view.add(textPanel,BorderLayout.CENTER)
-        view.add(confirmButton,BorderLayout.SOUTH)
+        val buttonPanel = JPanel(GridLayout(1,2,6,6))
+        buttonPanel.border=createEmptyBorder(2,6,6,6)
+        buttonPanel.add(confirmButton,0)
+        buttonPanel.add(cancelButton,1)
+        val textArea = JTextArea("A token will be created under your datastax account and inserted into the ~/home/.astra/config file. If this file doesn't exist it will be created.\n\nClick agree below to generate a token and save it to the Astra profile file.").apply {
+            border = createEmptyBorder(10,10,6,10)
+            background = buttonPanel.background
+            font = Font(font.fontName, Font.PLAIN, 14)
+            rows = 8
+            lineWrap = true
+            wrapStyleWord = true
+            isEditable = false
+            revalidate()
+        }
+        view.add(textArea,BorderLayout.CENTER)
+        view.add(buttonPanel,BorderLayout.SOUTH)
+
+        val desiredSize= view.preferredSize
 
         confirmWindow = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, view)
             .setProject(project)
@@ -103,14 +114,13 @@ class GetTokenAction :
             .build().apply {
                 show()
                 //Change size after or it won't apply since show() overrides those settings
-                window.setLocation(getLocation(window.location, window.size, Dimension(400, 300)))
-                window.setSize(Dimension(400, 300))
+                window.location = getLocation(window.location, window.size, desiredSize)
+                window.size = desiredSize
             }
 
     }
 
     suspend fun confirmTokenGen(project: Project, windowWrapper: WindowWrapper) {
-        println("Go ahead and make that token")
         windowWrapper.close()
 
         val dStaxCookie = loginBrowser.jbCefCookieManager.getCookies()?.find() {
@@ -125,6 +135,12 @@ class GetTokenAction :
             CreateOrUpdateProfilesFileAction().createWithGenToken(project,
                 it)
         }
+    }
+
+    fun cancelTokenGen(project: Project, windowWrapper: WindowWrapper){
+        windowWrapper.close()
+        //dispose of some stuff
+
     }
 
 
