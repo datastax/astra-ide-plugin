@@ -76,9 +76,8 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
     }
 
     private fun importProfileFile(): Config =
-            Config { addSpec(AstraProfileFile) }
-                .from.toml.file(profileFile)
-
+        Config { addSpec(AstraProfileFile) }
+            .from.toml.file(profileFile)
 
     private fun validateProfile(token: String) {
         // Check that token is right format
@@ -99,8 +98,9 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
 
         // If token has valid format check if it works on the wire
         runBlocking {
-            if (!CredentialsClient.operationsApi(token).getCurrentOrganization().isSuccessful)
+            if (!CredentialsClient.operationsApi(token).getCurrentOrganization().isSuccessful) {
                 throw Exception("TokenAuthFailed")
+            }
         }
     }
 }
