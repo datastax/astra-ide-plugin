@@ -34,6 +34,7 @@ class GetTokenAction :
                 .setProject(project)
                 .setTitle("DataStax Astra Login")
                 .setOnCloseHandler {
+                    loginBrowser.jbCefCookieManager.deleteCookies(false)
                     // TODO: Dispose of stuff here when the close button is clicked
                     loginState = BrowserState.CANCELED
                     true
@@ -174,6 +175,7 @@ class GetTokenAction :
 
     fun cancelTokenGen(windowWrapper: WindowWrapper) {
         windowWrapper.close()
+        loginBrowser.jbCefCookieManager.deleteCookies(false)
         // dispose of some stuff
     }
 
