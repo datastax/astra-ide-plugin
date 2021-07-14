@@ -35,6 +35,7 @@ fun noProfilesFileNotification() {
         content = message("credentials.file.not_found"),
         notificationActions = listOf(
             createNotificationExpiringAction(GetTokenAction()),
+            createNotificationExpiringAction(GetTokenCallbackAction()),
             createNotificationExpiringAction(
                 ActionManager.getInstance().getAction("credentials.upsert")
             )
