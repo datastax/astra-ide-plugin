@@ -59,29 +59,16 @@ class GetTokenCallbackAction :
     }
 
     fun buildConfirmWindow(e: AnActionEvent, response: UserLoginResponse) {
-        val view = JPanel(BorderLayout(6, 6))
         var confirmButton = JButton("Agree and Generate Token")
         var cancelButton = JButton("Disagree")
-        val buttonPanel = JPanel(GridLayout(1, 2, 6, 6))
-        buttonPanel.border = createEmptyBorder(2, 6, 6, 6)
-        buttonPanel.add(confirmButton, 0)
-        buttonPanel.add(cancelButton, 1)
-        val textArea =
-            JTextArea("A Database Administrator token will be created under your Datastax account and inserted into the '~/home/.astra/config' file. If this file doesn't exist it will be created.\n\nClick agree below to generate a token and save it to the Astra profile file.").apply {
-                border = createEmptyBorder(10, 10, 6, 10)
-                background = buttonPanel.background
-                font = Font(font.fontName, Font.PLAIN, 14)
-                rows = 9
-                lineWrap = true
-                wrapStyleWord = true
-                isEditable = false
-                revalidate()
-            }
-        view.add(textArea, BorderLayout.CENTER)
-        view.add(buttonPanel, BorderLayout.SOUTH)
-        val desiredSize = view.preferredSize
+        val view = EasyWindow.buildOkPanel(
+            confirmButton,
+            cancelButton,
+            "A Database Administrator token will be created under your Datastax account and inserted into the '~/home/.astra/config' file. If this file doesn't exist it will be created.\n\nClick agree below to generate a token and save it to the Astra profile file.",
+            9,
+        )
 
-        val window = EasyWindow.build(e.getRequiredData(LangDataKeys.PROJECT), "Confirm Token Creation", view, desiredSize,)
+        val window = EasyWindow.build(e.getRequiredData(LangDataKeys.PROJECT), "Confirm Token Creation", view, view.preferredSize,)
         confirmButton.addActionListener { actionEvent: ActionEvent? ->
             window.close()
             launch {
