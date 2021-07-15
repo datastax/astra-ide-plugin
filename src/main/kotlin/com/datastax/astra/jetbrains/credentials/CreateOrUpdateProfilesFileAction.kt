@@ -82,6 +82,49 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
         AllIcons.General.QuestionDialog,
         null
     ) == Messages.OK
+
+    fun createWithGenToken(project: Project, token: String) {
+        DefaultConfigFileWriter.token = token
+        // if config does not exist, (try to) create a new config file
+        if (!configFile.exists()) {
+            try {
+                writer.createFile(configFile)
+            } finally {
+                // TODO: Add telemetry for this behavior
+                // trackClick(ClickTarget.BUTTON, "create profile file")
+            }
+        }
+        // TODO: Make it so that tokens can be added without creating a new file
+        else {
+        }
+
+        // Reset so token isnt lingering somewhere
+        DefaultConfigFileWriter.token = ""
+
+        // This was a list of two file types changed to one, since we only have one profile file
+        val virtualFiles = listOf(configFile).filter { it.exists() }.map {
+            localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException(message("credentials.file.could_not_open", it))
+        }
+
+        val fileEditorManager = FileEditorManager.getInstance(project)
+
+        localFileSystem.refreshFiles(virtualFiles, false, false) {
+            virtualFiles.forEach {
+                if (it.fileType == FileTypes.UNKNOWN) {
+                    ApplicationManager.getApplication().runWriteAction {
+                        FileTypeManagerEx.getInstanceEx().associatePattern(
+                            FileTypes.PLAIN_TEXT,
+                            it.name
+                        )
+                    }
+                }
+
+                if (fileEditorManager.openTextEditor(OpenFileDescriptor(project, it), true) == null) {
+                    throw RuntimeException(message("credentials.file.could_not_open", it))
+                }
+            }
+        }
+    }
 }
 
 interface ConfigFileWriter {
@@ -89,6 +132,7 @@ interface ConfigFileWriter {
 }
 
 object DefaultConfigFileWriter : ConfigFileWriter {
+    var token = ""
     val TEMPLATE =
         """
         # Astra Config File used by DataStax Astra tools
@@ -129,8 +173,12 @@ object DefaultConfigFileWriter : ConfigFileWriter {
             parent.setExecutable(false, false)
             parent.setExecutable(true)
         }
-
-        file.writeText(TEMPLATE)
+        if (token == "") {
+            file.writeText(TEMPLATE)
+        } else {
+            val modifyTemplate = TEMPLATE.replace("bearertoken", token)
+            file.writeText(modifyTemplate)
+        }
 
         file.setReadable(false, false)
         file.setReadable(true)
