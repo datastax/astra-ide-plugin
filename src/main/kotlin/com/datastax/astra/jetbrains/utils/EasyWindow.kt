@@ -5,17 +5,12 @@ import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.openapi.ui.WindowWrapperBuilder
 import com.intellij.ui.jcef.JBCefBrowser
 import java.awt.*
-import java.awt.event.ActionEvent
-import javax.swing.BorderFactory
-import javax.swing.JButton
 import javax.swing.JPanel
-import javax.swing.JTextArea
-import kotlin.reflect.KFunction1
 
-//TODO: This is really being used like a static class. Could change the type to reflect use
+// TODO: This is really being used like a static class. Could change the type to reflect use
 object EasyWindow {
 
-    //Build a simple window and attempt to center it based on the default location and size
+    // Build a simple window and attempt to center it based on the default location and size
     fun buildBrowser(project: Project, title: String, mainPanel: JPanel, size: Dimension, browser: JBCefBrowser): WindowWrapper {
         val easyWindow = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, mainPanel)
             .setProject(project)
@@ -27,11 +22,10 @@ object EasyWindow {
             .build()
         easyWindow.show()
 
-        //Setting the size after the location seemed to move the window sometimes
+        // Setting the size after the location seemed to move the window sometimes
         val newPoint = getLocation(easyWindow.window.location, easyWindow.window.size, size)
         easyWindow.window.size = size
         easyWindow.window.location = newPoint
-
 
         return easyWindow
     }
@@ -43,11 +37,10 @@ object EasyWindow {
             .build()
         easyWindow.show()
 
-        //Setting the size after the location seemed to move the window sometimes
+        // Setting the size after the location seemed to move the window sometimes
         val newPoint = getLocation(easyWindow.window.location, easyWindow.window.size, size)
         easyWindow.window.size = size
         easyWindow.window.location = newPoint
-
 
         return easyWindow
     }

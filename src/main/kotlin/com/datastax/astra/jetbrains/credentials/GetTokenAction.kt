@@ -51,10 +51,9 @@ class GetTokenAction :
             when (loginState) {
                 // TODO: Handle this somewhere else since/if it can't necessarily be handled by
                 BrowserState.CANCELED -> {
-
                 }
                 BrowserState.AWAITING_EMAIL -> {
-                    //If ok is pressed on this it recalls GetTokenAction
+                    // If ok is pressed on this it recalls GetTokenAction
                     addRestartPanel(e, loginWindow, view)
                 }
                 BrowserState.LOGGED_IN -> {
@@ -123,8 +122,10 @@ class GetTokenAction :
         }
         val rawBodyNoOrgId = this::class.java.getResource("/rawtext/GetTokenBody.txt").readText()
         val rawBodyString =
-            rawBodyNoOrgId.substring(0, 64) + loginBrowser.cefBrowser.url.split("/")[3] + rawBodyNoOrgId.substring(64,
-                rawBodyNoOrgId.lastIndex + 1)
+            rawBodyNoOrgId.substring(0, 64) + loginBrowser.cefBrowser.url.split("/")[3] + rawBodyNoOrgId.substring(
+                64,
+                rawBodyNoOrgId.lastIndex + 1
+            )
         val rawBody = rawBodyString.toRequestBody("text/plain".toMediaTypeOrNull())
         var response =
             CredentialsClient.internalOpsApi()
@@ -135,7 +136,7 @@ class GetTokenAction :
                 it
             )
         }
-        //Once a token is made
+        // Once a token is made
         ReloadProfilesAction().actionPerformed(e)
     }
 
@@ -170,7 +171,6 @@ class GetTokenAction :
         view.add(buttonPanel, BorderLayout.SOUTH)
         oldView.add(view, BorderLayout.NORTH)
         oldView.revalidate()
-
     }
 
     fun cancelTokenGen(windowWrapper: WindowWrapper) {

@@ -1,47 +1,46 @@
 package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.EasyWindow
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.ui.jcef.JBCefBrowser
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.cef.handler.CefResourceRequestHandlerAdapter
-import java.awt.*
-import java.awt.event.ActionEvent
-import javax.swing.*
-import javax.swing.BorderFactory.createEmptyBorder
-import com.datastax.astra.jetbrains.utils.EasyWindow
 import com.intellij.openapi.ui.WindowWrapper
+import com.intellij.ui.jcef.JBCefBrowser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefCookieAccessFilter
 import org.cef.handler.CefRequestHandlerAdapter
 import org.cef.handler.CefResourceRequestHandler
+import org.cef.handler.CefResourceRequestHandlerAdapter
 import org.cef.misc.BoolRef
 import org.cef.network.CefCookie
 import org.cef.network.CefRequest
 import org.cef.network.CefResponse
 import org.cef.network.CefURLRequest
+import java.awt.*
+import java.awt.event.ActionEvent
+import javax.swing.*
+import javax.swing.BorderFactory.createEmptyBorder
 
 // TODO: Add all strings to messageBundle
 class GetTokenCallbackAction :
     DumbAwareAction("Get Token", null, null),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
-
     override fun actionPerformed(e: AnActionEvent) {
         val loginBrowser = JBCefBrowser("https://astra.datastax.com/")
         val loginChannel = Channel<UserLoginResponse>()
-        addHandler(loginBrowser,loginChannel)
+        addHandler(loginBrowser, loginChannel)
         val loginSize = Dimension(460, 777)
         launch {
             var view = JPanel(BorderLayout())
             view.add(loginBrowser.component, BorderLayout.CENTER)
-            var window = EasyWindow.buildBrowser(e.getRequiredData(LangDataKeys.PROJECT),"DataStax Astra Login", view, loginSize, loginBrowser)
+            var window = EasyWindow.buildBrowser(e.getRequiredData(LangDataKeys.PROJECT), "DataStax Astra Login", view, loginSize, loginBrowser)
 
             var response = getUserLoginResponse(loginChannel)
             when (response.userLoginResult) {
@@ -53,7 +52,7 @@ class GetTokenCallbackAction :
                     addRestartPanel(e, view, window)
                 }
                 UserLoginResult.CANCELED -> {
-                    //Not really a possible state
+                    // Not really a possible state
                 }
             }
         }
@@ -97,7 +96,7 @@ class GetTokenCallbackAction :
     suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
         val rawBodyNoOrgId = this::class.java.getResource("/rawtext/GetTokenBody.txt").readText()
         val rawBodyString = rawBodyNoOrgId.substring(0, 64) + loginResponse.orgId +
-                rawBodyNoOrgId.substring(64, rawBodyNoOrgId.lastIndex + 1)
+            rawBodyNoOrgId.substring(64, rawBodyNoOrgId.lastIndex + 1)
         var response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
             loginResponse.cookie!!,
             rawBodyString.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -109,7 +108,7 @@ class GetTokenCallbackAction :
                 it
             )
         }
-        //Once a token is made
+        // Once a token is made
         ReloadProfilesAction().actionPerformed(e)
     }
 
@@ -145,7 +144,6 @@ class GetTokenCallbackAction :
         view.add(buttonPanel, BorderLayout.SOUTH)
         oldView.add(view, BorderLayout.NORTH)
         oldView.revalidate()
-
     }
 }
 class MyCefResourceRequestHandler(val cont: Channel<UserLoginResponse>) : CefResourceRequestHandlerAdapter() {
@@ -157,14 +155,12 @@ class MyCefResourceRequestHandler(val cont: Channel<UserLoginResponse>) : CefRes
         status: CefURLRequest.Status?,
         receivedContentLength: Long
     ) {
-        //If verify screen appears from native registration or OAUTH registration set return result AWAITING_VERIFICATION
+        // If verify screen appears from native registration or OAUTH registration set return result AWAITING_VERIFICATION
         if (!cont.isClosedForSend && (browser!!.url.contains("VERIFY_EMAIL") || browser.url.contains("first-broker-login"))) {
-
             runBlocking {
                 cont.send(UserLoginResponse(UserLoginResult.AWAITING_VERIFICATION, null, null))
                 cont.close()
             }
-
         }
     }
 
@@ -175,11 +171,10 @@ class MyCefResourceRequestHandler(val cont: Channel<UserLoginResponse>) : CefRes
     ): CefCookieAccessFilter {
         return object : CefCookieAccessFilter {
             override fun canSendCookie(p0: CefBrowser?, p1: CefFrame?, p2: CefRequest?, p3: CefCookie?): Boolean {
-                //If cookie named this is able to be sent check the url
+                // If cookie named this is able to be sent check the url
                 if (!cont.isClosedForSend && p3?.name == "dstaxprodauthz") {
-                    //If the url contains an orgId preform a callback and pass the data needed to generate a token
+                    // If the url contains an orgId preform a callback and pass the data needed to generate a token
                     if (browser!!.url.contains(Regex("""(https://astra.datastax.com/)([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})"""))) {
-
                         runBlocking {
                             cont.send(
                                 UserLoginResponse(
@@ -190,7 +185,6 @@ class MyCefResourceRequestHandler(val cont: Channel<UserLoginResponse>) : CefRes
                             )
                             cont.close()
                         }
-
                     }
                 }
                 return true
@@ -227,8 +221,8 @@ suspend fun getUserLoginResponse(loginChannel: Channel<UserLoginResponse>): User
     return loginChannel.receive()
 }
 
-fun CoroutineScope.addHandler(browser: JBCefBrowser,loginChannel: Channel<UserLoginResponse>){
-    launch{
+fun CoroutineScope.addHandler(browser: JBCefBrowser, loginChannel: Channel<UserLoginResponse>) {
+    launch {
         browser.jbCefClient.addRequestHandler(MyCefRequestHandlerAdapter(loginChannel), browser.cefBrowser)
     }
 }
