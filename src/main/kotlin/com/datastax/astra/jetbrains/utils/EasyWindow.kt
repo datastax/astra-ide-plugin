@@ -1,38 +1,60 @@
 package com.datastax.astra.jetbrains.utils
 
-import com.datastax.astra.jetbrains.credentials.GetTokenAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.openapi.ui.WindowWrapperBuilder
-import java.awt.Dimension
-import java.awt.Point
+import com.intellij.ui.jcef.JBCefBrowser
+import java.awt.*
+import java.awt.event.ActionEvent
+import javax.swing.BorderFactory
+import javax.swing.JButton
 import javax.swing.JPanel
+import javax.swing.JTextArea
+import kotlin.reflect.KFunction1
 
-class EasyWindow {
+//TODO: This is really being used like a static class. Could change the type to reflect use
+object EasyWindow {
 
-
-    fun build(project: Project, mainPanel: JPanel, size: Dimension, function: () -> (Unit)): WindowWrapper {
-        val window = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, mainPanel)
+    //Build a simple window and attempt to center it based on the default location and size
+    fun buildBrowser(project: Project, title: String, mainPanel: JPanel, size: Dimension, browser: JBCefBrowser): WindowWrapper {
+        val easyWindow = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, mainPanel)
             .setProject(project)
-            .setTitle("DataStax Astra Login")
+            .setTitle(title)
             .setOnCloseHandler {
-                function()
+                browser.jbCefCookieManager.deleteCookies(true)
                 true
             }
-            .build().apply {
-                show()
-                // Change size after or it won't apply since show() overrides those settings
-                window.location = getLocation(window.location, window.size, size)
-                window.size = size
-            }
+            .build()
+        easyWindow.show()
+
+        //Setting the size after the location seemed to move the window sometimes
+        val newPoint = getLocation(easyWindow.window.location, easyWindow.window.size, size)
+        easyWindow.window.size = size
+        easyWindow.window.location = newPoint
 
 
-        return window
+        return easyWindow
+    }
+
+    fun build(project: Project, title: String, mainPanel: JPanel, size: Dimension,): WindowWrapper {
+        val easyWindow = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, mainPanel)
+            .setProject(project)
+            .setTitle(title)
+            .build()
+        easyWindow.show()
+
+        //Setting the size after the location seemed to move the window sometimes
+        val newPoint = getLocation(easyWindow.window.location, easyWindow.window.size, size)
+        easyWindow.window.size = size
+        easyWindow.window.location = newPoint
+
+
+        return easyWindow
     }
 
     fun getLocation(prevLoc: Point, prevSize: Dimension, newSize: Dimension): Point {
-        val x = prevLoc.x + (prevSize.width - newSize.width) / 2
-        val y = prevLoc.y + (prevSize.height - newSize.height) / 2
+        val x = prevLoc.x + ((prevSize.width - newSize.width) / 2)
+        val y = prevLoc.y + ((prevSize.height - newSize.height) / 2)
         return Point(x, y)
     }
 }
