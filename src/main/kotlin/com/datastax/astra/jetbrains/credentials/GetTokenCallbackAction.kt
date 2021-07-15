@@ -25,7 +25,6 @@ import org.cef.network.CefURLRequest
 import java.awt.*
 import java.awt.event.ActionEvent
 import javax.swing.*
-import javax.swing.BorderFactory.createEmptyBorder
 
 // TODO: Add all strings to messageBundle
 class GetTokenCallbackAction :
@@ -38,10 +37,10 @@ class GetTokenCallbackAction :
         loginBrowser.jbCefClient.addRequestHandler(MyCefRequestHandlerAdapter(loginChannel), loginBrowser.cefBrowser)
         val loginSize = Dimension(460, 777)
         launch {
-            var view = JPanel(BorderLayout())
-            var window = EasyWindow.buildBrowser(e.getRequiredData(LangDataKeys.PROJECT), "DataStax Astra Login", view, loginSize, loginBrowser)
+            val view = JPanel(BorderLayout())
+            val window = EasyWindow.buildBrowser(e.getRequiredData(LangDataKeys.PROJECT), "DataStax Astra Login", view, loginSize, loginBrowser)
 
-            var response = getUserLoginResponse(loginChannel)
+            val response = getUserLoginResponse(loginChannel)
             when (response.userLoginResult) {
                 UserLoginResult.SUCCESS -> {
                     window.close()
@@ -52,15 +51,15 @@ class GetTokenCallbackAction :
                 }
                 UserLoginResult.CANCELED -> {
                     // Not really a possible state
-                    // Possibly call some timeout?
+                    // TODO: Possibly add timeout in HandlerAdapter and call this when it triggers
                 }
             }
         }
     }
 
     fun buildConfirmWindow(e: AnActionEvent, response: UserLoginResponse) {
-        var confirmButton = JButton("Agree and Generate Token")
-        var cancelButton = JButton("Disagree")
+        val confirmButton = JButton("Agree and Generate Token")
+        val cancelButton = JButton("Disagree")
         val view = EasyWindow.buildOkPanel(
             confirmButton,
             cancelButton,
@@ -80,11 +79,12 @@ class GetTokenCallbackAction :
         }
     }
 
+    // TODO: Handle non 200 server response
     suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
         val rawBodyNoOrgId = this::class.java.getResource("/rawtext/GetTokenBody.txt").readText()
         val rawBodyString = rawBodyNoOrgId.substring(0, 64) + loginResponse.orgId +
             rawBodyNoOrgId.substring(64, rawBodyNoOrgId.lastIndex + 1)
-        var response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
+        val response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
             loginResponse.cookie!!,
             rawBodyString.toRequestBody("text/plain".toMediaTypeOrNull())
         )
@@ -197,7 +197,6 @@ suspend fun getUserLoginResponse(loginChannel: Channel<UserLoginResponse>): User
 
 fun CoroutineScope.addHandler(browser: JBCefBrowser, loginChannel: Channel<UserLoginResponse>) {
     launch {
-
     }
 }
 

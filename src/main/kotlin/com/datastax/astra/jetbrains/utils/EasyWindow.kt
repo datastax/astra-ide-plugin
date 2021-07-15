@@ -49,7 +49,7 @@ object EasyWindow {
         return easyWindow
     }
 
-    //TODO: Evaluate view size based on length of body text
+    // TODO: Evaluate view size based on length of body text
     fun buildOkPanel(okButton: JButton, cancelButton: JButton, bodyText: String, bodyRows: Int): JPanel {
         val buttonPanel = JPanel(GridLayout(1, 2, 6, 6))
         buttonPanel.border = BorderFactory.createEmptyBorder(2, 6, 6, 6)
