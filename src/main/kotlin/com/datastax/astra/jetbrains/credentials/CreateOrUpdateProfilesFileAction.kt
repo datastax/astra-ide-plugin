@@ -38,10 +38,10 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
         // if config does not exist, (try to) create a new config file
         if (!configFile.exists()) {
             if (confirm(project, configFile)) {
+                trackClick(ClickTarget.BUTTON, "create profile file")
                 try {
                     writer.createFile(configFile)
                 } finally {
-                    trackClick(ClickTarget.BUTTON, "create profile file")
                 }
             } else {
                 return
@@ -90,12 +90,8 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
             try {
                 writer.createFile(configFile)
             } finally {
-                // TODO: Add telemetry for this behavior
-                // trackClick(ClickTarget.BUTTON, "create profile file")
+                trackClick(ClickTarget.BUTTON, "create profile file")
             }
-        }
-        // TODO: Make it so that tokens can be added without creating a new file
-        else {
         }
 
         // Reset so token isnt lingering somewhere
@@ -132,7 +128,7 @@ interface ConfigFileWriter {
 }
 
 object DefaultConfigFileWriter : ConfigFileWriter {
-    var token = ""
+    internal var token = ""
     val TEMPLATE =
         """
         # Astra Config File used by DataStax Astra tools
@@ -155,6 +151,8 @@ object DefaultConfigFileWriter : ConfigFileWriter {
         # is ever disclosed, immediately use the Token Management interface in Organization 
         # Settings to delete the token, or inform your organization administrator and request a 
         # new token. Then, update this file with the replacement token.
+        
+        # NOTE: This file must be saved for modifications to be read! (Ctrl+S)
         
         [astraProfileFile.profiles]
         # default profile is loaded on plugin startup

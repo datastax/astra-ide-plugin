@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicReference
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
     private var profileMap = mapOf<String, ProfileToken>()
 
+    // Internal state is visible ChangeProfileSettingsActionGroup
+    internal var selectedProfile: ProfileToken? = null
     private val validationJob = AtomicReference<AsyncPromise<ProfileState>>()
 
     @Volatile
@@ -33,13 +35,12 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
             }
         }
 
-    // Internal state is visible ChangeProfileSettingsActionGroup
-    internal var selectedProfile: ProfileToken? = null
-
     init {
+
         loadProfiles()
     }
 
+    // TODO: Revisit this and do something less clunky
     fun loadProfiles() {
         profileMap = validateAndGetProfiles().validProfiles
 
@@ -55,8 +56,12 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
 
             validateProfileAndSetState(selectedProfile)
             changeProfile(selectedProfile!!)
+        } else {
+            // Null if no valid profiles on reload. A reload without doing so will result in residual profile being used
+            selectedProfile = null
+            AstraClient.accessToken = ""
+            profileState = ProfileState.IncompleteConfiguration(selectedProfile)
         }
-        // TODO: Revisit this and see do something less clunky
     }
 
     fun changeProfile(nextProfile: ProfileToken) {
@@ -160,6 +165,7 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
     object ValidatingProfile : ProfileState("settings.states.validating", isTerminal = false) {
         override val shortMessage: String = "settings.states.validating.short"
     }
+
     class ValidConnection(internal val profile: ProfileToken) :
         ProfileState("${profile.name}@placehold", isTerminal = true) {
         override val shortMessage: String = "${profile.name}@placeholdID"

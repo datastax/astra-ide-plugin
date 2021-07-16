@@ -10,12 +10,11 @@ import com.segment.analytics.messages.TrackMessage
 import kotlinx.coroutines.runBlocking
 import java.util.UUID.randomUUID
 
-// TODO: See testTelemetry for example of the functions
 // TODO: Rewrite this as a service and not a static class
 // Possibly expand this into more than one class at that time
 object TelemetryManager {
     // TODO: Determine what all to track long term for:
-    // Crud Actions, External Actions, Changing Users (use aliases?)
+    //  Crud Actions, External Actions, Changing Users (use aliases?)
 
     // TODO: Figure out safest way to store this
     var telClient = Analytics.builder(this::class.java.getResource("/telConfig").readText()).build()
@@ -29,7 +28,7 @@ object TelemetryManager {
     // TODO: Make this an active process that occurs as part of the credential change process
     fun checkCreds() {
         val activeToken = ProfileManager.getInstance(AstraClient.project).activeProfile?.token.toString()
-        // If there were no tokens to use don't change the profile change since we can't without an ID
+        // If there were no tokens to use don't change the profile since we can't without an ID
         // This should be cleaner once moved into a service
         if (activeToken != knownToken && activeToken != "null") {
             knownToken = activeToken
@@ -52,14 +51,12 @@ object TelemetryManager {
         }
     }
 
-    // TODO: Build this for changing tokens
     fun trackProfileChange() {
         telClient.enqueue(
             IdentifyMessage.builder()
                 .userId(knownOrg)
                 .traits(
                     mapOf(
-                        // TODO: Figure out what all to track
                         "idea ver" to ApplicationInfo.getInstance().getStrictVersion(),
                         "anonymous" to anonMode.toString(),
                     )
@@ -67,14 +64,20 @@ object TelemetryManager {
         )
     }
 
-    // TODO: Add to RefreshExplorerAction
-    // TODO: Add to UserRegisterAction
     fun trackAction(actionName: String, actionMetaData: Map<String, String>) {
         checkCreds()
         telClient.enqueue(
             TrackMessage.builder(actionName)
                 .userId(knownOrg)
                 .properties(actionMetaData)
+        )
+    }
+
+    fun trackAction(actionName: String) {
+        checkCreds()
+        telClient.enqueue(
+            TrackMessage.builder(actionName)
+                .userId(knownOrg)
         )
     }
 
@@ -180,7 +183,6 @@ object TelemetryManager {
             GroupMessage.builder("some-group-id")
                 .userId(activeOrg)
                 .traits(mapOf(
-                    //TODO: Figure out what all to track
                     "name" to "Org Name",
                     "size" to "Number of users")
                 )

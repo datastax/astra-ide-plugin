@@ -2,6 +2,7 @@ package com.datastax.astra.jetbrains.explorer
 
 import com.datastax.astra.jetbrains.credentials.*
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
+import com.datastax.astra.jetbrains.utils.buildTextPanel
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.TreeState
 import com.intellij.openapi.Disposable
@@ -68,6 +69,11 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
         val panel = NonOpaquePanel(GridBagLayout())
         return panel
     }
+    fun showWaitPanel() {
+        treePanelWrapper.setContent(
+            buildTextPanel("Please wait while the server processes the token...", 20, 16)
+        )
+    }
 
     override fun profileStateChanged(newProfile: ProfileState) {
         runInEdt {
@@ -77,6 +83,9 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
                         clearCacheMap()
                         invalidateTree()
                         treePanel
+                    }
+                    is ProfileState.IncompleteConfiguration -> {
+                        createInfoPanel(newProfile)
                     }
                     else -> createInfoPanel(newProfile)
                 }

@@ -84,22 +84,22 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
         if (token.length == 97) {
             token.split(":").forEachIndexed { index, element ->
                 when (index) {
-                    0 -> if (element != "AstraCS") throw Exception("TokenWrongFormat")
-                    1 -> if (!(element.length == 24 || element.all { it.isLetterOrDigit() })) throw Exception("WrongTokenFormat")
-                    2 -> if (!(element.length == 64 || element.all { it.isLetterOrDigit() })) throw Exception("WrongTokenFormat")
+                    0 -> if (element != "AstraCS") throw Exception("Token missing 'AstraCS'")
+                    1 -> if (!(element.length == 24 || element.all { it.isLetterOrDigit() })) throw Exception("Token client id invalid")
+                    2 -> if (!(element.length == 64 || element.all { it.isLetterOrDigit() })) throw Exception("Token secret invalid")
                     else -> {
-                        throw Exception("TokenWrongFormat")
+                        throw Exception("Token format invalid")
                     }
                 }
             }
         } else {
-            throw Exception("TokenWrongFormat")
+            throw Exception("Token length invalid")
         }
 
         // If token has valid format check if it works on the wire
         runBlocking {
             if (!CredentialsClient.operationsApi(token).getCurrentOrganization().isSuccessful) {
-                throw Exception("TokenAuthFailed")
+                throw Exception("Token auth failed")
             }
         }
     }

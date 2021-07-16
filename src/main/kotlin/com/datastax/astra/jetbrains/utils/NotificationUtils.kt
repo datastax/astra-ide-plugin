@@ -44,7 +44,7 @@ fun createShowMoreInfoDialogAction(actionName: String?, title: String?, message:
             val dialogTitle = title ?: ""
 
             val textArea = JTextArea(moreInfo).apply {
-                columns = 50
+                columns = 56
                 rows = 5
                 lineWrap = true
                 wrapStyleWord = true

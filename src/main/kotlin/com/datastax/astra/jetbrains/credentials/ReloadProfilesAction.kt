@@ -2,6 +2,8 @@ package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.refreshTree
+import com.datastax.astra.jetbrains.telemetry.ClickTarget
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -19,8 +21,8 @@ class ReloadProfilesAction(text: String = message("credentials.file.reload")) :
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        val profileSettingsManager = ProfileManager.getInstance(e.getRequiredData(LangDataKeys.PROJECT))
-        profileSettingsManager.loadProfiles()
+        trackClick(ClickTarget.BUTTON, "refresh profiles")
+        ProfileManager.getInstance(e.getRequiredData(LangDataKeys.PROJECT)).loadProfiles()
         e.getRequiredData(LangDataKeys.PROJECT).refreshTree()
     }
 }

@@ -1,6 +1,8 @@
 package com.datastax.astra.jetbrains.explorer
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
+import com.datastax.astra.jetbrains.telemetry.ClickTarget
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -18,8 +20,7 @@ class RefreshExplorerAction(text: String = message("explorer.refresh.description
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        // TODO:This is where we should record telemetry on the refresh button
-        // But would send many records if clicked a lot and AWS doesn't record this afaik
+        trackClick(ClickTarget.BUTTON, "refresh plugin")
         e.getRequiredData(LangDataKeys.PROJECT).refreshTree()
     }
 }

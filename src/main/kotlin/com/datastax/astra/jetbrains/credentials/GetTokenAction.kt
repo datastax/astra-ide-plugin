@@ -1,230 +1,204 @@
 package com.datastax.astra.jetbrains.credentials
 
-import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.MessagesBundle.message
+import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
+import com.datastax.astra.jetbrains.telemetry.ClickTarget
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackAction
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
+import com.datastax.astra.jetbrains.utils.*
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.WindowWrapper
-import com.intellij.openapi.ui.WindowWrapperBuilder
 import com.intellij.ui.jcef.JBCefBrowser
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.cef.browser.CefBrowser
+import org.cef.browser.CefFrame
+import org.cef.handler.CefCookieAccessFilter
+import org.cef.handler.CefRequestHandlerAdapter
+import org.cef.handler.CefResourceRequestHandler
+import org.cef.handler.CefResourceRequestHandlerAdapter
+import org.cef.misc.BoolRef
+import org.cef.network.CefCookie
+import org.cef.network.CefRequest
+import org.cef.network.CefResponse
+import org.cef.network.CefURLRequest
 import java.awt.*
 import java.awt.event.ActionEvent
 import javax.swing.*
-import javax.swing.BorderFactory.createEmptyBorder
 
-// TODO: Add all strings to messageBundle
 class GetTokenAction :
-    DumbAwareAction("Get Token", null, null),
+    DumbAwareAction(message("credentials.get_token.text"), null, null),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
-    val loginBrowser: JBCefBrowser = JBCefBrowser("https://astra.datastax.com/")
-    lateinit var loginState: BrowserState
 
     override fun actionPerformed(e: AnActionEvent) {
-        val project = e.getRequiredData(LangDataKeys.PROJECT)
-
+        trackClick(ClickTarget.LINK, message("telemetry.get_token.start"))
+        val loginBrowser = JBCefBrowser(message("credentials.login.link"))
+        val loginChannel = Channel<UserLoginResponse>()
+        loginBrowser.jbCefClient.addRequestHandler(MyCefRequestHandlerAdapter(loginChannel), loginBrowser.cefBrowser)
+        val loginSize = Dimension(460, 777)
         launch {
-            val loginSize = Dimension(460, 777)
-            var view = JPanel(BorderLayout())
-            view.add(loginBrowser.component, BorderLayout.CENTER)
-            val loginWindow = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, view)
-                .setProject(project)
-                .setTitle("DataStax Astra Login")
-                .setOnCloseHandler {
-                    loginBrowser.jbCefCookieManager.deleteCookies(false)
-                    // TODO: Dispose of stuff here when the close button is clicked
-                    loginState = BrowserState.CANCELED
-                    true
-                }
-                .build().apply {
-                    show()
-                    // Change size after or it won't apply since show() overrides those settings
-                    window.location = getLocation(window.location, window.size, loginSize)
-                    window.size = loginSize
-                }
+            val view = JPanel(BorderLayout())
+            val window = buildBrowser(e.getRequiredData(LangDataKeys.PROJECT), message("credentials.get_token.browser.title"), view, loginSize, loginBrowser)
 
-            loginState = browserResponse()
-
-            when (loginState) {
-                // TODO: Handle this somewhere else since/if it can't necessarily be handled by
-                BrowserState.CANCELED -> {
+            val response = loginChannel.receive()
+            when (response.userLoginResult) {
+                UserLoginResult.SUCCESS -> {
+                    window.close()
+                    buildConfirmWindow(e, response)
+                    trackAction(message("telemetry.get_token.login.success"))
                 }
-                BrowserState.AWAITING_EMAIL -> {
-                    // If ok is pressed on this it recalls GetTokenAction
-                    addRestartPanel(e, loginWindow, view)
-                }
-                BrowserState.LOGGED_IN -> {
-                    loginWindow.close()
-                    buildConfirmWindow(e, project)
+                UserLoginResult.AWAITING_VERIFICATION -> {
+                    addRestartPanel(e, view, window)
+                    trackAction(message("telemetry.get_token.login.verify"))
                 }
             }
         }
     }
 
-    fun buildConfirmWindow(e: AnActionEvent, project: Project) {
-        val view = JPanel(BorderLayout(6, 6))
-        // val desiredSize = Dimension(350, 200)
-        val confirmButton = JButton("Agree and Generate Token")
-        val cancelButton = JButton("Disagree")
-        lateinit var confirmWindow: WindowWrapper
+    fun buildConfirmWindow(e: AnActionEvent, response: UserLoginResponse) {
+        val confirmButton = JButton(message("credentials.get_token.confirm.okay"))
+        val cancelButton = JButton(message("credentials.get_token.confirm.cancel"))
+        val view = buildOkPanel(
+            confirmButton,
+            cancelButton,
+            message("credentials.get_token.confirm.body"),
+            9,
+        )
+
+        val window = buildWindow(e.getRequiredData(LangDataKeys.PROJECT), message("credentials.get_token.confirm.title"), view, view.preferredSize,)
         confirmButton.addActionListener { actionEvent: ActionEvent? ->
+            window.close()
             launch {
-                confirmTokenGen(e, project, confirmWindow)
+                generateToken(e, response)
             }
         }
         cancelButton.addActionListener { actionEvent: ActionEvent? ->
-            cancelTokenGen(confirmWindow)
+            window.close()
         }
-        val buttonPanel = JPanel(GridLayout(1, 2, 6, 6))
-        buttonPanel.border = createEmptyBorder(2, 6, 6, 6)
-        buttonPanel.add(confirmButton, 0)
-        buttonPanel.add(cancelButton, 1)
-        val textArea =
-            JTextArea("A Database Administrator token will be created under your Datastax account and inserted into the ~/home/.astra/config file. If this file doesn't exist it will be created.\n\nClick agree below to generate a token and save it to the Astra profile file.").apply {
-                border = createEmptyBorder(10, 10, 6, 10)
-                background = buttonPanel.background
-                font = Font(font.fontName, Font.PLAIN, 14)
-                rows = 8
-                lineWrap = true
-                wrapStyleWord = true
-                isEditable = false
-                revalidate()
-            }
-        view.add(textArea, BorderLayout.CENTER)
-        view.add(buttonPanel, BorderLayout.SOUTH)
-
-        val desiredSize = view.preferredSize
-
-        confirmWindow = WindowWrapperBuilder(WindowWrapper.Mode.FRAME, view)
-            .setProject(project)
-            .setTitle("Confirm Token Creation")
-            .setOnCloseHandler {
-                // TODO: Dispose of stuff here when the close button is clicked
-                loginState = BrowserState.CANCELED
-                true
-            }
-            .build().apply {
-                show()
-                // Change size after or it won't apply since show() overrides those settings
-                window.location = getLocation(window.location, window.size, desiredSize)
-                window.size = desiredSize
-            }
     }
 
-    suspend fun confirmTokenGen(e: AnActionEvent, project: Project, windowWrapper: WindowWrapper) {
-        windowWrapper.close()
+    // TODO: Handle non 200 server response
+    suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
+        val response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
+            loginResponse.cookie!!,
+            message("credentials.get_token.graphql").replace("ORGID", loginResponse.orgId!!).toRequestBody("text/plain".toMediaTypeOrNull())
+        )
+        trackAction(message("telemetry.get_token.success"))
 
-        val dStaxCookie = loginBrowser.jbCefCookieManager.getCookies()?.find() {
-            it.name == "dstaxprodauthz"
-        }
-        val rawBodyNoOrgId = this::class.java.getResource("/rawtext/GetTokenBody.txt").readText()
-        val rawBodyString =
-            rawBodyNoOrgId.substring(0, 64) + loginBrowser.cefBrowser.url.split("/")[3] + rawBodyNoOrgId.substring(
-                64,
-                rawBodyNoOrgId.lastIndex + 1
-            )
-        val rawBody = rawBodyString.toRequestBody("text/plain".toMediaTypeOrNull())
-        var response =
-            CredentialsClient.internalOpsApi()
-                .getDatabaseAdminToken("${dStaxCookie?.name}=${dStaxCookie?.value}", rawBody)
         response.body()?.data?.generateToken?.token?.let {
             CreateOrUpdateProfilesFileAction().createWithGenToken(
-                project,
+                e.getRequiredData(LangDataKeys.PROJECT),
                 it
             )
         }
-        // Once a token is made
-        ReloadProfilesAction().actionPerformed(e)
+        ExplorerToolWindow.getInstance(e.project!!).showWaitPanel()
+        // TODO: Instead of waiting here use the "still loading resource" animation then reload when reachable
+        runBlocking {
+            // Once a token is made wait for server's to authorize it then refresh list
+            delay(6500)
+            ReloadProfilesAction().actionPerformed(e)
+        }
     }
 
-    fun addRestartPanel(e: AnActionEvent, loginWindow: WindowWrapper, oldView: JPanel) {
-        val returnButton = JButton("Return to Login")
-        val cancelLogin = JButton("Cancel")
+    fun addRestartPanel(e: AnActionEvent, oldView: JPanel, window: WindowWrapper) {
+        val returnButton = JButton(message("credentials.get_token.restart.okay"))
+        val cancelLoginButton = JButton(message("credentials.get_token.restart.cancel"))
         returnButton.addActionListener { actionEvent: ActionEvent? ->
+            trackClick(ClickTarget.BUTTON, message("telemetry.get_token.login.restart"))
             launch {
-                loginWindow.close()
+                window.close()
                 GetTokenAction().actionPerformed(e)
             }
         }
-        cancelLogin.addActionListener { actionEvent: ActionEvent? ->
-            cancelTokenGen(loginWindow)
+        cancelLoginButton.addActionListener { actionEvent: ActionEvent? ->
+            window.close()
         }
-        val buttonPanel = JPanel(GridLayout(1, 2, 6, 6))
-        buttonPanel.border = createEmptyBorder(2, 6, 6, 6)
-        buttonPanel.add(returnButton, 0)
-        buttonPanel.add(cancelLogin, 1)
-        val view = JPanel(BorderLayout(6, 6))
-        val textArea = JTextArea("Need to verify your email?\n\nClick 'Return to Login' when ready to continue.").apply {
-            border = createEmptyBorder(10, 10, 6, 10)
-            background = buttonPanel.background
-            font = Font(font.fontName, Font.PLAIN, 14)
-            rows = 3
-            lineWrap = true
-            wrapStyleWord = true
-            isEditable = false
-            revalidate()
-        }
-        view.add(textArea, BorderLayout.CENTER)
-        view.add(buttonPanel, BorderLayout.SOUTH)
-        oldView.add(view, BorderLayout.NORTH)
+        val returnPanel = buildOkPanel(
+            returnButton,
+            cancelLoginButton,
+            message("credentials.get_token.restart.body"),
+            3,
+        )
+        oldView.add(returnPanel, BorderLayout.NORTH)
         oldView.revalidate()
     }
-
-    fun cancelTokenGen(windowWrapper: WindowWrapper) {
-        windowWrapper.close()
-        loginBrowser.jbCefCookieManager.deleteCookies(false)
-        // dispose of some stuff
-    }
-
-    private fun getLocation(prevLoc: Point, prevSize: Dimension, newSize: Dimension): Point {
-        val x = prevLoc.x + (prevSize.width - newSize.width) / 2
-        val y = prevLoc.y + (prevSize.height - newSize.height) / 2
-        return Point(x, y)
-    }
-
-    // TODO: Check if this gets disposed when window is closed
-    suspend fun browserResponse(): BrowserState {
-        var loginState = BrowserState.SIGN_IN
-        // TODO: Add conditions for disposing this
-        while (loginState == BrowserState.SIGN_IN) {
-            delay(350L)
-            if (verifyPageLoaded()) {
-                loginState = BrowserState.AWAITING_EMAIL
-            } else if (astraHomeLoaded()) {
-                loginState = BrowserState.LOGGED_IN
+}
+class MyCefResourceRequestHandler(val channel: Channel<UserLoginResponse>) : CefResourceRequestHandlerAdapter() {
+    override fun onResourceLoadComplete(
+        browser: CefBrowser?,
+        frame: CefFrame?,
+        request: CefRequest?,
+        response: CefResponse?,
+        status: CefURLRequest.Status?,
+        receivedContentLength: Long
+    ) {
+        // If verify screen appears from native registration or OAUTH registration set return result AWAITING_VERIFICATION
+        if (!channel.isClosedForSend && (browser!!.url.contains("VERIFY_EMAIL") || browser.url.contains("first-broker-login"))) {
+            runBlocking {
+                channel.send(UserLoginResponse(UserLoginResult.AWAITING_VERIFICATION, null, null))
+                channel.close()
             }
         }
-        return loginState
     }
 
-    private fun verifyPageLoaded(): Boolean =
-        loginBrowser.cefBrowser.url.contains("VERIFY_EMAIL") || loginBrowser.cefBrowser.url.contains("first-broker-login")
-
-    private fun astraHomeLoaded(): Boolean {
-        val url = loginBrowser.cefBrowser.url
-        if (!url.contains("https://astra.datastax.com/")) {
-            return false
-        }
-        url.split("/")[3].split("-").forEachIndexed { index, element ->
-            when (index) {
-                0 -> if (!(element.length == 8 || element.all { it.isLetterOrDigit() })) return false
-                1 -> if (!(element.length == 4 || element.all { it.isLetterOrDigit() })) return false
-                2 -> if (!(element.length == 4 || element.all { it.isLetterOrDigit() })) return false
-                3 -> if (!(element.length == 4 || element.all { it.isLetterOrDigit() })) return false
-                4 -> if (!(element.length == 12 || element.all { it.isLetterOrDigit() })) return false
-                else -> {
-                    return false
+    override fun getCookieAccessFilter(
+        browser: CefBrowser?,
+        frame: CefFrame?,
+        request: CefRequest?
+    ): CefCookieAccessFilter {
+        return object : CefCookieAccessFilter {
+            override fun canSendCookie(p0: CefBrowser?, p1: CefFrame?, p2: CefRequest?, p3: CefCookie?): Boolean {
+                // If cookie named this is able to be sent check the url
+                if (!channel.isClosedForSend && p3?.name == "dstaxprodauthz") {
+                    // If the url contains an orgId preform a callback and pass the data needed to generate a token
+                    if (browser!!.url.contains(Regex("""(https://astra.datastax.com/)([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})"""))) {
+                        runBlocking {
+                            channel.send(
+                                UserLoginResponse(
+                                    UserLoginResult.SUCCESS,
+                                    "${p3.name}=${p3.value}",
+                                    p0?.url?.split("/")!![3]
+                                )
+                            )
+                            channel.close()
+                        }
+                    }
                 }
+                return true
+            }
+            override fun canSaveCookie(
+                p0: CefBrowser?,
+                p1: CefFrame?,
+                p2: CefRequest?,
+                p3: CefResponse?,
+                p4: CefCookie?
+            ): Boolean {
+                return true
             }
         }
-        return true
-    }
-
-    // TODO: Refactor to BrowserResponse with callback changes
-    enum class BrowserState {
-        SIGN_IN, CANCELED, LOGGED_IN, AWAITING_EMAIL,
     }
 }
+
+class MyCefRequestHandlerAdapter(val channel: Channel<UserLoginResponse>) : CefRequestHandlerAdapter() {
+    override fun getResourceRequestHandler(
+        browser: CefBrowser?,
+        frame: CefFrame?,
+        request: CefRequest?,
+        isNavigation: Boolean,
+        isDownload: Boolean,
+        requestInitiator: String?,
+        disableDefaultHandling: BoolRef?
+    ): CefResourceRequestHandler {
+        return MyCefResourceRequestHandler(channel)
+    }
+}
+
+enum class UserLoginResult {
+    SUCCESS, AWAITING_VERIFICATION
+}
+
+data class UserLoginResponse(val userLoginResult: UserLoginResult, val cookie: String?, val orgId: String?)
