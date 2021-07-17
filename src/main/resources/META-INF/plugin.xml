@@ -3,10 +3,6 @@
     <name>DataStax Astra</name>
     <vendor url="https://www.datastax.com">DataStax</vendor>
 
-    <change-notes>
-        Initial Alpha Release
-    </change-notes>
-
     <resource-bundle>MessagesBundle</resource-bundle>
 
     <!-- Product and plugin compatibility requirements -->
