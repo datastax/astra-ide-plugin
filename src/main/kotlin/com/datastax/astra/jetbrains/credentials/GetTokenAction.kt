@@ -8,6 +8,7 @@ import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
 import com.datastax.astra.jetbrains.utils.*
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.ui.jcef.JBCefBrowser
@@ -34,26 +35,36 @@ class GetTokenAction :
     DumbAwareAction(message("credentials.get_token.text"), null, null),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
+    val edtContext = getCoroutineUiContext()
+
     override fun actionPerformed(e: AnActionEvent) {
         trackClick(ClickTarget.LINK, message("telemetry.get_token.start"))
         val loginBrowser = JBCefBrowser(message("credentials.login.link"))
         val loginChannel = Channel<UserLoginResponse>()
         loginBrowser.jbCefClient.addRequestHandler(MyCefRequestHandlerAdapter(loginChannel), loginBrowser.cefBrowser)
         val loginSize = Dimension(460, 777)
-        launch {
-            val view = JPanel(BorderLayout())
-            val window = buildBrowser(e.getRequiredData(LangDataKeys.PROJECT), message("credentials.get_token.browser.title"), view, loginSize, loginBrowser)
+        val view = JPanel(BorderLayout())
+        val window = buildBrowser(
+            e.getRequiredData(LangDataKeys.PROJECT),
+            message("credentials.get_token.browser.title"),
+            view,
+            loginSize,
+            loginBrowser
+        )
 
+        launch {
             val response = loginChannel.receive()
-            when (response.userLoginResult) {
-                UserLoginResult.SUCCESS -> {
-                    window.close()
-                    buildConfirmWindow(e, response)
-                    trackAction(message("telemetry.get_token.login.success"))
-                }
-                UserLoginResult.AWAITING_VERIFICATION -> {
-                    addRestartPanel(e, view, window)
-                    trackAction(message("telemetry.get_token.login.verify"))
+            withContext(edtContext) {
+                when (response.userLoginResult) {
+                    UserLoginResult.SUCCESS -> {
+                        window.close()
+                        buildConfirmWindow(e, response)
+                        trackAction(message("telemetry.get_token.login.success"))
+                    }
+                    UserLoginResult.AWAITING_VERIFICATION -> {
+                        addRestartPanel(e, view, window)
+                        trackAction(message("telemetry.get_token.login.verify"))
+                    }
                 }
             }
         }
@@ -69,7 +80,12 @@ class GetTokenAction :
             9,
         )
 
-        val window = buildWindow(e.getRequiredData(LangDataKeys.PROJECT), message("credentials.get_token.confirm.title"), view, view.preferredSize,)
+        val window = buildWindow(
+            e.getRequiredData(LangDataKeys.PROJECT),
+            message("credentials.get_token.confirm.title"),
+            view,
+            view.preferredSize
+        )
         confirmButton.addActionListener { actionEvent: ActionEvent? ->
             window.close()
             launch {
@@ -85,7 +101,8 @@ class GetTokenAction :
     suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
         val response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
             loginResponse.cookie!!,
-            message("credentials.get_token.graphql").replace("ORGID", loginResponse.orgId!!).toRequestBody("text/plain".toMediaTypeOrNull())
+            message("credentials.get_token.graphql").replace("ORGID", loginResponse.orgId!!)
+                .toRequestBody("text/plain".toMediaTypeOrNull())
         )
         trackAction(message("telemetry.get_token.success"))
 
@@ -100,7 +117,7 @@ class GetTokenAction :
         runBlocking {
             // Once a token is made wait for server's to authorize it then refresh list
             delay(6500)
-            ReloadProfilesAction().actionPerformed(e)
+            ActionUtil.performActionDumbAware(ReloadProfilesAction(), e)
         }
     }
 
@@ -109,10 +126,8 @@ class GetTokenAction :
         val cancelLoginButton = JButton(message("credentials.get_token.restart.cancel"))
         returnButton.addActionListener { actionEvent: ActionEvent? ->
             trackClick(ClickTarget.BUTTON, message("telemetry.get_token.login.restart"))
-            launch {
-                window.close()
-                GetTokenAction().actionPerformed(e)
-            }
+            window.close()
+            ActionUtil.performActionDumbAware(GetTokenAction(), e)
         }
         cancelLoginButton.addActionListener { actionEvent: ActionEvent? ->
             window.close()
@@ -127,6 +142,7 @@ class GetTokenAction :
         oldView.revalidate()
     }
 }
+
 class MyCefResourceRequestHandler(val channel: Channel<UserLoginResponse>) : CefResourceRequestHandlerAdapter() {
     override fun onResourceLoadComplete(
         browser: CefBrowser?,
@@ -170,6 +186,7 @@ class MyCefResourceRequestHandler(val channel: Channel<UserLoginResponse>) : Cef
                 }
                 return true
             }
+
             override fun canSaveCookie(
                 p0: CefBrowser?,
                 p1: CefFrame?,

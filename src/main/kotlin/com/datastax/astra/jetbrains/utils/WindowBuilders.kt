@@ -23,11 +23,12 @@ fun buildBrowser(
         .setProject(project)
         .setTitle(title)
         .setOnCloseHandler {
-            browser.jbCefCookieManager.deleteCookies(true)
+            browser.jbCefCookieManager.deleteCookies(false)
             true
         }
         .build()
     windowWrapper.show()
+
 
     // Setting the size after the location seemed to move the window sometimes
     val newPoint = getLocation(windowWrapper.window.location, windowWrapper.window.size, size)
