@@ -11,17 +11,16 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
+ *
  * @param clientName The organization name in a more human readable format.
  * @param clientId The unique identifier for the client for authentication.
  * @param clientSecret The UUID client secret for the service account from the create service account response in the user interface.
  */
 
-data class ServiceAccountTokenInput (
+data class ServiceAccountTokenInput(
     /* The organization name in a more human readable format. */
     @SerializedName("clientName")
     val clientName: kotlin.String,
@@ -32,4 +31,3 @@ data class ServiceAccountTokenInput (
     @SerializedName("clientSecret")
     val clientSecret: java.util.UUID
 )
-

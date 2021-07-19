@@ -2,8 +2,8 @@ package com.datastax.astra.stargate_rest_v2.infrastructure
 
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
-import com.google.gson.stream.JsonWriter
 import com.google.gson.stream.JsonToken.NULL
+import com.google.gson.stream.JsonWriter
 import java.io.IOException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter

@@ -11,21 +11,18 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.Policy
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * The updateRole model
  * @param name The name of the custom role you want to update in your organization.
- * @param policy 
+ * @param policy
  */
 
-data class UpdateRoleRequest (
+data class UpdateRoleRequest(
     /* The name of the custom role you want to update in your organization. */
     @SerializedName("name")
     val name: kotlin.String,
     @SerializedName("policy")
     val policy: Policy
 )
-

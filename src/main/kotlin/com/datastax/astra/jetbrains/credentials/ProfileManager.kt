@@ -1,6 +1,7 @@
 package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.credentials.ProfileReader.validateAndGetProfiles
 import com.datastax.astra.jetbrains.utils.getLogger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -9,17 +10,18 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
-import com.intellij.util.ExceptionUtil
 import com.intellij.util.messages.Topic
 import org.jetbrains.concurrency.AsyncPromise
 import java.util.concurrent.atomic.AtomicReference
 
-/** Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
- *
+/**
+ * Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
  */
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
-    private var profileMap = mapOf<String,ProfileToken>()
+    private var profileMap = mapOf<String, ProfileToken>()
 
+    // Internal state is visible ChangeProfileSettingsActionGroup
+    internal var selectedProfile: ProfileToken? = null
     private val validationJob = AtomicReference<AsyncPromise<ProfileState>>()
 
     @Volatile
@@ -33,28 +35,37 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
             }
         }
 
-    // Internal state is visible ChangeProfileSettingsActionGroup
-    internal var selectedProfile: ProfileToken? = null
-
     init {
 
-        profileMap=validateAndGetProfiles().validProfiles
+        loadProfiles()
+    }
 
-        //Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
-        if(profileMap.isNotEmpty()) {
-            if (profileMap.containsKey("default"))
+    // TODO: Revisit this and do something less clunky
+    fun loadProfiles() {
+        profileMap = validateAndGetProfiles().validProfiles
+
+        // Check if any valid profiles exist. If so check for default in valid profiles. If not use first valid profile
+        if (profileMap.isNotEmpty()) {
+            if (profileMap.containsKey("default")) {
                 selectedProfile = profileMap["default"]
-            else
+            } else {
                 selectedProfile = profileMap.entries.first().value
+            }
 
-            AstraClient.accessToken= selectedProfile!!.token
+            AstraClient.accessToken = selectedProfile!!.token
+
+            validateProfileAndSetState(selectedProfile)
+            changeProfile(selectedProfile!!)
+        } else {
+            // Null if no valid profiles on reload. A reload without doing so will result in residual profile being used
+            selectedProfile = null
+            AstraClient.accessToken = ""
+            profileState = ProfileState.IncompleteConfiguration(selectedProfile)
         }
-        validateProfileAndSetState(selectedProfile)
-
     }
 
     fun changeProfile(nextProfile: ProfileToken) {
-        changeFieldsAndNotify{
+        changeFieldsAndNotify {
             selectedProfile = nextProfile
         }
     }
@@ -81,7 +92,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         }
     }
 
-    private fun validateProfileAndSetState(profile: ProfileToken?){
+    private fun validateProfileAndSetState(profile: ProfileToken?) {
         profileState = if (profile != null) ProfileState.ValidConnection(profile) else ProfileState.IncompleteConfiguration(profile)
     }
 
@@ -93,17 +104,11 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
                 return@executeOnPooledThread
             }
 
-            var success = true
             try {
-
-
                 promise.setResult(ProfileState.ValidConnection(profile))
             } catch (e: Exception) {
-
-            } finally {
             }
         }
-
         return promise
     }
 
@@ -116,7 +121,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
     /**
      * Legacy method, should be considered deprecated and avoided since it loads defaults out of band
      */
-    val profiles: Map<String,ProfileToken>
+    val profiles: Map<String, ProfileToken>
         get() = profileMap
 
     override fun dispose() {
@@ -125,12 +130,13 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
     companion object {
         /***
          * MessageBus topic for when the active credential profile or region is changed
+         * Defining it here lets us not define it in the plugin.xml
+         * TODO: Find out if defining a notifier this way is still acceptable per IntelliJ best practices
          */
         val CONNECTION_SETTINGS_STATE_CHANGED: Topic<ProfileStateChangeNotifier> = Topic.create(
-            "AWS Account setting changed",
+            "DataStax Astra profile changed",
             ProfileStateChangeNotifier::class.java
         )
-
 
         @JvmStatic
         fun getInstance(project: Project): ProfileManager = ServiceManager.getService(project, ProfileManager::class.java)
@@ -139,12 +145,13 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         private const val MAX_HISTORY = 5
         internal val ProfileManager.selectedProfile get() = selectedProfile
     }
-
 }
 
-//TODO:Rebase this whole section
+// TODO:Rebase this whole section
+// Fix messages
+// Add verification to make sure token wasn't removed since loading check occurred
 sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
-    protected val editCredsAction: AnAction = ActionManager.getInstance().getAction("credentials.upsertCredentials")
+    protected val editProfiles: AnAction = ActionManager.getInstance().getAction("credentials.upsert")
 
     /**
      * An optional short message to display in places where space is at a premium
@@ -158,6 +165,7 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
     object ValidatingProfile : ProfileState("settings.states.validating", isTerminal = false) {
         override val shortMessage: String = "settings.states.validating.short"
     }
+
     class ValidConnection(internal val profile: ProfileToken) :
         ProfileState("${profile.name}@placehold", isTerminal = true) {
         override val shortMessage: String = "${profile.name}@placeholdID"
@@ -170,14 +178,7 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
         },
         isTerminal = true
     ) {
-        override val actions: List<AnAction> = listOf(editCredsAction)
-    }
-
-    class InvalidProfile(private val cause: Exception) :
-        ProfileState("settings.states.invalid", isTerminal = true) {
-        override val shortMessage = "settings.states.invalid.short"
-
-        override val actions: List<AnAction> = listOf(editCredsAction)
+        override val actions: List<AnAction> = listOf(editProfiles)
     }
 }
 

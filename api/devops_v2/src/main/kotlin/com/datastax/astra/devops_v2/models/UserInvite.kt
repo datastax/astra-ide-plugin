@@ -11,17 +11,16 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * The userInvite model
  * @param email The email of the user being invited
  * @param orgID The unique system generated identifier of the organization
- * @param roles 
+ * @param roles
  */
 
-data class UserInvite (
+data class UserInvite(
     /* The email of the user being invited */
     @SerializedName("email")
     val email: kotlin.String,
@@ -31,4 +30,3 @@ data class UserInvite (
     @SerializedName("roles")
     val roles: kotlin.collections.List<kotlin.String>
 )
-

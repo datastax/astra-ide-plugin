@@ -1,19 +1,18 @@
 package com.datastax.astra.jetbrains.explorer
 
-
 import com.datastax.astra.jetbrains.credentials.*
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.openapi.application.runInEdt
-import com.intellij.openapi.components.ServiceManager
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
+import com.datastax.astra.jetbrains.utils.buildTextPanel
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.TreeState
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.ui.DoubleClickListener
@@ -26,11 +25,9 @@ import com.intellij.ui.tree.StructureTreeModel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.concurrency.Invoker
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.tree.TreeUtil
-import org.jetbrains.annotations.NotNull
 import java.awt.Component
-import java.awt.event.MouseEvent
 import java.awt.GridBagLayout
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
@@ -55,7 +52,6 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
         }.component
 
-
         background = UIUtil.getTreeBackground()
         setContent(treePanelWrapper)
         treePanelWrapper.setContent(treePanel)
@@ -73,6 +69,11 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
         val panel = NonOpaquePanel(GridBagLayout())
         return panel
     }
+    fun showWaitPanel() {
+        treePanelWrapper.setContent(
+            buildTextPanel("Please wait while the server processes the token...", 20, 16)
+        )
+    }
 
     override fun profileStateChanged(newProfile: ProfileState) {
         runInEdt {
@@ -82,6 +83,9 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
                         clearCacheMap()
                         invalidateTree()
                         treePanel
+                    }
+                    is ProfileState.IncompleteConfiguration -> {
+                        createInfoPanel(newProfile)
                     }
                     else -> createInfoPanel(newProfile)
                 }
@@ -120,7 +124,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
         TreeUIHelper.getInstance().installTreeSpeedSearch(tree)
 
-        object: DoubleClickListener() {
+        object : DoubleClickListener() {
             override fun onDoubleClick(event: MouseEvent): Boolean {
                 val path = tree.getClosestPathForLocation(event.x, event.y)
                 ((path?.lastPathComponent as? DefaultMutableTreeNode)?.userObject as? ExplorerNode<*>)?.onDoubleClick()
@@ -155,10 +159,11 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
     private inline fun <reified T : ExplorerNode<*>> getSelectedNodesSameType(): List<T>? {
         val selectedNodes = getSelectedNodes<T>()
-        return if (selectedNodes.isNotEmpty() && selectedNodes.all { selectedNodes[0]::class.java.isInstance(it) })
+        return if (selectedNodes.isNotEmpty() && selectedNodes.all { selectedNodes[0]::class.java.isInstance(it) }) {
             selectedNodes
-        else
+        } else {
             null
+        }
     }
 
     private inline fun <reified T : ExplorerNode<*>> getSelectedNodes() = tree.selectionPaths?.let {

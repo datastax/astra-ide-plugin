@@ -11,16 +11,14 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * The roleInvite model.
- * @param roles 
+ * @param roles
  */
 
-data class RoleInviteRequest (
+data class RoleInviteRequest(
     @SerializedName("roles")
     val roles: kotlin.collections.List<kotlin.String>
 )
-

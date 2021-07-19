@@ -1,13 +1,10 @@
 package com.datastax.astra.stargate_rest_v2.apis
 
 import com.datastax.astra.stargate_rest_v2.infrastructure.CollectionFormats.*
-import retrofit2.http.*
-import retrofit2.Response
-import okhttp3.RequestBody
-
 import com.datastax.astra.stargate_rest_v2.models.AuthTokenResponse
 import com.datastax.astra.stargate_rest_v2.models.Credentials
-import com.datastax.astra.stargate_rest_v2.models.Error
+import retrofit2.Response
+import retrofit2.http.*
 
 interface AuthApi {
     /**
@@ -18,11 +15,10 @@ interface AuthApi {
      *  - 400: Bad Request
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param credentials  
+     *
+     * @param credentials
      * @return [AuthTokenResponse]
      */
     @POST("api/rest/v1/auth")
     suspend fun createToken(@Body credentials: Credentials): Response<AuthTokenResponse>
-
 }

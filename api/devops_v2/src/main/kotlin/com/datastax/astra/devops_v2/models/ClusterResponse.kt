@@ -11,21 +11,20 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * ClusterResponse is the response struct for a cluster.
- * @param brokerServiceUrl 
- * @param cloudProvider 
- * @param cloudRegion 
- * @param clusterName 
- * @param clusterType 
- * @param webServiceUrl 
- * @param websocketUrl 
+ * @param brokerServiceUrl
+ * @param cloudProvider
+ * @param cloudRegion
+ * @param clusterName
+ * @param clusterType
+ * @param webServiceUrl
+ * @param websocketUrl
  */
 
-data class ClusterResponse (
+data class ClusterResponse(
     @SerializedName("brokerServiceUrl")
     val brokerServiceUrl: kotlin.String? = null,
     @SerializedName("cloudProvider")
@@ -41,4 +40,3 @@ data class ClusterResponse (
     @SerializedName("websocketUrl")
     val websocketUrl: kotlin.String? = null
 )
-

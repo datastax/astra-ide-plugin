@@ -11,32 +11,28 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.DatabaseInfo
-import com.datastax.astra.devops_v2.models.StatusEnum
-import com.datastax.astra.devops_v2.models.Storage
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * Database contains the key information about a database.
- * @param id 
- * @param orgId 
- * @param ownerId 
- * @param info 
- * @param status 
+ * @param id
+ * @param orgId
+ * @param ownerId
+ * @param info
+ * @param status
  * @param creationTime CreationTime in ISO RFC3339 format
  * @param terminationTime TerminationTime in ISO RFC3339 format
- * @param storage 
- * @param availableActions 
+ * @param storage
+ * @param availableActions
  * @param message Message to the customer about the cluster.
- * @param studioUrl 
- * @param grafanaUrl 
- * @param cqlshUrl 
- * @param graphqlUrl 
- * @param dataEndpointUrl 
+ * @param studioUrl
+ * @param grafanaUrl
+ * @param cqlshUrl
+ * @param graphqlUrl
+ * @param dataEndpointUrl
  */
 
-data class Database (
+data class Database(
     @SerializedName("id")
     val id: kotlin.String,
     @SerializedName("orgId")
@@ -73,23 +69,47 @@ data class Database (
 ) {
 
     /**
-     * 
+     *
      * Values: PARK,UNPARK,RESIZE,RESET_PASSWORD,ADD_KEYSPACE,ADD_DATACENTERS,TERMINATE_DATACENTER,GET_CREDS,TERMINATE,REMOVE_KEYSPACE,ADD_TABLE,REMOVE_MIGRATION_PROXY,LAUNCH_MIGRATION_PROXY
      */
     enum class AvailableActions(val value: kotlin.String) {
-        @SerializedName(value = "park") PARK("park"),
-        @SerializedName(value = "unpark") UNPARK("unpark"),
-        @SerializedName(value = "resize") RESIZE("resize"),
-        @SerializedName(value = "resetPassword") RESET_PASSWORD("resetPassword"),
-        @SerializedName(value = "addKeyspace") ADD_KEYSPACE("addKeyspace"),
-        @SerializedName(value = "addDatacenters") ADD_DATACENTERS("addDatacenters"),
-        @SerializedName(value = "terminateDatacenter") TERMINATE_DATACENTER("terminateDatacenter"),
-        @SerializedName(value = "getCreds") GET_CREDS("getCreds"),
-        @SerializedName(value = "terminate") TERMINATE("terminate"),
-        @SerializedName(value = "removeKeyspace") REMOVE_KEYSPACE("removeKeyspace"),
-        @SerializedName(value = "addTable") ADD_TABLE("addTable"),
-        @SerializedName(value = "removeMigrationProxy") REMOVE_MIGRATION_PROXY("removeMigrationProxy"),
-        @SerializedName(value = "launchMigrationProxy") LAUNCH_MIGRATION_PROXY("launchMigrationProxy");
+        @SerializedName(value = "park")
+        PARK("park"),
+
+        @SerializedName(value = "unpark")
+        UNPARK("unpark"),
+
+        @SerializedName(value = "resize")
+        RESIZE("resize"),
+
+        @SerializedName(value = "resetPassword")
+        RESET_PASSWORD("resetPassword"),
+
+        @SerializedName(value = "addKeyspace")
+        ADD_KEYSPACE("addKeyspace"),
+
+        @SerializedName(value = "addDatacenters")
+        ADD_DATACENTERS("addDatacenters"),
+
+        @SerializedName(value = "terminateDatacenter")
+        TERMINATE_DATACENTER("terminateDatacenter"),
+
+        @SerializedName(value = "getCreds")
+        GET_CREDS("getCreds"),
+
+        @SerializedName(value = "terminate")
+        TERMINATE("terminate"),
+
+        @SerializedName(value = "removeKeyspace")
+        REMOVE_KEYSPACE("removeKeyspace"),
+
+        @SerializedName(value = "addTable")
+        ADD_TABLE("addTable"),
+
+        @SerializedName(value = "removeMigrationProxy")
+        REMOVE_MIGRATION_PROXY("removeMigrationProxy"),
+
+        @SerializedName(value = "launchMigrationProxy")
+        LAUNCH_MIGRATION_PROXY("launchMigrationProxy");
     }
 }
-

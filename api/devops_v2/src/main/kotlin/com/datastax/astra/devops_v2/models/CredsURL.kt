@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -22,7 +21,7 @@ import com.google.gson.annotations.SerializedName
  * @param downloadURLMigrationProxyInternal Internal Migration Proxy DownloadURL is only valid for about 5 minutes.
  */
 
-data class CredsURL (
+data class CredsURL(
     /* DownloadURL is only valid for about 5 minutes. */
     @SerializedName("downloadURL")
     val downloadURL: kotlin.String,
@@ -36,4 +35,3 @@ data class CredsURL (
     @SerializedName("downloadURLMigrationProxyInternal")
     val downloadURLMigrationProxyInternal: kotlin.String? = null
 )
-

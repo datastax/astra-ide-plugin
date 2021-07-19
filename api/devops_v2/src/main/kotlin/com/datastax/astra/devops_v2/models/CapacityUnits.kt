@@ -11,7 +11,6 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -19,9 +18,8 @@ import com.google.gson.annotations.SerializedName
  * @param capacityUnits CapacityUnits can be increased by a max of three additional capacity units per operation. Reducing capacity units is not currently supported.
  */
 
-data class CapacityUnits (
+data class CapacityUnits(
     /* CapacityUnits can be increased by a max of three additional capacity units per operation. Reducing capacity units is not currently supported. */
     @SerializedName("capacityUnits")
     val capacityUnits: kotlin.Int? = null
 )
-

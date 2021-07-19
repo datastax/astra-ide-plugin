@@ -7,5 +7,5 @@ import com.intellij.testFramework.LightVirtualFile
 import kotlinx.coroutines.CoroutineScope
 
 class TableVirtualFile(val table: Table, val database: Database) :
-LightVirtualFile(table?.name.orEmpty()),
-CoroutineScope by ApplicationThreadPoolScope("Table")
+    LightVirtualFile(table?.name.orEmpty()),
+    CoroutineScope by ApplicationThreadPoolScope("Table")

@@ -11,18 +11,16 @@
 */
 package com.datastax.astra.devops_v2.models
 
-import com.datastax.astra.devops_v2.models.NamespaceUsage
-
 import com.google.gson.annotations.SerializedName
 
 /**
- * 
- * @param namespaceLimit 
- * @param topicPerNamespaceLimit 
+ *
+ * @param namespaceLimit
+ * @param topicPerNamespaceLimit
  * @param usage A list of namespace and its usage.
  */
 
-data class TenantLimitResponse (
+data class TenantLimitResponse(
     @SerializedName("namespace_limit")
     val namespaceLimit: kotlin.Int? = null,
     @SerializedName("topic_per_namespace_limit")
@@ -31,4 +29,3 @@ data class TenantLimitResponse (
     @SerializedName("usage")
     val usage: kotlin.collections.List<NamespaceUsage>? = null
 )
-

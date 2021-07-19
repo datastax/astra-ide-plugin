@@ -1,4 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -8,11 +9,11 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.5.10"
+    id("org.jetbrains.kotlin.jvm") version "1.5.21"
     // gradle-intellij-plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
-    id("org.jetbrains.intellij") version "1.0"
+    id("org.jetbrains.intellij") version "1.1.3"
     // gradle-changelog-plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
-    id("org.jetbrains.changelog") version "1.1.2"
+    id("org.jetbrains.changelog") version "1.2.0"
     // detekt linter - read more: https://detekt.github.io/detekt/gradle.html
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     // ktlint linter - read more: https://github.com/JLLeitschuh/ktlint-gradle
@@ -41,23 +42,22 @@ val retrofitVersion = "2.7.2"
 dependencies {
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.17.1")
 
-    //BEGIN Dependencies for OpenApi clients
-    //Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
-    //or have issues with Linkage errors etc since IntelliJ ships with older kotlin libs
+    // BEGIN Dependencies for OpenApi clients
+    // Must use the older versions that have a runtime dependency on the kotlin-stdlib:1.3.70
+    // or have issues with Linkage errors etc since IntelliJ ships with older kotlin libs
     implementation("com.squareup.okhttp3:logging-interceptor:4.8.1")
     implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
-    //Retrofit Gson Conversion
+    // Retrofit Gson Conversion
     implementation("com.google.code.gson:gson:2.8.6")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 
-    //Retrofit Moshi Conversion
-    //implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
-    //implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
+    // Retrofit Moshi Conversion
+    // implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
+    // implementation("com.squareup.moshi:moshi-kotlin:1.9.3")
 
-    //END Dependencies for OpenApi clients
-
+    // END Dependencies for OpenApi clients
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.0.2")
 
@@ -75,7 +75,7 @@ dependencies {
 configurations {
     runtimeClasspath {
         // Exclude dependencies that ship with iDE
-        //exclude(group = "org.slf4j")
+        // exclude(group = "org.slf4j")
         exclude(group = "org.jetbrains.kotlin")
         exclude(group = "org.jetbrains.kotlinx")
     }
@@ -97,16 +97,23 @@ intellij {
 // Configure gradle-changelog-plugin plugin.
 // Read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
-    version = properties("pluginVersion")
-    groups = emptyList()
+    version.set(properties("pluginVersion"))
+    groups.set(listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"))
 }
+
+/*
+ktlint {
+    enableExperimentalRules.set(true)
+    disabledRules.set(setOf("experimental:package-name", "no-wildcard-imports"))
+}
+*/
 
 // Configure detekt plugin.
 // Read more: https://detekt.github.io/detekt/kotlindsl.html
 detekt {
     config = files("./detekt-config.yml")
     buildUponDefaultConfig = true
-
+    ignoreFailures = true
     reports {
         html.enabled = false
         xml.enabled = false
@@ -114,18 +121,30 @@ detekt {
     }
 }
 
+// Configure UI tests plugin
+// Read more: https://github.com/JetBrains/intellij-ui-test-robot
 tasks {
-    // Set the compatibility versions to 1.8
-    withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+
+    buildSearchableOptions {
+        //Disabled due to failure to run with 2020.3.4
+        enabled = false
     }
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "1.8"
+    // Set the JVM compatibility versions
+    properties("javaVersion").let {
+        withType<JavaCompile> {
+            sourceCompatibility = it
+            targetCompatibility = it
+        }
+        withType<KotlinCompile> {
+            kotlinOptions.jvmTarget = it
+        }
+        withType<Detekt> {
+            jvmTarget = it
+        }
     }
 
-    withType<Detekt> {
-        jvmTarget = "1.8"
+    wrapper {
+        gradleVersion = properties("gradleVersion")
     }
 
     patchPluginXml {
@@ -152,6 +171,13 @@ tasks {
 
     runPluginVerifier {
         ideVersions.set(properties("pluginVerifierIdeVersions").split(',').map(String::trim).filter(String::isNotEmpty))
+    }
+
+    runIdeForUiTests {
+            systemProperty("robot-server.port", "8082")
+            systemProperty("ide.mac.message.dialogs.as.sheets", "false")
+            systemProperty("jb.privacy.policy.text", "<!--999.999-->")
+            systemProperty("jb.consents.confirmation.enabled", "false")
     }
 
     publishPlugin {

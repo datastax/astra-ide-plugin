@@ -19,8 +19,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 
-
-//Not sure why constructor is test only
+// Not sure why constructor is test only
 class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     private val writer: ConfigFileWriter,
     private val configFile: File
@@ -28,7 +27,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     @Suppress("unused")
     constructor() : this(
         DefaultConfigFileWriter,
-        ProfileFileLocation.profileFilePath().toFile()
+        ProfileFileLocation.profileFilePath()
     )
 
     private val localFileSystem = LocalFileSystem.getInstance()
@@ -36,21 +35,20 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.getRequiredData(PlatformDataKeys.PROJECT)
 
-        //TODO: Remove checking for other file
-        // if both config does not exist, (try to)create a new config file
+        // if config does not exist, (try to) create a new config file
         if (!configFile.exists()) {
             if (confirm(project, configFile)) {
+                trackClick(ClickTarget.BUTTON, "create profile file")
                 try {
                     writer.createFile(configFile)
                 } finally {
-                    trackClick(ClickTarget.BUTTON,"create profile file")
                 }
             } else {
                 return
             }
         }
 
-        // open both config file, if it exist
+        // This was a list of two file types changed to one, since we only have one profile file
         val virtualFiles = listOf(configFile).filter { it.exists() }.map {
             localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException(message("credentials.file.could_not_open", it))
         }
@@ -70,7 +68,6 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
                 if (fileEditorManager.openTextEditor(OpenFileDescriptor(project, it), true) == null) {
                     throw RuntimeException(message("credentials.file.could_not_open", it))
-
                 }
             }
         }
@@ -78,13 +75,52 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
 
     private fun confirm(project: Project, file: File): Boolean = Messages.showOkCancelDialog(
         project,
-        message("credentials.file.confirm_create",file),
+        message("credentials.file.confirm_create", file),
         message("credentials.file.confirm_create.title"),
         message("credentials.file.confirm_create.okay"),
         Messages.getCancelButton(),
         AllIcons.General.QuestionDialog,
         null
     ) == Messages.OK
+
+    fun createWithGenToken(project: Project, token: String) {
+        DefaultConfigFileWriter.token = token
+        // if config does not exist, (try to) create a new config file
+        if (!configFile.exists()) {
+            try {
+                writer.createFile(configFile)
+            } finally {
+                trackClick(ClickTarget.BUTTON, "create profile file")
+            }
+        }
+
+        // Reset so token isnt lingering somewhere
+        DefaultConfigFileWriter.token = ""
+
+        // This was a list of two file types changed to one, since we only have one profile file
+        val virtualFiles = listOf(configFile).filter { it.exists() }.map {
+            localFileSystem.refreshAndFindFileByIoFile(it) ?: throw RuntimeException(message("credentials.file.could_not_open", it))
+        }
+
+        val fileEditorManager = FileEditorManager.getInstance(project)
+
+        localFileSystem.refreshFiles(virtualFiles, false, false) {
+            virtualFiles.forEach {
+                if (it.fileType == FileTypes.UNKNOWN) {
+                    ApplicationManager.getApplication().runWriteAction {
+                        FileTypeManagerEx.getInstanceEx().associatePattern(
+                            FileTypes.PLAIN_TEXT,
+                            it.name
+                        )
+                    }
+                }
+
+                if (fileEditorManager.openTextEditor(OpenFileDescriptor(project, it), true) == null) {
+                    throw RuntimeException(message("credentials.file.could_not_open", it))
+                }
+            }
+        }
+    }
 }
 
 interface ConfigFileWriter {
@@ -92,6 +128,7 @@ interface ConfigFileWriter {
 }
 
 object DefaultConfigFileWriter : ConfigFileWriter {
+    internal var token = ""
     val TEMPLATE =
         """
         # Astra Config File used by DataStax Astra tools
@@ -115,6 +152,8 @@ object DefaultConfigFileWriter : ConfigFileWriter {
         # Settings to delete the token, or inform your organization administrator and request a 
         # new token. Then, update this file with the replacement token.
         
+        # NOTE: This file must be saved for modifications to be read! (Ctrl+S)
+        
         [astraProfileFile.profiles]
         # default profile is loaded on plugin startup
         default = "bearertoken"
@@ -132,8 +171,12 @@ object DefaultConfigFileWriter : ConfigFileWriter {
             parent.setExecutable(false, false)
             parent.setExecutable(true)
         }
-
-        file.writeText(TEMPLATE)
+        if (token == "") {
+            file.writeText(TEMPLATE)
+        } else {
+            val modifyTemplate = TEMPLATE.replace("bearertoken", token)
+            file.writeText(modifyTemplate)
+        }
 
         file.setReadable(false, false)
         file.setReadable(true)

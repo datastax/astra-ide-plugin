@@ -1,10 +1,15 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 
-# intellij-plugin-template Changelog
+# astra.toolkit Changelog
 
 ## [Unreleased]
-## [0.5.0-alpha.1]
-## [0.1.0]
+### Added
+- Register a new account without leaving the IDE
+- Automate creation of DataStax authentication token
+- Usage Analytics
+## [0.5.0-alpha.7]
+### Added
+- Initial release to plugin marketplace
 ## [0.0.1]
 ### Added
 - Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)

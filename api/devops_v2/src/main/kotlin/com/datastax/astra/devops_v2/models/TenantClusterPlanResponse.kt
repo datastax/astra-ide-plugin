@@ -11,30 +11,29 @@
 */
 package com.datastax.astra.devops_v2.models
 
-
 import com.google.gson.annotations.SerializedName
 
 /**
  * TenantClusterPlanResponse is the tenant plan on a cluster.
- * @param astraOrgGUID 
- * @param brokerServiceUrl 
- * @param cloudProvider 
- * @param cloudProviderCode 
- * @param cloudRegion 
- * @param clusterName 
- * @param jvmVersion 
- * @param plan 
- * @param planCode 
- * @param pulsarToken 
- * @param pulsarVersion 
- * @param status 
- * @param tenantName 
- * @param webServiceUrl 
- * @param websocketQueryParamUrl 
- * @param websocketUrl 
+ * @param astraOrgGUID
+ * @param brokerServiceUrl
+ * @param cloudProvider
+ * @param cloudProviderCode
+ * @param cloudRegion
+ * @param clusterName
+ * @param jvmVersion
+ * @param plan
+ * @param planCode
+ * @param pulsarToken
+ * @param pulsarVersion
+ * @param status
+ * @param tenantName
+ * @param webServiceUrl
+ * @param websocketQueryParamUrl
+ * @param websocketUrl
  */
 
-data class TenantClusterPlanResponse (
+data class TenantClusterPlanResponse(
     @SerializedName("astraOrgGUID")
     val astraOrgGUID: kotlin.String? = null,
     @SerializedName("brokerServiceUrl")
@@ -68,4 +67,3 @@ data class TenantClusterPlanResponse (
     @SerializedName("websocketUrl")
     val websocketUrl: kotlin.String? = null
 )
-
