@@ -1,10 +1,12 @@
 package com.datastax.astra.stargate_document_v2.infrastructure
 
 
+import okhttp3.Call
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Converter
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -15,7 +17,8 @@ class ApiClient(
     private var baseUrl: String = defaultBasePath,
     private val okHttpClientBuilder: OkHttpClient.Builder? = null,
     private val serializerBuilder: GsonBuilder = Serializer.gsonBuilder,
-    private val okHttpClient : OkHttpClient? = null
+    private val callFactory : Call.Factory? = null,
+    private val converterFactory: Converter.Factory? = null,
 ) {
     private val apiAuthorizations = mutableMapOf<String, Interceptor>()
     var logger: ((String) -> Unit)? = null
@@ -25,6 +28,11 @@ class ApiClient(
             .baseUrl(baseUrl)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(serializerBuilder.create()))
+            .apply {
+                if (converterFactory != null) {
+                    addConverterFactory(converterFactory)
+                }
+            }
     }
 
     private val clientBuilder: OkHttpClient.Builder by lazy {
@@ -68,8 +76,8 @@ class ApiClient(
     }
 
     fun <S> createService(serviceClass: Class<S>): S {
-        val usedClient = this.okHttpClient ?: clientBuilder.build()
-        return retrofitBuilder.client(usedClient).build().create(serviceClass)
+        val usedCallFactory = this.callFactory ?: clientBuilder.build()
+        return retrofitBuilder.callFactory(usedCallFactory).build().create(serviceClass)
     }
 
     private fun normalizeBaseUrl() {
