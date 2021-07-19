@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.credentials
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.telemetry.ClickTarget
@@ -97,27 +98,32 @@ class GetTokenAction :
         }
     }
 
-    // TODO: Handle non 200 server response
     suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
         val response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
             loginResponse.cookie!!,
             message("credentials.get_token.graphql").replace("ORGID", loginResponse.orgId!!)
                 .toRequestBody("text/plain".toMediaTypeOrNull())
         )
-        trackAction(message("telemetry.get_token.success"))
+        if(response.isSuccessful && response.body()?.data != null) {
+            trackAction(message("telemetry.get_token.success"))
 
-        response.body()?.data?.generateToken?.token?.let {
-            CreateOrUpdateProfilesFileAction().createWithGenToken(
-                e.getRequiredData(LangDataKeys.PROJECT),
-                it
-            )
+            response.body()?.data?.generateToken?.token?.let {
+                CreateOrUpdateProfilesFileAction().createWithGenToken(
+                    e.getRequiredData(LangDataKeys.PROJECT),
+                    it
+                )
+            }
+            ExplorerToolWindow.getInstance(e.project!!).showWaitPanel()
+            // TODO: Instead of waiting here use the "still loading resource" animation then reload when reachable
+            runBlocking {
+                // Once a token is made wait for server's to authorize it then refresh list
+                delay(6500)
+                ActionUtil.performActionDumbAware(ReloadProfilesAction(), e)
+            }
         }
-        ExplorerToolWindow.getInstance(e.project!!).showWaitPanel()
-        // TODO: Instead of waiting here use the "still loading resource" animation then reload when reachable
-        runBlocking {
-            // Once a token is made wait for server's to authorize it then refresh list
-            delay(6500)
-            ActionUtil.performActionDumbAware(ReloadProfilesAction(), e)
+        else{
+            generateTokenFailure()
+            trackAction(message("telemetry.get_token.failed"),mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
         }
     }
 
