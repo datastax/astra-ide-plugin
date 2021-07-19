@@ -5,6 +5,8 @@ import retrofit2.http.*
 import retrofit2.Response
 import okhttp3.RequestBody
 
+import com.datastax.astra.stargate_document_v2.models.InlineResponse2001
+import com.datastax.astra.stargate_document_v2.models.Keyspace
 
 interface SchemasApi {
     /**
@@ -19,10 +21,10 @@ interface SchemasApi {
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
      * @param pretty format results (optional)
      * @param raw unwrap results (optional)
-     * @return [Unit]
+     * @return [InlineResponse2001]
      */
     @GET("api/rest/v2/schemas/namespaces")
-    suspend fun getAllNamespaces(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<Unit>
+    suspend fun getAllNamespaces(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<InlineResponse2001>
 
     /**
      * Get a namespace
@@ -39,9 +41,9 @@ interface SchemasApi {
      * @param namespaceId namespace name 
      * @param pretty format results (optional)
      * @param raw unwrap results (optional)
-     * @return [Unit]
+     * @return [Keyspace]
      */
     @GET("api/rest/v2/schemas/namespaces/{namespace-id}")
-    suspend fun getNamespace(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<Unit>
+    suspend fun getNamespace(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<Keyspace>
 
 }

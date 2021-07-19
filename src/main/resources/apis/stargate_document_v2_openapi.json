@@ -65,21 +65,14 @@
             "description": "",
             "content": {
               "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": [
-                        {
-                          "name": "users",
-                          "fields": {
-                            "name": {
-                              "type": "String",
-                              "index": true
-                            }
-                          },
-                          "validationAction": "warn"
-                        }
-                      ]
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DocCollection"
+                      }
                     }
                   }
                 }
@@ -127,23 +120,8 @@
             "description": "",
             "content": {
               "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": [
-                        {
-                          "name": "users",
-                          "fields": {
-                            "name": {
-                              "type": "String",
-                              "index": true
-                            }
-                          },
-                          "validationAction": "warn"
-                        }
-                      ]
-                    }
-                  }
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponseWrapper"
                 }
               }
             }
@@ -248,22 +226,8 @@
             "description": "",
             "content": {
               "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "count": 1,
-                      "pageState": "2f4acd34",
-                      "data": [
-                        {
-                          "documentId": "my-first-post-a6h54",
-                          "title": "Hello World",
-                          "author": {
-                            "name": "Cliff Wicklow"
-                          }
-                        }
-                      ]
-                    }
-                  }
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponseWrapper"
                 }
               }
             }
@@ -397,18 +361,8 @@
             "description": "",
             "content": {
               "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "documentId": "my-first-post-a6h54",
-                        "title": "Hello World",
-                        "author": {
-                          "name": "Cliff Wicklow"
-                        }
-                      }
-                    }
-                  }
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponseWrapper"
                 }
               }
             }
@@ -919,24 +873,14 @@
             "description": "",
             "content": {
               "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": [
-                        {
-                          "name": "killrvideo",
-                          "datacenters": [
-                            {
-                              "name": "dc1",
-                              "replicas": 3
-                            },
-                            {
-                              "name": "dc2",
-                              "replicas": 3
-                            }
-                          ]
-                        }
-                      ]
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Keyspace"
+                      }
                     }
                   }
                 }
@@ -981,24 +925,8 @@
             "description": "",
             "content": {
               "application/json": {
-                "examples": {
-                  "default": {
-                    "value": {
-                      "data": {
-                        "name": "killrvideo",
-                        "datacenters": [
-                          {
-                            "name": "dc1",
-                            "replicas": 3
-                          },
-                          {
-                            "name": "dc2",
-                            "replicas": 3
-                          }
-                        ]
-                      }
-                    }
-                  }
+                "schema": {
+                  "$ref": "#/components/schemas/Keyspace"
                 }
               }
             }
@@ -1269,6 +1197,139 @@
           "password": {
             "type": "string",
             "description": "Password, must be ASTRA_DB_PASSWORD"
+          }
+        }
+      },
+      "DocCollection": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the collection.",
+            "readOnly": true
+          },
+          "upgradeAvailable": {
+            "type": "boolean",
+            "description": "Whether an upgrade is available. Use the 'upgrade a collection' endpoint with the upgrade type to perform upgrade.",
+            "readOnly": true
+          },
+          "upgradeType": {
+            "type": "string",
+            "description": "The upgrade type, if an upgrade is available.",
+            "readOnly": true,
+            "enum": [
+              "SAI_INDEX_UPGRADE"
+            ]
+          }
+        }
+      },
+      "DocumentResponseWrapper": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "description": "The id of the document"
+          },
+          "pageState": {
+            "type": "string",
+            "description": "A string representing the paging state to be used on future paging requests."
+          },
+          "data": {
+            "type": "object",
+            "description": "The data returned by the request"
+          },
+          "profile": {
+            "description": "Profiling information related to the execution of the request (optional)",
+            "readOnly": true,
+            "$ref": "#/components/schemas/ExecutionProfile"
+          }
+        }
+      },
+      "ExecutionProfile": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Brief information about this execution step",
+            "readOnly": true
+          },
+          "queries": {
+            "type": "array",
+            "description": "A set of CQL queries performed under this execution step",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/QueryInfo"
+            }
+          },
+          "nested": {
+            "type": "array",
+            "description": "Nested execution steps",
+            "readOnly": true,
+            "items": {
+              "$ref": "#/components/schemas/ExecutionProfile"
+            }
+          }
+        }
+      },
+      "Datacenter": {
+        "type": "object",
+        "required": [
+          "name",
+          "replicas"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the datacenter."
+          },
+          "replicas": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The number of replicas in the datacenter. In other words, the number of copies of each row in the datacenter."
+          }
+        }
+      },
+      "Keyspace": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the keyspace."
+              },
+              "datacenters": {
+                "type": "array",
+                "description": "The datacenters within a keyspace. Only applies for those keyspaces created with NetworkTopologyStrategy.",
+                "items": {
+                  "$ref": "#/components/schemas/Datacenter"
+                }
+              }
+            }
+          },
+      "QueryInfo": {
+        "type": "object",
+        "properties": {
+          "cql": {
+            "type": "string",
+            "description": "CQL query text",
+            "readOnly": true
+          },
+          "executionCount": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The number of times this query was executed",
+            "readOnly": true
+          },
+          "rowCount": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The total number of rows fetched by this query",
+            "readOnly": true
           }
         }
       }
