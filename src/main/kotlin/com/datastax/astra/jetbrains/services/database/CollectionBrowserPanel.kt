@@ -23,7 +23,7 @@ class CollectionBrowserPanel(
 ) : CoroutineScope by ApplicationThreadPoolScope("Table"), Disposable {
 
     protected val edtContext = getCoroutineUiContext(disposable = this)
-    val gson = Serializer.gsonBuilder.setPrettyPrinting().create()
+    val gson = Serializer.gsonBuilder.setPrettyPrinting().disableHtmlEscaping().create()
 
     init {
         launch {
@@ -37,6 +37,9 @@ class CollectionBrowserPanel(
             AstraClient.accessToken,
             keyspace.name,
             collection.name.orEmpty(),
+            null,
+            null,
+            "20"
         )
         if (response.isSuccessful && response.body()?.data != null) {
             TelemetryManager.trackStargateCrud("Collection", collection.name.orEmpty(), CrudEnum.READ, true)
