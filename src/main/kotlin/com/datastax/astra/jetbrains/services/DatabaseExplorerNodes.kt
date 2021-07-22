@@ -4,8 +4,8 @@ import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
+import com.datastax.astra.jetbrains.services.database.CollectionBrowserPanel
 import com.datastax.astra.jetbrains.services.database.openEditor
-import com.datastax.astra.jetbrains.services.database.showCollection
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
@@ -19,9 +19,6 @@ import com.intellij.ui.SimpleTextAttributes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import retrofit2.HttpException
@@ -244,8 +241,9 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
         ExplorerEmptyNode(nodeProject, message("astra.no_collections_in_keyspace"))
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
+    //If upgrade is available then it's not really a document.
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database, keyspace), loader = fetchCollections)?.map {
+        cached(Pair(database, keyspace), loader = fetchCollections)?.filter{it.upgradeAvailable == false}?.map {
             CollectionNode(nodeProject, it, keyspace, database)
         } ?: emptyList()
     }
@@ -259,7 +257,7 @@ class CollectionNode(project: Project, val collection: DocCollection,val keyspac
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick(): Unit = runBlocking {
-        showCollection(nodeProject,collection,keyspace,database)
+        CollectionBrowserPanel(nodeProject, collection, keyspace, database)
     }
 }
 
