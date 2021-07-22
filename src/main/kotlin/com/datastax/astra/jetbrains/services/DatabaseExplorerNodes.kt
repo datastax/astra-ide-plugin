@@ -5,7 +5,9 @@ import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.services.database.openEditor
+import com.datastax.astra.jetbrains.services.database.showCollection
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
 import com.datastax.astra.stargate_rest_v2.models.Table
 import com.github.benmanes.caffeine.cache.AsyncLoadingCache
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import retrofit2.HttpException
+import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
@@ -36,8 +39,14 @@ val fetchKeyspaces: (suspend (database: Database) -> List<Keyspace>?) = {
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
-val fetchTables: (suspend (database: Database, keyspace: Keyspace) -> List<Table>?) = { database: Database, keyspace: Keyspace ->
-    val response = AstraClient.schemasApiForDatabase(database).getTables(AstraClient.accessToken, keyspace.name, null)
+val fetchTables: (suspend (dataBKeySPair: Pair<Database,Keyspace>) -> List<Table>?) = {
+    val response = AstraClient.schemasApiForDatabase(it.first).getTables(AstraClient.accessToken, it.second.name, null)
+    if (response.isSuccessful) response.body()?.data else throw HttpException(response)
+}
+
+//TODO: Determine what UUID should be used (random is probably not a good choice)
+val fetchCollections: (suspend (dataBKeySPair: Pair<Database,Keyspace>) -> List<DocCollection>?) = {
+    val response = AstraClient.documentApiForDatabase(it.first).listCollections(randomUUID(),AstraClient.accessToken, it.second.name, null)
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
@@ -176,14 +185,40 @@ class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Datab
 
     override fun actionGroupName(): String = "astra.explorer.databases.keyspace"
     override fun emptyChildrenNode(): ExplorerEmptyNode =
+        ExplorerEmptyNode(nodeProject, message("astra.no_tables_or_collections_in_keyspace"))
+
+    override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
+    override fun getChildrenInternal(): List<ExplorerNode<*>> {
+        var tNode: ExplorerNode<*> = TableParentNode(nodeProject,keyspace,database)
+        var cNode: ExplorerNode<*> = CollectionParentNode(nodeProject,keyspace,database)
+
+        //If both empty return empty so double empty drop down doesn't occur
+        if(tNode.children.first().javaClass.name == cNode.children.first().javaClass.name){
+            return emptyList()
+        }
+
+        return listOf(tNode,cNode)
+    }
+
+}
+
+class TableParentNode(project: Project, val keyspace: Keyspace, val database: Database) :
+    ExplorerNode<String>(project, "Tables", null),
+    ResourceActionNode,
+    ResourceParentNode {
+    //private var children = mutableMapOf<String, TableNode>()
+
+    override fun actionGroupName(): String = "astra.explorer.tables"
+    override fun emptyChildrenNode(): ExplorerEmptyNode =
         ExplorerEmptyNode(nodeProject, message("astra.no_tables_in_keyspace"))
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        fetchTables(database, keyspace)?.map {
+        cached(Pair(database,keyspace), loader = fetchTables)?.map {
             TableNode(nodeProject, it, database)
         } ?: emptyList()
     }
+
 }
 
 class TableNode(project: Project, val table: Table, val database: Database) :
@@ -197,6 +232,37 @@ class TableNode(project: Project, val table: Table, val database: Database) :
         openEditor(nodeProject, table, database)
     }
 }
+
+class CollectionParentNode(project: Project, val keyspace: Keyspace, val database: Database) :
+    ExplorerNode<String>(project, "Collections", null),
+    ResourceActionNode,
+    ResourceParentNode {
+    private var children = mutableMapOf<String, TableNode>()
+
+    override fun actionGroupName(): String = "astra.explorer.collections"
+    override fun emptyChildrenNode(): ExplorerEmptyNode =
+        ExplorerEmptyNode(nodeProject, message("astra.no_collections_in_keyspace"))
+
+    override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
+    override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
+        cached(Pair(database, keyspace), loader = fetchCollections)?.map {
+            CollectionNode(nodeProject, it, keyspace, database)
+        } ?: emptyList()
+    }
+}
+
+class CollectionNode(project: Project, val collection: DocCollection,val keyspace: Keyspace, val database: Database) :
+    ExplorerNode<String>(project, collection.name.orEmpty(), null),
+    ResourceActionNode {
+
+    override fun actionGroupName(): String = "astra.explorer.databases.collection"
+    override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
+
+    override fun onDoubleClick(): Unit = runBlocking {
+        showCollection(nodeProject,collection,keyspace,database)
+    }
+}
+
 
 private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
 private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()

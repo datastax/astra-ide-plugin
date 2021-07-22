@@ -39,11 +39,23 @@
             <action id="keyspace.delete"
                     class="com.datastax.astra.jetbrains.services.database.DeleteKeyspaceAction"/>
         </group>
+        <group id="astra.explorer.databases.tables" popup="false" compact="false">
 
+        </group>
         <group id="astra.explorer.databases.table" popup="true" compact="false">
             <action id="table.open"
                     class="com.datastax.astra.jetbrains.services.database.OpenTableAction"/>
         </group>
+        <group id="astra.explorer.databases.collections" popup="false" compact="false">
+
+        </group>
+        <group id="astra.explorer.databases.collection" popup="true" compact="false">
+            <action id="collection.open"
+                    class="com.datastax.astra.jetbrains.services.database.BrowseCollectionAction"/>
+        </group>
+
+
+
 
         <action class="com.datastax.astra.jetbrains.credentials.CreateOrUpdateProfilesFileAction" id="credentials.upsert"/>
 
