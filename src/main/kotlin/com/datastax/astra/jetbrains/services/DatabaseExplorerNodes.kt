@@ -19,6 +19,9 @@ import com.intellij.ui.SimpleTextAttributes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.future.future
 import retrofit2.HttpException
@@ -186,24 +189,25 @@ class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Datab
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> {
-        var tNode: ExplorerNode<*> = TableParentNode(nodeProject,keyspace,database)
-        var cNode: ExplorerNode<*> = CollectionParentNode(nodeProject,keyspace,database)
+        var cNode = CollectionParentNode(nodeProject, keyspace, database)
+        cNode.getChildrenInternal()
+        //Force getting children so that the elimination list can be built and used to filter tables
+        var tNode = TableParentNode(nodeProject,keyspace,database,cNode.collectionList)
 
         //If both empty return empty so double empty drop down doesn't occur
         if(tNode.children.first().javaClass.name == cNode.children.first().javaClass.name){
             return emptyList()
         }
 
-        return listOf(tNode,cNode)
+        return listOf(tNode,cNode).reversed()
     }
 
 }
 
-class TableParentNode(project: Project, val keyspace: Keyspace, val database: Database) :
+class TableParentNode(project: Project, val keyspace: Keyspace, val database: Database, val collectionList: List<String>) :
     ExplorerNode<String>(project, "Tables", null),
     ResourceActionNode,
     ResourceParentNode {
-    //private var children = mutableMapOf<String, TableNode>()
 
     override fun actionGroupName(): String = "astra.explorer.tables"
     override fun emptyChildrenNode(): ExplorerEmptyNode =
@@ -211,7 +215,7 @@ class TableParentNode(project: Project, val keyspace: Keyspace, val database: Da
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database,keyspace), loader = fetchTables)?.map {
+        cached(Pair(database,keyspace), loader = fetchTables)?.filter{ !collectionList.contains(it.name) }?.map {
             TableNode(nodeProject, it, database)
         } ?: emptyList()
     }
@@ -234,7 +238,7 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
     ExplorerNode<String>(project, "Collections", null),
     ResourceActionNode,
     ResourceParentNode {
-    private var children = mutableMapOf<String, TableNode>()
+    var collectionList = emptyList<String>()
 
     override fun actionGroupName(): String = "astra.explorer.collections"
     override fun emptyChildrenNode(): ExplorerEmptyNode =
@@ -244,6 +248,7 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
     //If upgrade is available then it's not really a document.
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
         cached(Pair(database, keyspace), loader = fetchCollections)?.filter{it.upgradeAvailable == false}?.map {
+            collectionList += it.name
             CollectionNode(nodeProject, it, keyspace, database)
         } ?: emptyList()
     }
