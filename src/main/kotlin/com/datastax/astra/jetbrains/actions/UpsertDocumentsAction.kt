@@ -12,8 +12,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import kotlinx.coroutines.CoroutineScope
 
-class UpdateCollectionAction(text: String = message("database.collection.update.action")):
-    AnAction(text, null, AllIcons.Actions.AddFile),
+class UpsertDocumentsAction(text: String = message("collection.editor.upsert.title")):
+    AnAction(text, null, AllIcons.Actions.StepOutCodeBlock),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
     override fun update(e: AnActionEvent) {

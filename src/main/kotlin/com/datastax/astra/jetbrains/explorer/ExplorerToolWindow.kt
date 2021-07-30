@@ -2,7 +2,6 @@ package com.datastax.astra.jetbrains.explorer
 
 import com.datastax.astra.jetbrains.credentials.*
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
-import com.datastax.astra.jetbrains.utils.AstraFileEditorUIService
 import com.datastax.astra.jetbrains.utils.buildTextPanel
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.TreeState
@@ -55,9 +54,6 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
         project.messageBus.connect(this).subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
         profileStateChanged(profileManager.profileState)
-
-        // startup the UI service
-        AstraFileEditorUIService.getService(project)
     }
 
     companion object {
@@ -101,6 +97,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
                 structureTreeModel.invalidate()
             }
         }
+        // TODO: Trigger reset and watching of databaseMap
     }
 
     private fun withSavedState(tree: Tree, block: () -> Unit) {

@@ -48,6 +48,8 @@ class CollectionBrowserPanel(
                     OpenFileDescriptor(
                         project,
                         CollectionVirtualFile(
+                            database,
+                            keyspace.name,
                             collection.name.orEmpty(),
                             gson.toJson(response.body()?.data)
                         )
