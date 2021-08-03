@@ -2,7 +2,7 @@ package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.devops_v2.apis.DBOperationsApi
 import com.datastax.astra.jetbrains.MessagesBundle.message
-import com.datastax.astra.jetbrains.utils.internal_devops.InternalDevOpsApi
+import com.datastax.astra.jetbrains.utils.internal_apis.InternalDevOpsApi
 
 /*
 Client that uses the operationsApi client for verifying tokens

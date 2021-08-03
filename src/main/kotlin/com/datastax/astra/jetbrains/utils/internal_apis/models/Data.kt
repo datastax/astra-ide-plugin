@@ -1,4 +1,4 @@
-package com.datastax.astra.jetbrains.utils.internal_devops.models
+package com.datastax.astra.jetbrains.utils.internal_apis.models
 
 import com.google.gson.annotations.SerializedName
 

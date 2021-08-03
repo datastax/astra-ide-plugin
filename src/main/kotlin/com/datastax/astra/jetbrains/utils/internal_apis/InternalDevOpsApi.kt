@@ -1,6 +1,6 @@
-package com.datastax.astra.jetbrains.utils.internal_devops
+package com.datastax.astra.jetbrains.utils.internal_apis
 
-import com.datastax.astra.jetbrains.utils.internal_devops.models.GenerateTokenResponse
+import com.datastax.astra.jetbrains.utils.internal_apis.models.GenerateTokenResponse
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body

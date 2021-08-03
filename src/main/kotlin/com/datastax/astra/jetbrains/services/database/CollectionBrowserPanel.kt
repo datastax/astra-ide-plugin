@@ -23,7 +23,11 @@ class CollectionBrowserPanel(
 ) : CoroutineScope by ApplicationThreadPoolScope("Table"), Disposable {
 
     protected val edtContext = getCoroutineUiContext(disposable = this)
-    val gson = Serializer.gsonBuilder.setPrettyPrinting().disableHtmlEscaping().create()
+    val gson = Serializer.gsonBuilder
+        .setPrettyPrinting()
+        .disableHtmlEscaping()
+        //.enableComplexMapKeySerialization()
+        .create()
 
     init {
         launch {
@@ -65,7 +69,6 @@ class CollectionBrowserPanel(
 
     override fun dispose() {}
 }
-
 
 
 

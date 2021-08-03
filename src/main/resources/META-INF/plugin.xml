@@ -19,8 +19,8 @@
         <fileEditorProvider implementation="com.datastax.astra.jetbrains.services.database.TableViewerEditorProvider"/>
         <jcef.appRequiredArgumentsProvider implementation="com.datastax.astra.jetbrains.utils.JcefProvider"/>
 
-        <projectService serviceImplementation="com.datastax.astra.jetbrains.utils.editor.AstraFileEditorUIService"/>
-        <postStartupActivity implementation="com.datastax.astra.jetbrains.utils.editor.FileEditorUIServiceStartupActivity"/>
+        <projectService serviceImplementation="com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService"/>
+        <postStartupActivity implementation="com.datastax.astra.jetbrains.utils.editor.ui.FileEditorUIServiceStartupActivity"/>
     </extensions>
 
     <extensionPoints >

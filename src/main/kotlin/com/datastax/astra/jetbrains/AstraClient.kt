@@ -4,6 +4,7 @@ import com.datastax.astra.devops_v2.apis.DBOperationsApi
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.stargate_document_v2.apis.DocumentsApi
+import com.datastax.astra.stargate_document_v2.apis.SchemasApi as SchemasApiDoc
 import com.datastax.astra.stargate_rest_v2.apis.DataApi
 import com.datastax.astra.stargate_rest_v2.apis.SchemasApi
 import com.intellij.openapi.project.Project
@@ -35,5 +36,12 @@ object AstraClient {
         return com.datastax.astra.stargate_document_v2.infrastructure.ApiClient(
             baseUrl = basePath
         ).createService(DocumentsApi::class.java)
+    }
+
+    fun schemasApiForCollection(database: Database): SchemasApiDoc {
+        val basePath = database.dataEndpointUrl.orEmpty().removeSuffix(URI(database.dataEndpointUrl).rawPath)
+        return com.datastax.astra.stargate_document_v2.infrastructure.ApiClient(
+            baseUrl = basePath
+        ).createService(SchemasApiDoc::class.java)
     }
 }
