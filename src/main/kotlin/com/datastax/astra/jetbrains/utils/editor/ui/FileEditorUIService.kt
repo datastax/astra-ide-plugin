@@ -81,7 +81,7 @@ class AstraFileEditorUIService(private val myProject: Project) :
             ToolbarComboBoxes(databaseMap)
         }
         val collectionActions = DefaultActionGroup()
-        collectionActions.add(UpsertDocumentsAction(editor,jsonEditorComboBoxes))
+        collectionActions.add(InsertDocumentsAction(editor,jsonEditorComboBoxes))
 
         // Add upsert documents button
 

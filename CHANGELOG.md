@@ -16,6 +16,18 @@
 ### Security
 ## [0.6.0]
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+## [0.6.0]
+### Added
 - Register a new account without leaving the IDE
 - Automate creation of DataStax authentication token
 - Usage Analytics

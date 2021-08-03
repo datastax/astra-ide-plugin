@@ -29,7 +29,8 @@ interface DocumentsApi {
      * @return [Unit]
      */
     @POST("api/rest/v2/namespaces/{namespace-id}/collections/{collection-id}")
-    suspend fun addDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Body body: kotlin.Any, @Query("pretty") pretty: kotlin.Boolean? = null): Response<Unit>
+    @Headers("Accept: application/json", "Content-Type: application/json")
+    suspend fun addDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Body body: RequestBody, @Query("pretty") pretty: kotlin.Boolean? = null): Response<Unit>
 
     /**
      * Delete a collection
