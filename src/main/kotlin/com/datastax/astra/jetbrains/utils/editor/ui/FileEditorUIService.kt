@@ -2,6 +2,9 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.credentials.ProfileManager
+import com.datastax.astra.jetbrains.credentials.ProfileState
+import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
 import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
@@ -20,7 +23,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.*
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.GridLayout
 import java.util.UUID.randomUUID
 import javax.swing.*
@@ -28,8 +30,8 @@ import javax.swing.*
 /**
  * Provides the editor header for JSON files
  */
-class AstraFileEditorUIService(private val myProject: Project) :
-    Disposable, FileEditorManagerListener, CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+class AstraFileEditorUIService(private val project: Project) :
+    Disposable, FileEditorManagerListener, ProfileStateChangeNotifier, CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
     private var databaseMap = mutableMapOf<String, SimpleDatabase>()
     private val myLock = Any()
     private var fileEditor: FileEditor? = null
@@ -46,7 +48,7 @@ class AstraFileEditorUIService(private val myProject: Project) :
     // -- editor header component --
     private fun insertEditorHeaderComponentIfApplicable(source: FileEditorManager, file: VirtualFile) {
         //use extension and file type to include scratch files and simply identifying relevant files
-        if ((file.extension?.contains("json",true) == true || file.javaClass == CollectionVirtualFile::class.java) && !databaseMap.isEmpty()) {
+        if ((file.extension?.contains("json",true) == true || file.javaClass == CollectionVirtualFile::class.java)) {
             UIUtil.invokeLaterIfNeeded {
                 // ensure components are created on the swing thread
                 val fileEditor = source.getSelectedEditor(file)
@@ -73,12 +75,13 @@ class AstraFileEditorUIService(private val myProject: Project) :
         val jsonEditorComboBoxes = if(file.javaClass == CollectionVirtualFile::class.java){
             val collectionFile = file as CollectionVirtualFile
             ToolbarComboBoxes(
-                databaseMap,
+                project,
                 collectionFile.database.id,
                 collectionFile.keyspaceName,
-                collectionFile.collectionName,)
+                collectionFile.collectionName,
+            )
         } else{
-            ToolbarComboBoxes(databaseMap)
+            ToolbarComboBoxes(project)
         }
         val collectionActions = DefaultActionGroup()
         collectionActions.add(InsertDocumentsAction(editor,jsonEditorComboBoxes))
@@ -127,7 +130,7 @@ class AstraFileEditorUIService(private val myProject: Project) :
                             keyspaceResponse.body()?.data?.forEach { keyspace ->
                                 launch {
                                     val collectionResponse = AstraClient.documentApiForDatabase(database)
-                                        .listCollections(randomUUID(), AstraClient.accessToken, keyspace.name,)
+                                        .listCollections(randomUUID(), AstraClient.accessToken, keyspace.name)
                                     if (collectionResponse.isSuccessful && !collectionResponse.body()?.data.isNullOrEmpty()) {
                                         indexCollections(collectionResponse.body()?.data, keyspace, database)
                                     }
@@ -153,17 +156,17 @@ class AstraFileEditorUIService(private val myProject: Project) :
     init {
         //escape this of CoroutineScope
         val disposer = this
-        launch {
-            //Build this in the background
-            val defer = async { buildDatabaseMap()}
-            defer.await()
-            //Get the message bus service
-            val messageBusConnection = myProject.messageBus.connect(disposer)
 
+
+            //Get the message bus service
+
+            val messageBusConnection = project.messageBus.connect(disposer)
+            // Subscribe to profile change notifications
+            messageBusConnection.subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, disposer)
             // listen for editor file tab changes to update the list of current errors
             messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, disposer)
             // add editor headers to already open files since we've only just added the listener for fileOpened()
-            val fileEditorManager = FileEditorManager.getInstance(myProject)
+            val fileEditorManager = FileEditorManager.getInstance(project)
             for (virtualFile in fileEditorManager.openFiles) {
                 UIUtil.invokeLaterIfNeeded {
                     insertEditorHeaderComponentIfApplicable(
@@ -174,8 +177,33 @@ class AstraFileEditorUIService(private val myProject: Project) :
             }
 
             // and notify to configure the schema
-            EditorNotifications.getInstance(myProject).updateAllNotifications()
+            EditorNotifications.getInstance(project).updateAllNotifications()
+
+            //Build this in the background
+        launch {
+            val defer = async { buildDatabaseMap() }
+            defer.await()
+            project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC).reloadFileEditorUIResources(databaseMap)
         }
+    }
+
+    override fun profileStateChanged(newState: ProfileState) {
+        println("I know what happened: ${newState.displayMessage}, ${newState.shortMessage}, ${newState.actions}, ${newState.isTerminal}")
+        if(newState.isTerminal == false){
+            project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC).clearFileEditorUIResources()
+        }
+        else {
+            //TODO: On terminal change get all the resources
+            launch {
+                val defer = async { buildDatabaseMap() }
+                defer.await()
+                project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC)
+                    .reloadFileEditorUIResources(databaseMap)
+            }
+        }
+
+
+
     }
 }
 
@@ -198,4 +226,3 @@ class SimpleKeyspace(
         return "${keyspace.name}"
     }
 }
-

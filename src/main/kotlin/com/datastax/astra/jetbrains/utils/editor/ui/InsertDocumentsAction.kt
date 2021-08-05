@@ -6,7 +6,6 @@ import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.AstraIcons
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.json.psi.JsonArray
-import com.intellij.json.psi.JsonValue
 import com.intellij.json.psi.impl.JsonFileImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -16,13 +15,9 @@ import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
 import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.util.*
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.LinkedBlockingQueue
 
 class InsertDocumentsAction(
     var editor: Editor,

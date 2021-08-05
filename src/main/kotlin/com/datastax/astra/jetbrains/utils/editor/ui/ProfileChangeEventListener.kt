@@ -6,15 +6,17 @@ import java.util.*
 /**
  * Events relating to accessible astra resources changing
  */
-interface ToolbarEventListener : EventListener {
+interface ProfileChangeEventListener : EventListener {
     companion object {
-        var TOPIC = Topic<ToolbarEventListener>(
+        var TOPIC = Topic<ProfileChangeEventListener>(
             "Accesible Resources Change Events",
-            ToolbarEventListener::class.java,
+            ProfileChangeEventListener::class.java,
             Topic.BroadcastDirection.TO_PARENT
         )
     }
 
     // TODO: Subscribe all JsonEditorComboBoxes objects to this event topic. Rebuild the databaseMap then pass it to listeners if tree invalidated
     fun reloadFileEditorUIResources(databaseMap: Map<String, SimpleDatabase>)
+
+    fun clearFileEditorUIResources()
 }
