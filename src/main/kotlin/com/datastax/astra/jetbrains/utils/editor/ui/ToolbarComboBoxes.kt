@@ -182,18 +182,33 @@ class KeyspaceComboBox(
             selectedItem = data[0]
         }
         else {
-            data.addAll(keyspaces)
+            data.addAll(sort(keyspaces))
             val selIndex = data.indexOfFirst{ it.keyspace.name == activeKeyspace }
             selectedItem =  if(selIndex >= 0){
                 data[selIndex]
             } else {
                 data[0]
+                //Set the active keyspace to one with a collection
+                //data.filter { it.collections.isNotEmpty() }.first()
             }
         }
 
         // we have to let components that bind to the model know that the model has been changed
         fireContentsChanged(this, -1, -1)
     }
+    //Put the default keyspaces at the bottom so users don't have to look so far for them
+    fun sort(keyspaces: MutableList<SimpleKeyspace>):MutableList<SimpleKeyspace> =
+        (keyspaces.filter{!isAstraDefault(it.keyspace.name)} + (keyspaces.filter{isAstraDefault(it.keyspace.name)})).toMutableList()
+
+    fun isAstraDefault(keyspaceName: String): Boolean=
+        when(keyspaceName) {
+            "data_endpoint_auth" -> true
+            "datastax_sla" -> true
+            "system_traces" -> true
+            "system_auth" -> true
+            "system_schema" -> true
+            else -> false
+        }
 }
 
 class CollectionComboBox(var list: MutableList<String>, val activeCollection: String) :
