@@ -25,7 +25,7 @@ class InsertDocumentsAction(
     var state: Long = 0L,
     text: String = message("collection.editor.upsert.title")
 ) :
-    AnAction(text, null, AstraIcons.UI.InsertDocMulti),
+    AnAction(text, null, AstraIcons.UI.InsertDoc),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
     val edtContext = getCoroutineUiContext()
@@ -45,13 +45,9 @@ class InsertDocumentsAction(
             e.presentation.text = "Insert Disabled: File Unmodified"
         } else if (cBoxes.anyNull()) {
             e.presentation.text = "Insert Disabled: Endpoint Unselected"
-        } else if ((jsonObject as JsonArray).children.size == 1) {
-            e.presentation.isEnabled = true
-            e.presentation.text = "Insert Document"
-            //e.presentation.icon single document icon
         } else {
             e.presentation.isEnabled = true
-            e.presentation.text = "Insert Documents"
+            e.presentation.text = "Insert Document(s)"
             //e.presentation.icon multiple icons
         }
 
@@ -74,14 +70,14 @@ class InsertDocumentsAction(
                             println("Failed: ${response}")
                         }
                         // TODO: Notification
-                        // TODO: Telemetry
+                        // TODO: Add telemetry for this action
                     }
                     if (success.isNotEmpty()) {
                         for (response in success) {
                             println("Succeeded: ${response}")
                         }
                         // TODO: Notification
-                        // TODO: Telemetry
+                        // TODO: Add telemetry for this action
                     }
                 }
             }

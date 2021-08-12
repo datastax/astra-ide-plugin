@@ -31,10 +31,8 @@ class ToolbarComboBoxes(
     var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs()), selKeyspace, collectionComboBox)
     var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb()), selDatabaseId, keyspaceComboBox)
     val wrapComboBoxList: List<ComboBox<Any>> = List(3) { ComboBox(ListComboBoxModel<Any>(emptyList())) }
-    val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
+    //val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
 
-    //TODO: Redo it so empty lists are drawn properly
-    //TODO: Handle null for mutable list?
     init {
         if (selDatabaseId != "") {
             //databaseComboBox.reload = DatabaseComboBox(databaseList.values.toMutableList(), selDatabaseId, keyspaceComboBox)
