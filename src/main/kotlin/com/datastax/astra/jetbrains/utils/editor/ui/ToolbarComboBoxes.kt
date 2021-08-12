@@ -21,6 +21,7 @@ import javax.swing.event.ListDataListener
 
 class ToolbarComboBoxes(
     val project: Project,
+    var databaseList: List<SimpleDatabase>,
     var selDatabaseId: String = "",
     var selKeyspace: String = "",
     var selCollection: String = "",
@@ -37,7 +38,7 @@ class ToolbarComboBoxes(
     //TODO: Handle null for mutable list?
     init {
         if (selDatabaseId != "") {
-            //databaseComboBox.reload = DatabaseComboBox(databaseList.values.toMutableList(), selDatabaseId, keyspaceComboBox)
+            databaseComboBox.reload(databaseList.toMutableList())
         } else {
 
 
@@ -91,16 +92,14 @@ class ToolbarComboBoxes(
 
     }
 
-    override fun reloadFileEditorUIResources(databaseMap: Map<String, SimpleDatabase>) {
-        databaseComboBox.reload(databaseMap.map { it.value }.toMutableList())
+    override fun reloadFileEditorUIResources(databaseList: List<SimpleDatabase>) {
+        databaseComboBox.reload(databaseList.toMutableList())
     }
 
     override fun clearFileEditorUIResources() {
         databaseComboBox.reload(mutableListOf(emptySimpleDb()))
     }
 }
-
-
 
 class DatabaseComboBox(
     var list: MutableList<SimpleDatabase>,
@@ -186,18 +185,33 @@ class KeyspaceComboBox(
             selectedItem = data[0]
         }
         else {
-            data.addAll(keyspaces)
+            data.addAll(sort(keyspaces))
             val selIndex = data.indexOfFirst{ it.keyspace.name == activeKeyspace }
             selectedItem =  if(selIndex >= 0){
                 data[selIndex]
             } else {
                 data[0]
+                //Set the active keyspace to one with a collection
+                //data.filter { it.collections.isNotEmpty() }.first()
             }
         }
 
         // we have to let components that bind to the model know that the model has been changed
         fireContentsChanged(this, -1, -1)
     }
+    //Put the default keyspaces at the bottom so users don't have to look so far for them
+    fun sort(keyspaces: MutableList<SimpleKeyspace>):MutableList<SimpleKeyspace> =
+        (keyspaces.filter{!isAstraDefault(it.keyspace.name)} + (keyspaces.filter{isAstraDefault(it.keyspace.name)})).toMutableList()
+
+    fun isAstraDefault(keyspaceName: String): Boolean=
+        when(keyspaceName) {
+            "data_endpoint_auth" -> true
+            "datastax_sla" -> true
+            "system_traces" -> true
+            "system_auth" -> true
+            "system_schema" -> true
+            else -> false
+        }
 }
 
 class CollectionComboBox(var list: MutableList<String>, val activeCollection: String) :

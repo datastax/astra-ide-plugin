@@ -55,9 +55,8 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
             AstraClient.accessToken = selectedProfile!!.token
 
             //validateProfileAndSetState(selectedProfile)
-            println("Setting profile")
             changeProfile(selectedProfile!!)
-            println("Profile set")
+
         } else {
             // Null if no valid profiles on reload. A reload without doing so will result in residual profile being used
             selectedProfile = null
