@@ -6,6 +6,7 @@ import com.datastax.astra.jetbrains.telemetry.ClickTarget
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackAction
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
 import com.datastax.astra.jetbrains.utils.*
+import com.datastax.astra.jetbrains.utils.internal_apis.models.GenerateTokenRequest
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -101,8 +102,7 @@ class GetTokenAction :
     suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
         val response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
             loginResponse.cookie!!,
-            message("credentials.get_token.graphql").replace("ORGID", loginResponse.orgId!!)
-                .toRequestBody("text/plain".toMediaTypeOrNull())
+            GenerateTokenRequest(loginResponse.orgId!!).graphqlBlob
         )
         trackAction(message("telemetry.get_token.success"))
 

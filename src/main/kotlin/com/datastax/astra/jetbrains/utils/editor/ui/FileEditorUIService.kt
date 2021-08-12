@@ -188,7 +188,6 @@ class AstraFileEditorUIService(private val project: Project) :
     }
 
     override fun profileStateChanged(newState: ProfileState) {
-        println("I know what happened: ${newState.displayMessage}, ${newState.shortMessage}, ${newState.actions}, ${newState.isTerminal}")
         if(newState.isTerminal == false){
             project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC).clearFileEditorUIResources()
         }
@@ -201,9 +200,10 @@ class AstraFileEditorUIService(private val project: Project) :
                     .reloadFileEditorUIResources(databaseMap)
             }
         }
+    }
 
-
-
+    fun enpoints(): MutableList<SimpleDatabase> {
+        return databaseMap.values.toMutableList()
     }
 }
 

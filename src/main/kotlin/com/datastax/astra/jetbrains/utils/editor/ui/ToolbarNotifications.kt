@@ -29,6 +29,24 @@ fun failedDocUpsertNotification(invalidUpserts: Map<String, Response<Unit>>) {
     )
 }
 
+fun failedDocInsertNotification(numFailedDocs: Int) {
+    notifyWarn(
+        title = "Document Insert Failed",
+        content = "During the insert process $numFailedDocs document(s) failed to upload.",
+        notificationActions = emptyList()
+        // createNotificationExpiringAction(NeverShowAgain()),
+    )
+}
+
+fun successfulDocInsertNotification(numInsertedDocs: Int, collectionName: String) {
+    notifyInfo(
+        title = "Document Insert Successful",
+        content = "$numInsertedDocs document(s) were successfully inserted into the $collectionName collection.",
+        notificationActions = emptyList()
+        // createNotificationExpiringAction(NeverShowAgain()),
+    )
+}
+
 fun wrongJsonFormatNotification() {
     notifyWarn(
         title = MessagesBundle.message("collection.editor.upsert.invalid.title"),

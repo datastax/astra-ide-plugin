@@ -66,17 +66,12 @@ class InsertDocumentsAction(
                 //Do the rest in the UI context because we show some notifications and possibly generate dialog boxes from them
                 withContext(edtContext) {
                     if (failed.isNotEmpty()) {
-                        for (response in failed) {
-                            println("Failed: ${response}")
-                        }
-                        // TODO: Notification
+                        failedDocInsertNotification(failed.size)
                         // TODO: Add telemetry for this action
+                        // TODO: Add more information about failed inserts
                     }
                     if (success.isNotEmpty()) {
-                        for (response in success) {
-                            println("Succeeded: ${response}")
-                        }
-                        // TODO: Notification
+                        successfulDocInsertNotification(success.size,cBoxes.collectionComboBox.selectedItem)
                         // TODO: Add telemetry for this action
                     }
                 }

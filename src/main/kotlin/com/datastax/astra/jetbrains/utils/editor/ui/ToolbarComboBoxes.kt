@@ -35,11 +35,9 @@ class ToolbarComboBoxes(
 
     init {
         if (selDatabaseId != "") {
-            //databaseComboBox.reload = DatabaseComboBox(databaseList.values.toMutableList(), selDatabaseId, keyspaceComboBox)
-        } else {
-
-
+            databaseComboBox.reload(AstraFileEditorUIService.getService(project).enpoints())
         }
+
         val messageBusConnection: MessageBusConnection = project.getMessageBus().connect(this)
         // listen for configuration changes
         messageBusConnection.subscribe(ProfileChangeEventListener.TOPIC, this)
