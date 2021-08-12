@@ -48,9 +48,8 @@ class InsertDocumentsAction(
         } else {
             e.presentation.isEnabled = true
             e.presentation.text = "Insert Document(s)"
-            //e.presentation.icon multiple icons
+            // e.presentation.icon multiple icons
         }
-
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -60,10 +59,10 @@ class InsertDocumentsAction(
                     .toList()
             launch {
 
-                    val responses = insertAndWait(docList, cBoxes.getSelected())
-                    val success = responses.filter { it.isSuccessful }
-                    val failed = responses.filter { !it.isSuccessful }
-                //Do the rest in the UI context because we show some notifications and possibly generate dialog boxes from them
+                val responses = insertAndWait(docList, cBoxes.getSelected())
+                val success = responses.filter { it.isSuccessful }
+                val failed = responses.filter { !it.isSuccessful }
+                // Do the rest in the UI context because we show some notifications and possibly generate dialog boxes from them
                 withContext(edtContext) {
                     if (failed.isNotEmpty()) {
                         failedDocInsertNotification(failed.size)
@@ -71,16 +70,14 @@ class InsertDocumentsAction(
                         // TODO: Add more information about failed inserts
                     }
                     if (success.isNotEmpty()) {
-                        successfulDocInsertNotification(success.size,cBoxes.collectionComboBox.selectedItem)
+                        successfulDocInsertNotification(success.size, cBoxes.collectionComboBox.selectedItem)
                         // TODO: Add telemetry for this action
                     }
                 }
             }
-
-
         } catch (e: Exception) {
-            //TODO: Cancel doing stuff here and tell user
-            //TODO: Telemetry about failure
+            // TODO: Cancel doing stuff here and tell user
+            // TODO: Telemetry about failure
         }
     }
 
@@ -88,13 +85,13 @@ class InsertDocumentsAction(
         var responses = runBlocking {
             docList.map { doc ->
                 async {
-                        AstraClient.documentApiForDatabase(selected.database).addDoc(
-                            UUID.randomUUID(),
-                            AstraClient.accessToken,
-                            selected.keyspace,
-                            selected.collection,
-                            doc.trim().toRequestBody("text/plain".toMediaTypeOrNull()),
-                        )
+                    AstraClient.documentApiForDatabase(selected.database).addDoc(
+                        UUID.randomUUID(),
+                        AstraClient.accessToken,
+                        selected.keyspace,
+                        selected.collection,
+                        doc.trim().toRequestBody("text/plain".toMediaTypeOrNull()),
+                    )
                 }
             }
         }

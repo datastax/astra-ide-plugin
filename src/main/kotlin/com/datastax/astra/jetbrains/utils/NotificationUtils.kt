@@ -2,9 +2,7 @@ package com.datastax.astra.jetbrains.utils
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.intellij.notification.*
-import com.intellij.notification.NotificationGroup.Companion.toolWindowGroup
 import com.intellij.notification.Notifications.Bus.notify
-import com.intellij.notification.impl.NotificationGroupEP
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -15,7 +13,6 @@ import javax.swing.JTextArea
 
 // This was const, but we know our message bundle should be constant (unless changing languages a lot?) so I removed it to play nice with the message bundle
 private val GROUP_DISPLAY_ID = message("utilities.notification.group_display_id")
-
 
 private fun notify(type: NotificationType, title: String, content: String = "", project: Project? = null, notificationActions: Collection<AnAction>) {
     val notification = Notification(GROUP_DISPLAY_ID, title, content, type)

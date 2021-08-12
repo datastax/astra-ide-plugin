@@ -1,5 +1,4 @@
 import io.gitlab.arturbosch.detekt.Detekt
-import org.jetbrains.changelog.date
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -126,7 +125,7 @@ detekt {
 tasks {
 
     buildSearchableOptions {
-        //Disabled due to failure to run with 2020.3.4
+        // Disabled due to failure to run with 2020.3.4
         enabled = false
     }
     // Set the JVM compatibility versions
@@ -174,10 +173,10 @@ tasks {
     }
 
     runIdeForUiTests {
-            systemProperty("robot-server.port", "8082")
-            systemProperty("ide.mac.message.dialogs.as.sheets", "false")
-            systemProperty("jb.privacy.policy.text", "<!--999.999-->")
-            systemProperty("jb.consents.confirmation.enabled", "false")
+        systemProperty("robot-server.port", "8082")
+        systemProperty("ide.mac.message.dialogs.as.sheets", "false")
+        systemProperty("jb.privacy.policy.text", "<!--999.999-->")
+        systemProperty("jb.consents.confirmation.enabled", "false")
     }
 
     publishPlugin {

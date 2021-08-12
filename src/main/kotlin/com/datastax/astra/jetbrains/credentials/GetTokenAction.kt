@@ -16,8 +16,6 @@ import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.ui.jcef.JBCefBrowser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefCookieAccessFilter
@@ -104,7 +102,7 @@ class GetTokenAction :
             loginResponse.cookie!!,
             GenerateTokenRequest(loginResponse.orgId!!).graphqlBlob
         )
-        if(response.isSuccessful && response.body()?.data != null) {
+        if (response.isSuccessful && response.body()?.data != null) {
             trackAction(message("telemetry.get_token.success"))
 
             response.body()?.data?.generateToken?.token?.let {
@@ -120,10 +118,9 @@ class GetTokenAction :
                 delay(6500)
                 ActionUtil.performActionDumbAware(ReloadProfilesAction(), e)
             }
-        }
-        else{
+        } else {
             generateTokenFailure()
-            trackAction(message("telemetry.get_token.failed"),mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
+            trackAction(message("telemetry.get_token.failed"), mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
         }
     }
 

@@ -39,5 +39,5 @@ data class GenerateTokenRequest(
     val orgId: String,
     val graphqlBlob: RequestBody = """
         {"operationName":"generateToken","variables":{"input":{"orgId":"$orgId","roles":["1faa93f2-b889-4190-9585-4bc6e3c3595a"]}},"query":"mutation generateToken(${'$'}input: GenerateTokenInput\u0021) {generateToken(input: ${'$'}input){token}}"}
-        """.trimIndent().toRequestBody("text/plain".toMediaTypeOrNull())
+    """.trimIndent().toRequestBody("text/plain".toMediaTypeOrNull())
 )

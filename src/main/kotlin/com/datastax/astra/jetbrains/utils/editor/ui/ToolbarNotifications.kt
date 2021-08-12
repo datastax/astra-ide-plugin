@@ -2,11 +2,9 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.MessagesBundle
-import com.datastax.astra.jetbrains.utils.createNotificationExpiringAction
 import com.datastax.astra.jetbrains.utils.createShowMoreInfoDialogAction
 import com.datastax.astra.jetbrains.utils.notifyInfo
 import com.datastax.astra.jetbrains.utils.notifyWarn
-import com.intellij.openapi.actionSystem.ActionManager
 import retrofit2.Response
 
 fun failedDocUpsertNotification(invalidUpserts: Map<String, Response<Unit>>) {
@@ -52,19 +50,16 @@ fun wrongJsonFormatNotification() {
         title = MessagesBundle.message("collection.editor.upsert.invalid.title"),
         content = MessagesBundle.message("collection.editor.upsert.invalid.message"),
         notificationActions = emptyList()
-            // createNotificationExpiringAction(NeverShowAgain()),
+        // createNotificationExpiringAction(NeverShowAgain()),
     )
-
 }
 
-fun noEndpointSelected(){
+fun noEndpointSelected() {
     notifyWarn(
         title = "Upsert Endpoint Invalid",
         content = "An endpoint must be selected to upsert documents into a collection",
         notificationActions = emptyList(),
 
-            // createNotificationExpiringAction(NeverShowAgain()),
+        // createNotificationExpiringAction(NeverShowAgain()),
     )
-
 }
-
