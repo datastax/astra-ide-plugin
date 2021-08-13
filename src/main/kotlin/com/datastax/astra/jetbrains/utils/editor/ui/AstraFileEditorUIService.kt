@@ -82,7 +82,7 @@ class AstraFileEditorUIService(private val project: Project) :
                 collectionFile.collectionName,
             )
         } else {
-            ToolbarComboBoxes(project,databaseList)
+            ToolbarComboBoxes(project, databaseList)
         }
         val collectionActions = DefaultActionGroup()
         collectionActions.add(InsertDocumentsAction(editor, jsonEditorComboBoxes))
@@ -113,7 +113,7 @@ class AstraFileEditorUIService(private val project: Project) :
             databaseList.add(SimpleDatabase(database, mutableMapOf<String, SimpleKeyspace>()))
         }
 
-        //TODO: Handle concurrent access exception
+        // TODO: Handle concurrent access exception
         databaseList.first { it.database == database }.keyspaces?.put(
             keyspace.name,
             SimpleKeyspace(keyspace, cList.orEmpty())
@@ -121,10 +121,10 @@ class AstraFileEditorUIService(private val project: Project) :
     }
 
     // TODO: do this with the cache maps instead, then there's less requests to the server
-    suspend fun buildDatabaseMap()=coroutineScope{
+    suspend fun buildDatabaseMap() = coroutineScope {
         databaseList.clear()
         val response = AstraClient.dbOperationsApi().listDatabases()
-        if(response.isSuccessful && !response.body().isNullOrEmpty()){
+        if (response.isSuccessful && !response.body().isNullOrEmpty()) {
             response.body()?.forEach { database ->
                 launch {
                     val keyspaceResponse = AstraClient.schemasApiForDatabase(database).getKeyspaces(AstraClient.accessToken)
@@ -135,16 +135,14 @@ class AstraFileEditorUIService(private val project: Project) :
                             if (collectionResponse.isSuccessful && collectionResponse.body()?.data != null) {
                                 indexCollections(collectionResponse.body()?.data, keyspace, database)
                             }
-
                         }
                     }
                 }
-
             }
         }
     }
 
-    fun rebuildAndNotify(){
+    fun rebuildAndNotify() {
         launch {
             val defer = async { buildDatabaseMap() }
             defer.await()
@@ -167,8 +165,6 @@ class AstraFileEditorUIService(private val project: Project) :
         fun getService(project: Project): AstraFileEditorUIService {
             return ServiceManager.getService(project, AstraFileEditorUIService::class.java)
         }
-
-
     }
 
     init {
@@ -220,4 +216,3 @@ class SimpleKeyspace(
         return "${keyspace.name}"
     }
 }
-

@@ -3,14 +3,9 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.DatabaseInfo
 import com.datastax.astra.devops_v2.models.StatusEnum
-import com.datastax.astra.jetbrains.AstraClient
-import com.datastax.astra.jetbrains.credentials.ProfileManager
-import com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService.Companion.getService
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.service
-import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.messages.MessageBusConnection
@@ -42,7 +37,6 @@ class ToolbarComboBoxes(
 
     init {
         databaseComboBox.reload(databaseList.toMutableList())
-
 
         val messageBusConnection: MessageBusConnection = project.getMessageBus().connect(this)
         // listen for configuration changes
@@ -85,9 +79,11 @@ class ToolbarComboBoxes(
         )
     }
     fun noEndpoint(): Boolean {
-        return (databaseComboBox.selectedItem == emptySimpleDb ||
-                keyspaceComboBox.selectedItem == emptySimpleKs
-                || collectionComboBox.selectedItem == emptyDoc.name)
+        return (
+            databaseComboBox.selectedItem == emptySimpleDb ||
+                keyspaceComboBox.selectedItem == emptySimpleKs ||
+                collectionComboBox.selectedItem == emptyDoc.name
+            )
     }
 
     override fun dispose() {
@@ -101,7 +97,6 @@ class ToolbarComboBoxes(
         databaseComboBox.reload(mutableListOf(emptySimpleDb()))
     }
 }
-
 
 class DatabaseComboBox(
     var list: MutableList<SimpleDatabase>,

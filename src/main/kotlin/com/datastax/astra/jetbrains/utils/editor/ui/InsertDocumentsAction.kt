@@ -31,9 +31,9 @@ class InsertDocumentsAction(
     val edtContext = getCoroutineUiContext()
 
     override fun update(e: AnActionEvent) {
-        //TODO: Make this cleaner. Possibly throw exceptions for each and then assign the presentation based on exception.
+        // TODO: Make this cleaner. Possibly throw exceptions for each and then assign the presentation based on exception.
 
-        //Put this in a try catch because I had it throw a null point exception
+        // Put this in a try catch because I had it throw a null point exception
         try {
             val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).allTopLevelValues
             val psiError =
@@ -59,8 +59,7 @@ class InsertDocumentsAction(
                 e.presentation.isEnabled = true
                 e.presentation.text = "Insert Document(s)"
             }
-        }
-        catch (exception: Exception) {
+        } catch (exception: Exception) {
             e.presentation.isEnabled = false
             e.presentation.text = "Insert Disabled"
         }
