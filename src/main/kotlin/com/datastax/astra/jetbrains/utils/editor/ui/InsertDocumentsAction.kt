@@ -24,30 +24,32 @@ class InsertDocumentsAction(
     val cBoxes: ToolbarComboBoxes,
     var state: Long = 0L,
     text: String = message("collection.editor.upsert.title"),
-
 ) :
     AnAction(text, null, AstraIcons.UI.InsertDoc),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
     val edtContext = getCoroutineUiContext()
 
-
-
     override fun update(e: AnActionEvent) {
+        //TODO: Make this cleaner. Possibly throw exceptions for each and then assign the presentation based on exception.
+
         //Put this in a try catch because I had it throw a null point exception
         try {
-            val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue
+            val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).allTopLevelValues
             val psiError =
-                PsiTreeUtil.findChildOfType(jsonObject?.containingFile?.originalElement, PsiErrorElement::class.java)
+                PsiTreeUtil.findChildOfType(jsonObject.first().containingFile?.originalElement, PsiErrorElement::class.java)
             if (psiError != null ||
-                jsonObject!!::class == com.intellij.json.psi.impl.JsonStringLiteralImpl::class
+                jsonObject.first()::class == com.intellij.json.psi.impl.JsonStringLiteralImpl::class
             ) {
                 e.presentation.text = "Insert Disabled: Invalid JSON Format"
                 e.presentation.isEnabled = false
-            } else if (jsonObject!!::class != com.intellij.json.psi.impl.JsonArrayImpl::class) {
+            } else if (jsonObject.first()::class != com.intellij.json.psi.impl.JsonArrayImpl::class) {
                 e.presentation.text = "Insert Disabled: Not Array of JSON Docs"
                 e.presentation.isEnabled = false
-            } else if (jsonObject.containingFile.modificationStamp == state) {
+            } else if (jsonObject.size > 1) {
+                e.presentation.text = "Insert Disabled: Improper Array"
+                e.presentation.isEnabled = false
+            } else if (jsonObject.first().containingFile.modificationStamp == state) {
                 e.presentation.text = "Insert Disabled: File Unmodified"
                 e.presentation.isEnabled = false
             } else if (cBoxes.noEndpoint()) {
@@ -56,7 +58,6 @@ class InsertDocumentsAction(
             } else {
                 e.presentation.isEnabled = true
                 e.presentation.text = "Insert Document(s)"
-                // e.presentation.icon multiple icons
             }
         }
         catch (exception: Exception) {
