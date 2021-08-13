@@ -23,32 +23,45 @@ class InsertDocumentsAction(
     var editor: Editor,
     val cBoxes: ToolbarComboBoxes,
     var state: Long = 0L,
-    text: String = message("collection.editor.upsert.title")
+    text: String = message("collection.editor.upsert.title"),
+
 ) :
     AnAction(text, null, AstraIcons.UI.InsertDoc),
     CoroutineScope by ApplicationThreadPoolScope("Credentials") {
 
     val edtContext = getCoroutineUiContext()
 
+
+
     override fun update(e: AnActionEvent) {
-        val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue
-        val psiError =
-            PsiTreeUtil.findChildOfType(jsonObject?.containingFile?.originalElement, PsiErrorElement::class.java)
-        e.presentation.isEnabled = false
-        if (psiError != null ||
-            jsonObject!!::class == com.intellij.json.psi.impl.JsonStringLiteralImpl::class
-        ) {
-            e.presentation.text = "Insert Disabled: Invalid JSON Format"
-        } else if (jsonObject!!::class != com.intellij.json.psi.impl.JsonArrayImpl::class) {
-            e.presentation.text = "Insert Disabled: Not Array of JSON Docs"
-        } else if (jsonObject.containingFile.modificationStamp == state) {
-            e.presentation.text = "Insert Disabled: File Unmodified"
-        } else if (cBoxes.anyNull()) {
-            e.presentation.text = "Insert Disabled: Endpoint Unselected"
-        } else {
-            e.presentation.isEnabled = true
-            e.presentation.text = "Insert Document(s)"
-            // e.presentation.icon multiple icons
+        //Put this in a try catch because I had it throw a null point exception
+        try {
+            val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue
+            val psiError =
+                PsiTreeUtil.findChildOfType(jsonObject?.containingFile?.originalElement, PsiErrorElement::class.java)
+            if (psiError != null ||
+                jsonObject!!::class == com.intellij.json.psi.impl.JsonStringLiteralImpl::class
+            ) {
+                e.presentation.text = "Insert Disabled: Invalid JSON Format"
+                e.presentation.isEnabled = false
+            } else if (jsonObject!!::class != com.intellij.json.psi.impl.JsonArrayImpl::class) {
+                e.presentation.text = "Insert Disabled: Not Array of JSON Docs"
+                e.presentation.isEnabled = false
+            } else if (jsonObject.containingFile.modificationStamp == state) {
+                e.presentation.text = "Insert Disabled: File Unmodified"
+                e.presentation.isEnabled = false
+            } else if (cBoxes.noEndpoint()) {
+                e.presentation.text = "Insert Disabled: Endpoint Unselected"
+                e.presentation.isEnabled = false
+            } else {
+                e.presentation.isEnabled = true
+                e.presentation.text = "Insert Document(s)"
+                // e.presentation.icon multiple icons
+            }
+        }
+        catch (exception: Exception) {
+            e.presentation.isEnabled = false
+            e.presentation.text = "Insert Disabled"
         }
     }
 

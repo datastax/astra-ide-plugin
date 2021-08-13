@@ -1,6 +1,7 @@
 package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 

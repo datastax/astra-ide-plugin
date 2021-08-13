@@ -3,6 +3,7 @@ package com.datastax.astra.jetbrains.explorer
 import com.datastax.astra.jetbrains.credentials.*
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.utils.buildTextPanel
+import com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.TreeState
 import com.intellij.openapi.Disposable

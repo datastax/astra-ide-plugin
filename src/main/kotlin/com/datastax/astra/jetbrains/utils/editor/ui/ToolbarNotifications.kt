@@ -39,7 +39,7 @@ fun failedDocInsertNotification(numFailedDocs: Int) {
 fun successfulDocInsertNotification(numInsertedDocs: Int, collectionName: String) {
     notifyInfo(
         title = "Document Insert Successful",
-        content = "$numInsertedDocs document(s) were successfully inserted into the $collectionName collection.",
+        content = "$numInsertedDocs document(s) were successfully inserted into the '$collectionName' collection.",
         notificationActions = emptyList()
         // createNotificationExpiringAction(NeverShowAgain()),
     )

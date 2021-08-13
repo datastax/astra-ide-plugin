@@ -16,7 +16,7 @@ interface ProfileChangeEventListener : EventListener {
     }
 
     // TODO: Subscribe all JsonEditorComboBoxes objects to this event topic. Rebuild the databaseMap then pass it to listeners if tree invalidated
-    fun reloadFileEditorUIResources(databaseMap: Map<String, SimpleDatabase>)
+    fun reloadFileEditorUIResources(databaseList: List<SimpleDatabase>)
 
     fun clearFileEditorUIResources()
 }

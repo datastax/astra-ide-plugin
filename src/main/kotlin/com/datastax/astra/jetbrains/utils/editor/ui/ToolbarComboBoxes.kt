@@ -3,9 +3,14 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.DatabaseInfo
 import com.datastax.astra.devops_v2.models.StatusEnum
+import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.credentials.ProfileManager
+import com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService.Companion.getService
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.messages.MessageBusConnection
@@ -18,22 +23,26 @@ import javax.swing.event.ListDataListener
 
 class ToolbarComboBoxes(
     val project: Project,
+    val databaseList: List<SimpleDatabase>,
     var selDatabaseId: String = "",
     var selKeyspace: String = "",
     var selCollection: String = "",
 ) : Disposable, ProfileChangeEventListener {
     // Default instantiation. If all file[Value] given overwrite these below.
     // Ask Garrett if there's a better way to do this.
-    var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc().name), selCollection)
-    var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs()), selKeyspace, collectionComboBox)
-    var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb()), selDatabaseId, keyspaceComboBox)
+    val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs()))
+    val emptySimpleKs = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc()))
+    val emptyDoc = DocCollection("<No Collections>")
+
+    var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), selCollection)
+    var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs), selKeyspace, collectionComboBox)
+    var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb), selDatabaseId, keyspaceComboBox)
     val wrapComboBoxList: List<ComboBox<Any>> = List(3) { ComboBox(ListComboBoxModel<Any>(emptyList())) }
     // val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
 
     init {
-        if (selDatabaseId != "") {
-            databaseComboBox.reload(AstraFileEditorUIService.getService(project).enpoints())
-        }
+        databaseComboBox.reload(databaseList.toMutableList())
+
 
         val messageBusConnection: MessageBusConnection = project.getMessageBus().connect(this)
         // listen for configuration changes
@@ -75,21 +84,24 @@ class ToolbarComboBoxes(
             collectionComboBox.selectedItem
         )
     }
-    fun anyNull(): Boolean {
-        return if (databaseComboBox.selectedItem == null || keyspaceComboBox.selectedItem == null || collectionComboBox.selectedItem == null) true else false
+    fun noEndpoint(): Boolean {
+        return (databaseComboBox.selectedItem == emptySimpleDb ||
+                keyspaceComboBox.selectedItem == emptySimpleKs
+                || collectionComboBox.selectedItem == emptyDoc.name)
     }
 
     override fun dispose() {
     }
 
-    override fun reloadFileEditorUIResources(databaseMap: Map<String, SimpleDatabase>) {
-        databaseComboBox.reload(databaseMap.map { it.value }.toMutableList())
+    override fun reloadFileEditorUIResources(databaseList: List<SimpleDatabase>) {
+        databaseComboBox.reload(databaseList.toMutableList())
     }
 
     override fun clearFileEditorUIResources() {
         databaseComboBox.reload(mutableListOf(emptySimpleDb()))
     }
 }
+
 
 class DatabaseComboBox(
     var list: MutableList<SimpleDatabase>,
@@ -118,17 +130,7 @@ class DatabaseComboBox(
 
     fun reload(databases: MutableList<SimpleDatabase>) {
         data.clear()
-        if (databases != null) {
-            data.addAll(databases)
-        }
 
-        selectedItem = if (!data.isEmpty()) {
-            data[0]
-        } else {
-            null
-        }
-
-        data.clear()
         if (databases == null || databases.isEmpty()) {
             data.add(emptySimpleDb())
             selectedItem = data[0]
