@@ -1,6 +1,9 @@
 package com.datastax.astra.jetbrains.utils.internal_apis.models
 
 import com.google.gson.annotations.SerializedName
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 /**
  * The response for a requested token.
@@ -30,4 +33,11 @@ data class GenerateToken(
     /* The Astra bearer token, AstraCS. */
     @SerializedName("token")
     val token: String,
+)
+
+data class GenerateTokenRequest(
+    val orgId: String,
+    val graphqlBlob: RequestBody = """
+        {"operationName":"generateToken","variables":{"input":{"orgId":"$orgId","roles":["1faa93f2-b889-4190-9585-4bc6e3c3595a"]}},"query":"mutation generateToken(${'$'}input: GenerateTokenInput\u0021) {generateToken(input: ${'$'}input){token}}"}
+    """.trimIndent().toRequestBody("text/plain".toMediaTypeOrNull())
 )

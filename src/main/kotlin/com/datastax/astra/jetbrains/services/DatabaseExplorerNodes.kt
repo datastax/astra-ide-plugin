@@ -40,14 +40,14 @@ val fetchKeyspaces: (suspend (database: Database) -> List<Keyspace>?) = {
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
-val fetchTables: (suspend (dataBKeySPair: Pair<Database,Keyspace>) -> List<Table>?) = {
+val fetchTables: (suspend (dataBKeySPair: Pair<Database, Keyspace>) -> List<Table>?) = {
     val response = AstraClient.schemasApiForDatabase(it.first).getTables(AstraClient.accessToken, it.second.name, null)
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
-//TODO: Determine what UUID should be used (random is probably not a good choice)
-val fetchCollections: (suspend (dataBKeySPair: Pair<Database,Keyspace>) -> List<DocCollection>?) = {
-    val response = AstraClient.documentApiForDatabase(it.first).listCollections(randomUUID(),AstraClient.accessToken, it.second.name, null)
+// TODO: Determine what UUID should be used (random is probably not a good choice)
+val fetchCollections: (suspend (dataBKeySPair: Pair<Database, Keyspace>) -> List<DocCollection>?) = {
+    val response = AstraClient.documentApiForDatabase(it.first).listCollections(randomUUID(), AstraClient.accessToken, it.second.name, null)
     if (response.isSuccessful) response.body()?.data else throw HttpException(response)
 }
 
@@ -192,17 +192,16 @@ class KeyspaceNode(project: Project, val keyspace: Keyspace, val database: Datab
     override fun getChildrenInternal(): List<ExplorerNode<*>> {
         var cNode = CollectionParentNode(nodeProject, keyspace, database)
         cNode.getChildrenInternal()
-        //Force getting children so that the elimination list can be built and used to filter tables
-        var tNode = TableParentNode(nodeProject,keyspace,database,cNode.collectionList)
+        // Force getting children so that the elimination list can be built and used to filter tables
+        var tNode = TableParentNode(nodeProject, keyspace, database, cNode.collectionList)
 
-        //If both empty return empty so double empty drop down doesn't occur
-        if(tNode.children.first().javaClass.name == cNode.children.first().javaClass.name){
+        // If both empty return empty so double empty drop down doesn't occur
+        if (tNode.children.first().javaClass.name == cNode.children.first().javaClass.name) {
             return emptyList()
         }
 
-        return listOf(tNode,cNode).reversed()
+        return listOf(tNode, cNode).reversed()
     }
-
 }
 
 class TableParentNode(project: Project, val keyspace: Keyspace, val database: Database, val collectionList: List<String>) :
@@ -216,11 +215,10 @@ class TableParentNode(project: Project, val keyspace: Keyspace, val database: Da
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database,keyspace), loader = fetchTables)?.filter{ !collectionList.contains(it.name) }?.map {
+        cached(Pair(database, keyspace), loader = fetchTables)?.filter { !collectionList.contains(it.name) }?.map {
             TableNode(nodeProject, it, database)
         } ?: emptyList()
     }
-
 }
 
 class TableNode(project: Project, val table: Table, val database: Database) :
@@ -246,16 +244,16 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
         ExplorerEmptyNode(nodeProject, message("astra.no_collections_in_keyspace"))
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
-    //If upgrade is available then it's not really a document.
+    // If upgrade is available then it's not really a document.
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database, keyspace), loader = fetchCollections)?.filter{it.upgradeAvailable == false}?.map {
+        cached(Pair(database, keyspace), loader = fetchCollections)?.filter { it.upgradeAvailable == false }?.map {
             collectionList += it.name
             CollectionNode(nodeProject, it, keyspace, database)
         } ?: emptyList()
     }
 }
 
-class CollectionNode(project: Project, val collection: DocCollection,val keyspace: Keyspace, val database: Database) :
+class CollectionNode(project: Project, val collection: DocCollection, val keyspace: Keyspace, val database: Database) :
     ExplorerNode<String>(project, collection.name.orEmpty(), null),
     ResourceActionNode {
 
@@ -266,7 +264,6 @@ class CollectionNode(project: Project, val collection: DocCollection,val keyspac
         CollectionPagedBrowserPanel(nodeProject, collection, keyspace, database)
     }
 }
-
 
 private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
 private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()

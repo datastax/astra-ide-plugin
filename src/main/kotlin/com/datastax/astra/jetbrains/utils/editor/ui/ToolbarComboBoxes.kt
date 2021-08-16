@@ -3,10 +3,8 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.DatabaseInfo
 import com.datastax.astra.devops_v2.models.StatusEnum
-import com.datastax.astra.jetbrains.utils.AstraIcons
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -18,38 +16,34 @@ import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-
 class ToolbarComboBoxes(
     val project: Project,
     var databaseList: List<SimpleDatabase>,
     var selDatabaseId: String = "",
     var selKeyspace: String = "",
     var selCollection: String = "",
-): Disposable, ProfileChangeEventListener {
-    //Default instantiation. If all file[Value] given overwrite these below.
-    //Ask Garrett if there's a better way to do this.
-    var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc().name), selCollection)
-    var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs()), selKeyspace, collectionComboBox)
-    var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb()), selDatabaseId, keyspaceComboBox)
+) : Disposable, ProfileChangeEventListener {
+    // Default instantiation. If all file[Value] given overwrite these below.
+    // Ask Garrett if there's a better way to do this.
+    val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs()))
+    val emptySimpleKs = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc()))
+    val emptyDoc = DocCollection("<No Collections>")
+
+    var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), selCollection)
+    var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs), selKeyspace, collectionComboBox)
+    var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb), selDatabaseId, keyspaceComboBox)
     val wrapComboBoxList: List<ComboBox<Any>> = List(3) { ComboBox(ListComboBoxModel<Any>(emptyList())) }
-    val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
+    // val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
 
-    //TODO: Redo it so empty lists are drawn properly
-    //TODO: Handle null for mutable list?
     init {
-        if (selDatabaseId != "") {
-            databaseComboBox.reload(databaseList.toMutableList())
-        } else {
+        databaseComboBox.reload(databaseList.toMutableList())
 
-
-        }
         val messageBusConnection: MessageBusConnection = project.getMessageBus().connect(this)
         // listen for configuration changes
         messageBusConnection.subscribe(ProfileChangeEventListener.TOPIC, this)
     }
 
-
-    //0: database, 1: keyspace, 2: collection
+    // 0: database, 1: keyspace, 2: collection
     fun getPanel(): JPanel {
         val jsonEditorComboBoxesPanel = JPanel(GridLayout())
         jsonEditorComboBoxesPanel.border = BorderFactory.createEmptyBorder(1, 2, 2, 2)
@@ -57,13 +51,13 @@ class ToolbarComboBoxes(
             cBox.setMinimumAndPreferredWidth(160)
             when (i) {
                 0 -> {
-                    cBox.model = this.databaseComboBox;cBox.toolTipText = "Database"
+                    cBox.model = this.databaseComboBox; cBox.toolTipText = "Database"
                 }
                 1 -> {
-                    cBox.model = this.keyspaceComboBox;cBox.toolTipText = "Keyspace"
+                    cBox.model = this.keyspaceComboBox; cBox.toolTipText = "Keyspace"
                 }
                 2 -> {
-                    cBox.model = this.collectionComboBox;cBox.toolTipText = "Collection"
+                    cBox.model = this.collectionComboBox; cBox.toolTipText = "Collection"
                 }
             }
             jsonEditorComboBoxesPanel.add(cBox, i)
@@ -71,7 +65,7 @@ class ToolbarComboBoxes(
         return jsonEditorComboBoxesPanel
     }
 
-    fun setSelected(){
+    fun setSelected() {
         selDatabaseId = databaseComboBox.selectedItem.database.id
         selKeyspace = keyspaceComboBox.selectedItem.keyspace.name
         selCollection = collectionComboBox.selectedItem
@@ -84,12 +78,15 @@ class ToolbarComboBoxes(
             collectionComboBox.selectedItem
         )
     }
-    fun anyNull(): Boolean{
-        return if (databaseComboBox.selectedItem==null || keyspaceComboBox.selectedItem==null || collectionComboBox.selectedItem==null) true else false
+    fun noEndpoint(): Boolean {
+        return (
+            databaseComboBox.selectedItem == emptySimpleDb ||
+                keyspaceComboBox.selectedItem == emptySimpleKs ||
+                collectionComboBox.selectedItem == emptyDoc.name
+            )
     }
 
     override fun dispose() {
-
     }
 
     override fun reloadFileEditorUIResources(databaseList: List<SimpleDatabase>) {
@@ -109,49 +106,38 @@ class DatabaseComboBox(
     ListComboBoxModel<SimpleDatabase>(list) {
 
     init {
-        selectedItem=list.first()
+        selectedItem = list.first()
         addListDataListener(object : ListDataListener {
             override fun intervalAdded(listDataEvent: ListDataEvent) {}
             override fun intervalRemoved(listDataEvent: ListDataEvent) {}
             override fun contentsChanged(listDataEvent: ListDataEvent) {
                 if (selectedItem != null) {
-                    keyspaceComboBox.reload(selectedItem.keyspaces.map { it.value }
-                        .toMutableList())
-                        // TODO: Indicate JSON is not part of the scheme for the selected collection
-                        // TODO: Change Tooltip to have that thing
+                    keyspaceComboBox.reload(
+                        selectedItem.keyspaces.map { it.value }
+                            .toMutableList()
+                    )
+                    // TODO: Indicate JSON is not part of the scheme for the selected collection
+                    // TODO: Change Tooltip to have that thing
                 }
             }
         })
     }
 
-
     fun reload(databases: MutableList<SimpleDatabase>) {
         data.clear()
-        if (databases != null) {
-            data.addAll(databases)
-        }
 
-        selectedItem = if (!data.isEmpty()) {
-            data[0]
-        } else {
-            null
-        }
-
-        data.clear()
-        if(databases == null || databases.isEmpty()){
+        if (databases == null || databases.isEmpty()) {
             data.add(emptySimpleDb())
             selectedItem = data[0]
-        }
-        else {
+        } else {
             data.addAll(databases)
-            val selIndex = data.indexOfFirst{ it.database.id == activeDatabaseId }
-            selectedItem =  if(selIndex >= 0){
+            val selIndex = data.indexOfFirst { it.database.id == activeDatabaseId }
+            selectedItem = if (selIndex >= 0) {
                 data[selIndex]
             } else {
                 data[0]
             }
         }
-
 
         // we have to let components that bind to the model know that the model has been changed
         fireContentsChanged(this, -1, -1)
@@ -166,13 +152,13 @@ class KeyspaceComboBox(
     ListComboBoxModel<SimpleKeyspace>(list) {
 
     init {
-        selectedItem=list.first()
+        selectedItem = list.first()
         addListDataListener(object : ListDataListener {
             override fun intervalAdded(listDataEvent: ListDataEvent) {}
             override fun intervalRemoved(listDataEvent: ListDataEvent) {}
             override fun contentsChanged(listDataEvent: ListDataEvent) {
                 if (selectedItem != null) {
-                    collectionComboBox.reload(selectedItem.collections.map{it.name}.toMutableList())
+                    collectionComboBox.reload(selectedItem.collections.map { it.name }.toMutableList())
                 }
             }
         })
@@ -180,7 +166,7 @@ class KeyspaceComboBox(
 
     fun reload(keyspaces: MutableList<SimpleKeyspace>) {
         data.clear()
-        if(keyspaces == null || keyspaces.isEmpty()){
+        if (keyspaces == null || keyspaces.isEmpty()) {
             data.add(emptySimpleKs())
             selectedItem = data[0]
         }
@@ -199,12 +185,13 @@ class KeyspaceComboBox(
         // we have to let components that bind to the model know that the model has been changed
         fireContentsChanged(this, -1, -1)
     }
-    //Put the default keyspaces at the bottom so users don't have to look so far for them
-    fun sort(keyspaces: MutableList<SimpleKeyspace>):MutableList<SimpleKeyspace> =
-        (keyspaces.filter{!isAstraDefault(it.keyspace.name)} + (keyspaces.filter{isAstraDefault(it.keyspace.name)})).toMutableList()
 
-    fun isAstraDefault(keyspaceName: String): Boolean=
-        when(keyspaceName) {
+    // Put the default keyspaces at the bottom so users don't have to look so far for them
+    fun sort(keyspaces: MutableList<SimpleKeyspace>): MutableList<SimpleKeyspace> =
+        (keyspaces.filter { !isAstraDefault(it.keyspace.name) } + (keyspaces.filter { isAstraDefault(it.keyspace.name) })).toMutableList()
+
+    fun isAstraDefault(keyspaceName: String): Boolean =
+        when (keyspaceName) {
             "data_endpoint_auth" -> true
             "datastax_sla" -> true
             "system_traces" -> true
@@ -218,13 +205,13 @@ class CollectionComboBox(var list: MutableList<String>, val activeCollection: St
     ListComboBoxModel<String>(list) {
 
     init {
-        selectedItem=list.first()
+        selectedItem = list.first()
         addListDataListener(object : ListDataListener {
             override fun intervalAdded(listDataEvent: ListDataEvent) {}
             override fun intervalRemoved(listDataEvent: ListDataEvent) {}
             override fun contentsChanged(listDataEvent: ListDataEvent) {
                 if (selectedItem != null) {
-                    //TODO: Underline red if not equal to activeCollection
+                    // TODO: Underline red if not equal to activeCollection
                 }
             }
         })
@@ -232,14 +219,13 @@ class CollectionComboBox(var list: MutableList<String>, val activeCollection: St
 
     fun reload(collections: MutableList<String>) {
         data.clear()
-        if(collections == null || collections.isEmpty()){
+        if (collections == null || collections.isEmpty()) {
             data.add(emptyDoc().name)
             selectedItem = data[0]
-        }
-        else {
+        } else {
             data.addAll(collections)
-            val selIndex = data.indexOfFirst{ it == activeCollection }
-            selectedItem = if(selIndex >= 0){
+            val selIndex = data.indexOfFirst { it == activeCollection }
+            selectedItem = if (selIndex >= 0) {
                 data[selIndex]
             } else {
                 data[0]
@@ -265,9 +251,9 @@ internal class IconListRenderer(icons: Map<Any, Icon>?) :
 
         // Get icon to use for the list item value
         var icon: Icon? = icons!![value]
-        //if (value.toString() != NONE_STR) {
+        // if (value.toString() != NONE_STR) {
         //    icon = icons[INFO_STR]
-        //}
+        // }
 
         // Set icon to display for value
         label.icon = icon
@@ -279,13 +265,13 @@ internal class IconListRenderer(icons: Map<Any, Icon>?) :
     }
 
     init {
-        //this.icons = icons
+        // this.icons = icons
     }
 }
 
 fun emptySimpleDb() = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs()))
 
-fun emptySimpleKs() = SimpleKeyspace( Keyspace("<No Keyspaces>", emptyList()),mutableListOf(emptyDoc()))
+fun emptySimpleKs() = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc()))
 
 fun emptyDoc() = DocCollection("<No Collections>")
 
@@ -294,4 +280,3 @@ data class CBoxSelections(
     var keyspace: String,
     var collection: String,
 )
-

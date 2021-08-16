@@ -67,6 +67,20 @@ fun profileFileModifiedNotification() {
     )
 }
 
+fun generateTokenFailure() {
+    notifyInfo(
+        title = message("credentials.get_token.failed.title"),
+        content = message("credentials.get_token.failed.body"),
+        notificationActions = listOf(
+            createNotificationExpiringAction(GetTokenAction()),
+            createNotificationExpiringAction(
+                ActionManager.getInstance().getAction("credentials.upsert")
+            )
+            // createNotificationExpiringAction(NeverShowAgain()),
+        )
+    )
+}
+
 // TODO: Notify if format of file is wrong
 // TODO: Notify if no tokens matching format
 // TODO: Notify if failed to authenticate

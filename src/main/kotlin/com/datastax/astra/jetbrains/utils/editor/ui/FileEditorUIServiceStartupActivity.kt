@@ -4,7 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 
-//Dont make this dumbaware so it starts after other stuff
+// Dont make this dumbaware so it starts after other stuff
 class FileEditorUIServiceStartupActivity : StartupActivity {
     override fun runActivity(project: Project) {
         if (ApplicationManager.getApplication().isUnitTestMode) {

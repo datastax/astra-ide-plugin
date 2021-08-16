@@ -1,11 +1,13 @@
 package com.datastax.astra.jetbrains.credentials
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.telemetry.ClickTarget
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackAction
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
 import com.datastax.astra.jetbrains.utils.*
+import com.datastax.astra.jetbrains.utils.internal_apis.models.GenerateTokenRequest
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -14,8 +16,6 @@ import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.ui.jcef.JBCefBrowser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefCookieAccessFilter
@@ -97,27 +97,30 @@ class GetTokenAction :
         }
     }
 
-    // TODO: Handle non 200 server response
     suspend fun generateToken(e: AnActionEvent, loginResponse: UserLoginResponse) {
         val response = CredentialsClient.internalOpsApi().getDatabaseAdminToken(
             loginResponse.cookie!!,
-            message("credentials.get_token.graphql").replace("ORGID", loginResponse.orgId!!)
-                .toRequestBody("text/plain".toMediaTypeOrNull())
+            GenerateTokenRequest(loginResponse.orgId!!).graphqlBlob
         )
-        trackAction(message("telemetry.get_token.success"))
+        if (response.isSuccessful && response.body()?.data != null) {
+            trackAction(message("telemetry.get_token.success"))
 
-        response.body()?.data?.generateToken?.token?.let {
-            CreateOrUpdateProfilesFileAction().createWithGenToken(
-                e.getRequiredData(LangDataKeys.PROJECT),
-                it
-            )
-        }
-        ExplorerToolWindow.getInstance(e.project!!).showWaitPanel()
-        // TODO: Instead of waiting here use the "still loading resource" animation then reload when reachable
-        runBlocking {
-            // Once a token is made wait for server's to authorize it then refresh list
-            delay(6500)
-            ActionUtil.performActionDumbAware(ReloadProfilesAction(), e)
+            response.body()?.data?.generateToken?.token?.let {
+                CreateOrUpdateProfilesFileAction().createWithGenToken(
+                    e.getRequiredData(LangDataKeys.PROJECT),
+                    it
+                )
+            }
+            ExplorerToolWindow.getInstance(e.project!!).showWaitPanel()
+            // TODO: Instead of waiting here use the "still loading resource" animation then reload when reachable
+            runBlocking {
+                // Once a token is made wait for server's to authorize it then refresh list
+                delay(6500)
+                ActionUtil.performActionDumbAware(ReloadProfilesAction(), e)
+            }
+        } else {
+            generateTokenFailure()
+            trackAction(message("telemetry.get_token.failed"), mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
         }
     }
 

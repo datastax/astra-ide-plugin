@@ -29,7 +29,6 @@ fun buildBrowser(
         .build()
     windowWrapper.show()
 
-
     // Setting the size after the location seemed to move the window sometimes
     val newPoint = getLocation(windowWrapper.window.location, windowWrapper.window.size, size)
     windowWrapper.window.size = size

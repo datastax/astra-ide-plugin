@@ -1,30 +1,28 @@
 package com.datastax.astra.stargate_document_v2.apis
 
 import com.datastax.astra.stargate_document_v2.infrastructure.CollectionFormats.*
-import retrofit2.http.*
-import retrofit2.Response
-import okhttp3.RequestBody
-
 import com.datastax.astra.stargate_document_v2.models.DocumentResponseWrapper
 import com.datastax.astra.stargate_document_v2.models.InlineResponse200
-import okhttp3.ResponseBody
+import okhttp3.RequestBody
+import retrofit2.Response
+import retrofit2.http.*
 
 interface DocumentsApi {
     /**
      * Add a new document to {collection-id}
-     * 
+     *
      * Responses:
      *  - 201: resource created
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 409: Conflict
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param body document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param body document
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -34,16 +32,16 @@ interface DocumentsApi {
 
     /**
      * Delete a collection
-     * 
+     *
      * Responses:
      *  - 204: resource deleted
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -52,17 +50,17 @@ interface DocumentsApi {
 
     /**
      * Delete a  document
-     * 
+     *
      * Responses:
      *  - 204: resource deleted
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -71,18 +69,18 @@ interface DocumentsApi {
 
     /**
      * Delete a sub document by {document-path}
-     * 
+     *
      * Responses:
      *  - 204: resource deleted
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
-     * @param documentPath a JSON path 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
+     * @param documentPath a JSON path
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -91,16 +89,16 @@ interface DocumentsApi {
 
     /**
      * Get a collection
-     * 
+     *
      * Responses:
-     *  - 200: 
+     *  - 200:
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
      * @param pretty format results (optional)
      * @param raw unwrap results (optional)
      * @return [DocumentResponseWrapper]
@@ -111,19 +109,19 @@ interface DocumentsApi {
 
     /**
      * Get a document by {document-id}
-     * 
+     *
      * Responses:
-     *  - 200: 
+     *  - 200:
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 404: Not Found
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
      * @param pretty format results (optional)
      * @param fields URL escaped, comma delimited list of keys to include (optional)
      * @param raw unwrap results (optional)
@@ -134,20 +132,20 @@ interface DocumentsApi {
 
     /**
      * Get a sub document by {document-path}
-     * 
+     *
      * Responses:
-     *  - 200: 
+     *  - 200:
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 404: Not Found
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
-     * @param documentPath a JSON path 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
+     * @param documentPath a JSON path
      * @param pretty format results (optional)
      * @param fields URL escaped, comma delimited list of keys to include (optional)
      * @param raw unwrap results (optional)
@@ -158,15 +156,15 @@ interface DocumentsApi {
 
     /**
      * List collections in a namespace
-     * 
+     *
      * Responses:
-     *  - 200: 
+     *  - 200:
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
      * @param pretty format results (optional)
      * @param raw unwrap results (optional)
      * @return [InlineResponse200]
@@ -176,19 +174,19 @@ interface DocumentsApi {
 
     /**
      * Replace a document
-     * 
+     *
      * Responses:
      *  - 200: resource updated
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
-     * @param body document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
+     * @param body document
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -198,20 +196,20 @@ interface DocumentsApi {
 
     /**
      * Replace a sub document
-     * 
+     *
      * Responses:
      *  - 201: resource created
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
-     * @param documentPath a JSON path 
-     * @param body document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
+     * @param documentPath a JSON path
+     * @param body document
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -220,17 +218,17 @@ interface DocumentsApi {
 
     /**
      * Search for documents in {collection-id}
-     * 
+     *
      * Responses:
-     *  - 200: 
+     *  - 200:
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
      * @param pretty format results (optional)
      * @param where URL escaped JSON query using the following keys:  | Key | Operation | |-|-| | $lt | Less Than | | $lte | Less Than Or Equal To | | $gt | Greater Than | | $gte | Greater Than Or Equal To | | $ne | Not Equal To | | $in | Contained In | | $exists | A value is set for the key | | $select | This matches a value for a key in the result of a different query | | $dontSelect | Requires that a key’s value not match a value for a key in the result of a different query | | $all | Contains all of the given values | | $regex | Requires that a key’s value match a regular expression | | $text | Performs a full text search on indexed fields |  (optional)
      * @param fields URL escaped, comma delimited list of keys to include (optional)
@@ -245,20 +243,20 @@ interface DocumentsApi {
 
     /**
      * Update part of a document
-     * 
+     *
      * Responses:
      *  - 200: resource updated
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 404: Not Found
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
-     * @param body document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
+     * @param body document
      * @param pretty format results (optional)
      * @return [Unit]
      */
@@ -267,25 +265,24 @@ interface DocumentsApi {
 
     /**
      * Update part of a sub document by {document-path}
-     * 
+     *
      * Responses:
      *  - 200: resource updated
      *  - 400: Invalid input
      *  - 401: Unauthorized
      *  - 404: Not Found
      *  - 500: Internal server error
-     * 
-     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID. 
-     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request. 
-     * @param namespaceId namespace name 
-     * @param collectionId name of the document collection 
-     * @param documentId the id of the document 
-     * @param documentPath a JSON path 
-     * @param body document 
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param documentId the id of the document
+     * @param documentPath a JSON path
+     * @param body document
      * @param pretty format results (optional)
      * @return [Unit]
      */
     @PATCH("api/rest/v2/namespaces/{namespace-id}/collections/{collection-id}/{document-id}/{document-path}")
     suspend fun updatePartOfSubDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Path("document-id") documentId: kotlin.String, @Path("document-path") documentPath: kotlin.String, @Body body: kotlin.Any, @Query("pretty") pretty: kotlin.Boolean? = null): Response<Unit>
-
 }
