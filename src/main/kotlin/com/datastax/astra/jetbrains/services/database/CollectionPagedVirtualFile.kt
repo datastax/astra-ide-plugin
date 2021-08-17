@@ -3,6 +3,9 @@ package com.datastax.astra.jetbrains.services.database
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.PagedVirtualFile
+import com.datastax.astra.jetbrains.utils.editor.VirtualFilePage
+import com.datastax.astra.jetbrains.utils.editor.ui.EndpointInfo
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
@@ -19,12 +22,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import java.util.*
 
-abstract class PagedVirtualFile :
-    LightVirtualFile(){
+class CollectionPagedVirtualFile(var collections: LinkedTreeMap<String, Any>, var endpointInfo: EndpointInfo, var setPageSize: Int = 10) :
+    PagedVirtualFile(endpointInfo.collection,FileTypeManager.getInstance().getFileTypeByExtension("JSON"),setPageSize){
     var jsonDocs = LinkedTreeMap<String, Any>()
-    var pageFiles = mutableListOf<CharSequence>()
-    var pageSize = 5
-    var curPage = 0
 
     val gson = Serializer.gsonBuilder
         .setPrettyPrinting()
@@ -33,45 +33,28 @@ abstract class PagedVirtualFile :
         .create()
 
     init {
-
-
+        buildFilesAndSet()
     }
 
     //TODO: Make this a list of a custom object or something to keep returned values in order
-    fun addData(responseMap: Any) {
+    override fun addData(responseMap: Any) {
         (responseMap as LinkedTreeMap<String, Any>).forEach { jsonDocs.put(it.key,it.value) }
     }
 
-
-    fun buildFilesAndSet(){
+    override fun buildFilesAndSet(){
         var nextMap = LinkedTreeMap<String, Any>()
         var index = 0
-        for (jsonDoc in jsonDocs) {
+        for (jsonDoc in collections) {
             nextMap.put(jsonDoc)
             if(nextMap.size >= pageSize){
-                pageFiles.add(index,
-                        gson.toJson(nextMap)
+                pages.add(index++,
+                        VirtualFilePage(gson.toJson(nextMap),false)
                 )
-
                 nextMap.clear()
             }
 
         }
-        setContent(this,pageFiles[0],true)
+        setContent(this,pages[0].data,true)
     }
 
-    fun nextPage(){
-        pageFiles[curPage++] = content
-        setContent(null, pageFiles[curPage], true)
-    }
-
-}
-
-class JsonDoc (
-    val docId: String,
-    val docJson: String
-    ){
-    override fun toString(): String {
-        return "\"$docId\":$docJson"
-    }
 }

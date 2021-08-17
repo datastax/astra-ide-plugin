@@ -5,7 +5,7 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
-//import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
+import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
 import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
@@ -18,6 +18,7 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.fileEditor.*
 import com.intellij.openapi.project.Project
+
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.JBUI
@@ -49,7 +50,7 @@ class AstraFileEditorUIService(private val project: Project) :
     // -- editor header component --
     private fun insertEditorHeaderComponentIfApplicable(source: FileEditorManager, file: VirtualFile) {
         // use extension and file type to include scratch files and simply identifying relevant files
-        if ((file.extension?.contains("json", true) == true || file is CollectionVirtualFile)) {
+        if ((file.extension?.contains("json", true) == true || file is CollectionPagedVirtualFile)) {
             UIUtil.invokeLaterIfNeeded {
                 // ensure components are created on the swing thread
                 val fileEditor = source.getSelectedEditor(file)
@@ -73,21 +74,20 @@ class AstraFileEditorUIService(private val project: Project) :
 
     private fun createHeaderComponent(fileEditor: FileEditor, editor: Editor, file: VirtualFile): JComponent {
         // If this is a CollectionVirtualFile set the combo boxes to match the file's resources
-        val jsonEditorComboBoxes = if (file is CollectionVirtualFile) {
+        val jsonEditorComboBoxes = if (file is CollectionPagedVirtualFile) {
             val collectionFile = file
             ToolbarComboBoxes(
                 project,
                 databaseList,
-                collectionFile.database.id,
-                collectionFile.keyspaceName,
-                collectionFile.collectionName,
+                collectionFile.endpointInfo
             )
         } else {
             ToolbarComboBoxes(project, databaseList)
         }
         val collectionActions = DefaultActionGroup()
         collectionActions.add(InsertDocumentsAction(editor, jsonEditorComboBoxes))
-        collectionActions.add(NextPageAction(file))
+        //collectionActions.add(PreviousPageAction(file))
+        //collectionActions.add(NextPageAction(file))
 
         // Add upsert documents button
 

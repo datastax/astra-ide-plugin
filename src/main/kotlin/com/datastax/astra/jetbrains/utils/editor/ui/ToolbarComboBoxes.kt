@@ -5,6 +5,7 @@ import com.datastax.astra.devops_v2.models.DatabaseInfo
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
+import com.google.api.Endpoint
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -16,22 +17,22 @@ import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
+val emptyDoc = DocCollection("<No Collections>")
+val emptySimpleKs = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc))
+val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs))
+
 class ToolbarComboBoxes(
     val project: Project,
     var databaseList: List<SimpleDatabase>,
-    var selDatabaseId: String = "",
-    var selKeyspace: String = "",
-    var selCollection: String = "",
+    var initEndpoint: EndpointInfo = EndpointInfo(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE),"",""),
 ) : Disposable, ProfileChangeEventListener {
     // Default instantiation. If all file[Value] given overwrite these below.
     // Ask Garrett if there's a better way to do this.
-    val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs()))
-    val emptySimpleKs = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc()))
-    val emptyDoc = DocCollection("<No Collections>")
 
-    var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), selCollection)
-    var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs), selKeyspace, collectionComboBox)
-    var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb), selDatabaseId, keyspaceComboBox)
+
+    var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), initEndpoint.collection)
+    var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs), initEndpoint.keyspace, collectionComboBox)
+    var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb), initEndpoint.database.id, keyspaceComboBox)
     val wrapComboBoxList: List<ComboBox<Any>> = List(3) { ComboBox(ListComboBoxModel<Any>(emptyList())) }
     // val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
 
@@ -66,13 +67,15 @@ class ToolbarComboBoxes(
     }
 
     fun setSelected() {
-        selDatabaseId = databaseComboBox.selectedItem.database.id
-        selKeyspace = keyspaceComboBox.selectedItem.keyspace.name
-        selCollection = collectionComboBox.selectedItem
+        //TODO: Possibly set the file's endpoint selection as well
+        databaseComboBox.activeDatabaseId = databaseComboBox.selectedItem.database.id
+        keyspaceComboBox.activeKeyspace = keyspaceComboBox.selectedItem.keyspace.name
+        collectionComboBox.activeCollection = collectionComboBox.activeCollection
+
     }
 
-    fun getSelected(): CBoxSelections {
-        return CBoxSelections(
+    fun getSelected(): EndpointInfo {
+        return EndpointInfo(
             databaseComboBox.selectedItem.database,
             keyspaceComboBox.selectedItem.keyspace.name,
             collectionComboBox.selectedItem
@@ -94,13 +97,13 @@ class ToolbarComboBoxes(
     }
 
     override fun clearFileEditorUIResources() {
-        databaseComboBox.reload(mutableListOf(emptySimpleDb()))
+        databaseComboBox.reload(mutableListOf(emptySimpleDb))
     }
 }
 
 class DatabaseComboBox(
     var list: MutableList<SimpleDatabase>,
-    val activeDatabaseId: String,
+    var activeDatabaseId: String,
     val keyspaceComboBox: KeyspaceComboBox,
 ) :
     ListComboBoxModel<SimpleDatabase>(list) {
@@ -127,7 +130,7 @@ class DatabaseComboBox(
         data.clear()
 
         if (databases == null || databases.isEmpty()) {
-            data.add(emptySimpleDb())
+            data.add(emptySimpleDb)
             selectedItem = data[0]
         } else {
             data.addAll(databases)
@@ -146,7 +149,7 @@ class DatabaseComboBox(
 
 class KeyspaceComboBox(
     var list: MutableList<SimpleKeyspace>,
-    val activeKeyspace: String,
+    var activeKeyspace: String,
     val collectionComboBox: CollectionComboBox
 ) :
     ListComboBoxModel<SimpleKeyspace>(list) {
@@ -167,7 +170,7 @@ class KeyspaceComboBox(
     fun reload(keyspaces: MutableList<SimpleKeyspace>) {
         data.clear()
         if (keyspaces == null || keyspaces.isEmpty()) {
-            data.add(emptySimpleKs())
+            data.add(emptySimpleKs)
             selectedItem = data[0]
         }
         else {
@@ -201,7 +204,7 @@ class KeyspaceComboBox(
         }
 }
 
-class CollectionComboBox(var list: MutableList<String>, val activeCollection: String) :
+class CollectionComboBox(var list: MutableList<String>, var activeCollection: String) :
     ListComboBoxModel<String>(list) {
 
     init {
@@ -220,7 +223,7 @@ class CollectionComboBox(var list: MutableList<String>, val activeCollection: St
     fun reload(collections: MutableList<String>) {
         data.clear()
         if (collections == null || collections.isEmpty()) {
-            data.add(emptyDoc().name)
+            data.add(emptyDoc.name)
             selectedItem = data[0]
         } else {
             data.addAll(collections)
@@ -269,13 +272,7 @@ internal class IconListRenderer(icons: Map<Any, Icon>?) :
     }
 }
 
-fun emptySimpleDb() = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs()))
-
-fun emptySimpleKs() = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc()))
-
-fun emptyDoc() = DocCollection("<No Collections>")
-
-data class CBoxSelections(
+data class EndpointInfo(
     var database: Database,
     var keyspace: String,
     var collection: String,

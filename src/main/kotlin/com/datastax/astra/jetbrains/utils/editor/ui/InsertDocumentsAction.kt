@@ -31,40 +31,7 @@ class InsertDocumentsAction(
     val edtContext = getCoroutineUiContext()
 
     override fun update(e: AnActionEvent) {
-<<<<<<< HEAD
-        try {
-            val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue
-            val psiError =
-                PsiTreeUtil.findChildOfType(jsonObject?.containingFile?.originalElement, PsiErrorElement::class.java)
-            e.presentation.isEnabled = false
-            if (psiError != null ||
-                jsonObject is com.intellij.json.psi.impl.JsonStringLiteralImpl
-            ) {
-                e.presentation.text = "Insert Disabled: Invalid JSON Format"
-            } else if (!(jsonObject is JsonArray)) {
-                e.presentation.text = "Insert Disabled: Not Array of JSON Docs"
-            } else if (jsonObject?.containingFile?.modificationStamp == state) {
-                e.presentation.text = "Insert Disabled: File Unmodified"
-            } else if (cBoxes.anyNull()) {
-                e.presentation.text = "Insert Disabled: Endpoint Unselected"
-            } else if ((jsonObject as JsonArray).children.size == 1) {
-                e.presentation.isEnabled = true
-                e.presentation.text = "Insert Document"
-                //e.presentation.icon single document icon
-            } else {
-                e.presentation.isEnabled = true
-                e.presentation.text = "Insert Document(s)"
-                //e.presentation.icon multiple icons
-            }
-        }
-        catch (exception: Exception ){
-            e.presentation.isEnabled = false
-            e.presentation.text = "Insert Documents"
-        }
-=======
         // TODO: Make this cleaner. Possibly throw exceptions for each and then assign the presentation based on exception.
->>>>>>> main
-
         // Put this in a try catch because I had it throw a null point exception
         try {
             val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).allTopLevelValues
@@ -126,7 +93,7 @@ class InsertDocumentsAction(
         }
     }
 
-    suspend fun insertAndWait(docList: List<String>, selected: CBoxSelections): List<Response<Unit>> {
+    suspend fun insertAndWait(docList: List<String>, selected: EndpointInfo): List<Response<Unit>> {
         var responses = runBlocking {
             docList.map { doc ->
                 async {

@@ -261,7 +261,7 @@ class CollectionNode(project: Project, val collection: DocCollection, val keyspa
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick(): Unit = runBlocking {
-        CollectionPagedBrowserPanel(nodeProject, collection, keyspace, database)
+        CollectionBrowserPanel(nodeProject, collection, keyspace, database)
     }
 }
 

@@ -2,6 +2,7 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.icons.AllIcons
 import com.intellij.json.psi.impl.JsonFileImpl
 import com.intellij.openapi.actionSystem.AnAction
@@ -17,8 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class NextPageAction(var file: VirtualFile, text: String = "Next Page"):
-    AnAction(text, null, AllIcons.Actions.ArrowExpand),
+class PreviousPageAction(var file: VirtualFile, text: String = "Previous Page"):
+    AnAction(text, null, AllIcons.Actions.ArrowCollapse),
     CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
 
     override fun update(e: AnActionEvent) {
@@ -33,7 +34,7 @@ class NextPageAction(var file: VirtualFile, text: String = "Next Page"):
             PsiTreeUtil.findChildOfType((psiFile as JsonFileImpl).topLevelValue?.containingFile?.originalElement, PsiErrorElement::class.java)
 
         //Tell the file to change pages
-        (collectionFile as CollectionPagedVirtualFile).nextPage(psiError != null )
+        (collectionFile as CollectionPagedVirtualFile).prevPage(psiError != null )
 
         //Update psi with current file contents
         writeCommandAction(e.project).withName("ChangePage")
