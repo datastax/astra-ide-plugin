@@ -2,8 +2,6 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
-import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.icons.AllIcons
 import com.intellij.json.psi.impl.JsonFileImpl
 import com.intellij.openapi.actionSystem.AnAction
@@ -18,9 +16,8 @@ import com.intellij.ui.UIBundle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 
-class NextPageAction(var file: VirtualFile, text: String = "Next Page"):
+class GoToPageAction(var file: VirtualFile, text: String = "Next Page"):
     AnAction(text, null, AllIcons.Actions.ArrowExpand),
     CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
 
@@ -38,10 +35,12 @@ class NextPageAction(var file: VirtualFile, text: String = "Next Page"):
         //Tell the file to change pages
         (collectionFile as CollectionPagedVirtualFile).nextPage(psiError != null )
 
-        launch {
-            //Update psi with current file contents
-            reloadPsiFile(getCoroutineUiContext(), e.getRequiredData(CommonDataKeys.PROJECT),psiFile, "ChangePageNext")
-        }
+        //Update psi with current file contents
+        writeCommandAction(e.project).withName("ChangePage")
+            .shouldRecordActionForActiveDocument(false)
+            .run<Exception>{
+                psiFile?.manager?.reloadFromDisk(psiFile)
+            }
 
     }
 }

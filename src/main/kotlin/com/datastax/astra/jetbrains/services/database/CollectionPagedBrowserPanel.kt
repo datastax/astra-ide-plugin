@@ -8,24 +8,30 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
 import com.datastax.astra.jetbrains.utils.editor.ui.EndpointInfo
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
-import com.google.gson.internal.LinkedTreeMap
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
+import com.google.gson.internal.LinkedTreeMap
 
 class CollectionPagedBrowserPanel(
     val project: Project,
     val collection: DocCollection,
     val keyspace: com.datastax.astra.stargate_rest_v2.models.Keyspace,
-    val database: Database
-) : CoroutineScope by ApplicationThreadPoolScope("Table"), Disposable {
-
+    val database: Database,
+) : CoroutineScope by ApplicationThreadPoolScope("Collection"), Disposable {
+    val collectionPagedFile = CollectionPagedVirtualFile(EndpointInfo(database, keyspace.name, collection.name))
+    lateinit var openEditor: Editor
     protected val edtContext = getCoroutineUiContext(disposable = this)
+    var prevPageState = ""
+
+
     val gson = Serializer.gsonBuilder
         .setPrettyPrinting()
         .disableHtmlEscaping()
@@ -34,43 +40,82 @@ class CollectionPagedBrowserPanel(
 
     init {
         launch {
-            loadInitialCollectionData()
+            loadFirstCollectionPage()
         }
     }
 
-    private suspend fun loadInitialCollectionData(){
-        val response = AstraClient.documentApiForDatabase(database).getCollection(
+    private suspend fun loadFirstCollectionPage(){
+        val responseData = (loadPage() as? LinkedTreeMap<*, *>).orEmpty()
+
+        //TODO: Revisit the null safety of assigning the editor
+        if ( responseData.isNotEmpty() ) {
+            TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, true)
+            collectionPagedFile.addData(responseData)
+            collectionPagedFile.buildPagesAndSet()
+            withContext(edtContext) {
+                    openEditor = FileEditorManager.getInstance(project).openTextEditor(
+                        OpenFileDescriptor(
+                            project,
+                            collectionPagedFile
+                        ),
+                        true
+                    )!!
+            }
+            loadRemainingPages()
+        }
+        else{
+            TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, false)
+        }
+    }
+
+    fun loadRemainingPages(){
+        //Keep doing this until the previous page state is empty again. Indicating all pages have loaded.
+        launch {
+            while (prevPageState.isNotEmpty()) {
+                collectionPagedFile.addData((loadPage() as? LinkedTreeMap<*, *>).orEmpty())
+            }
+            collectionPagedFile.buildPagesAndSet()
+
+            reloadPsiFile(edtContext,openEditor,"PostLoadRefresh")
+        }
+    }
+
+    private suspend fun loadPage(): Any? {
+        val response = AstraClient.documentApiForDatabase(database).searchDoc(
             randomUUID(),
             AstraClient.accessToken,
             keyspace.name,
             collection.name.orEmpty(),
             null,
             null,
-            "20"
+            pageSize = 5,
+            //If page state is empty send null so query isn't sent.
+            pageState = prevPageState.ifEmpty { null }
+
         )
-        if (response.isSuccessful && response.body()?.data != null) {
 
-
-            TelemetryManager.trackStargateCrud("Collection", collection.name.orEmpty(), CrudEnum.READ, true)
-            withContext(edtContext) {
-
-
-                    var collectionsTree = LinkedTreeMap<String, Any>()
-                    (response.body()?.data as LinkedTreeMap<String, Any>).forEach { collectionsTree.put(it.key,it.value) }
-
-                    FileEditorManager.getInstance(project).openTextEditor(
-                        OpenFileDescriptor(
-                            project,
-                            CollectionPagedVirtualFile( collectionsTree,EndpointInfo(database, keyspace.name, collection.name.orEmpty()))
-                        ),
-                        true
-                    )
-
+        when(response.code()){
+            200 -> {
+                if (response.body()?.data != null) {
+                    prevPageState = response.body()?.pageState.orEmpty()
+                }
+            }
+            400 -> {
+                //TODO:
+                // Telemetry
+                // Notify user: 400 Error and something not scary but useful, "Failed to load a page", etc
+            }
+            401 ->{}
+            //TODO:
+            // Telemetry
+            // Notify user: 401 Error. Not authorized
+            else -> {
+                //TODO:
+                // Telemetry
+                // Notify user: Error Code. Error during retrieval, "Failed to load a page", etc
             }
         }
-        else{
-            TelemetryManager.trackStargateCrud("Collection", collection.name.orEmpty(), CrudEnum.READ, false)
-        }
+        return response.body()?.data
     }
 
     override fun dispose() {}

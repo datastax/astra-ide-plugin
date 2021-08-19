@@ -1,28 +1,14 @@
 package com.datastax.astra.jetbrains.services.database
 
-import com.datastax.astra.devops_v2.models.Database
-import com.datastax.astra.jetbrains.AstraClient
-import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.editor.PagedVirtualFile
 import com.datastax.astra.jetbrains.utils.editor.VirtualFilePage
 import com.datastax.astra.jetbrains.utils.editor.ui.EndpointInfo
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
-import com.datastax.astra.stargate_document_v2.models.DocCollection
-import com.datastax.astra.stargate_rest_v2.models.Keyspace
-import com.datastax.astra.stargate_rest_v2.models.Table
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import com.google.gson.internal.LinkedTreeMap
 import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.testFramework.LightVirtualFile
-import com.intellij.util.castSafelyTo
 import com.jetbrains.rd.util.put
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.withContext
-import java.util.*
 
-class CollectionPagedVirtualFile(var collections: LinkedTreeMap<String, Any>, var endpointInfo: EndpointInfo, var setPageSize: Int = 10) :
+class CollectionPagedVirtualFile(var endpointInfo: EndpointInfo, var setPageSize: Int = 10) :
     PagedVirtualFile(endpointInfo.collection,FileTypeManager.getInstance().getFileTypeByExtension("JSON"),setPageSize){
     var jsonDocs = LinkedTreeMap<String, Any>()
 
@@ -33,27 +19,32 @@ class CollectionPagedVirtualFile(var collections: LinkedTreeMap<String, Any>, va
         .create()
 
     init {
-        buildFilesAndSet()
     }
 
     //TODO: Make this a list of a custom object or something to keep returned values in order
     override fun addData(responseMap: Any) {
-        (responseMap as LinkedTreeMap<String, Any>).forEach { jsonDocs.put(it.key,it.value) }
+        try {
+            (responseMap as LinkedTreeMap<*, *>).forEach { jsonDocs[it.key as String] = it.value }
+        }
+        catch (exception: Exception){
+            //TODO: Ask Garrett what to do about this or if doing it unsafely is actually 'safe'
+        }
     }
 
-    override fun buildFilesAndSet(){
+    override fun buildPagesAndSet(){
         var nextMap = LinkedTreeMap<String, Any>()
-        var index = 0
-        for (jsonDoc in collections) {
+        var pageIndex = 0
+        //Either have to index it, or transform it and then iterate, or add the incomplete page after for loop
+        var loopIndex = 0
+        for (jsonDoc in jsonDocs) {
             nextMap.put(jsonDoc)
-            if(nextMap.size >= pageSize){
-                pages.add(index++,
-                        VirtualFilePage(gson.toJson(nextMap),false)
-                )
+            if(nextMap.size >= pageSize || loopIndex==(jsonDocs.size-1)){
+                pages.add(pageIndex++, VirtualFilePage(gson.toJson(nextMap),false))
                 nextMap.clear()
             }
-
+            loopIndex++
         }
+
         setContent(this,pages[0].data,true)
     }
 

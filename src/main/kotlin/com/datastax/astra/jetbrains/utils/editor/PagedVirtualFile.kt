@@ -12,7 +12,7 @@ abstract class PagedVirtualFile(val fileName: String, val pagedFileType: FileTyp
 
     abstract fun addData(responseMap: Any)
 
-    abstract fun buildFilesAndSet()
+    abstract fun buildPagesAndSet()
 
      fun nextPage(errorOnCurrentPage: Boolean){
         //forward-cycle through pages

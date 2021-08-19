@@ -21,7 +21,7 @@ import java.util.*
 
 class InsertDocumentsAction(
     var editor: Editor,
-    val cBoxes: ToolbarComboBoxes,
+    val cBoxes: EndpointComboBoxes,
     var state: Long = 0L,
     text: String = message("collection.editor.upsert.title"),
 ) :

@@ -6,7 +6,6 @@ import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
 import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
-import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
@@ -76,18 +75,18 @@ class AstraFileEditorUIService(private val project: Project) :
         // If this is a CollectionVirtualFile set the combo boxes to match the file's resources
         val jsonEditorComboBoxes = if (file is CollectionPagedVirtualFile) {
             val collectionFile = file
-            ToolbarComboBoxes(
+            EndpointComboBoxes(
                 project,
                 databaseList,
                 collectionFile.endpointInfo
             )
         } else {
-            ToolbarComboBoxes(project, databaseList)
+            EndpointComboBoxes(project, databaseList)
         }
         val collectionActions = DefaultActionGroup()
         collectionActions.add(InsertDocumentsAction(editor, jsonEditorComboBoxes))
-        //collectionActions.add(PreviousPageAction(file))
-        //collectionActions.add(NextPageAction(file))
+        collectionActions.add(PreviousPageAction(file))
+        collectionActions.add(NextPageAction(file))
 
         // Add upsert documents button
 

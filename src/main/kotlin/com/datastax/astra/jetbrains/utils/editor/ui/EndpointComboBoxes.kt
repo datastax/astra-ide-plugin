@@ -21,7 +21,7 @@ val emptyDoc = DocCollection("<No Collections>")
 val emptySimpleKs = SimpleKeyspace(Keyspace("<No Keyspaces>", emptyList()), mutableListOf(emptyDoc))
 val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), mutableMapOf("<No Keyspaces>" to emptySimpleKs))
 
-class ToolbarComboBoxes(
+class EndpointComboBoxes(
     val project: Project,
     var databaseList: List<SimpleDatabase>,
     var initEndpoint: EndpointInfo = EndpointInfo(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE),"",""),

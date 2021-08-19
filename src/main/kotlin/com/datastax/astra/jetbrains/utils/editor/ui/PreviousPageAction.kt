@@ -2,6 +2,7 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.icons.AllIcons
 import com.intellij.json.psi.impl.JsonFileImpl
@@ -37,11 +38,9 @@ class PreviousPageAction(var file: VirtualFile, text: String = "Previous Page"):
         (collectionFile as CollectionPagedVirtualFile).prevPage(psiError != null )
 
         //Update psi with current file contents
-        writeCommandAction(e.project).withName("ChangePage")
-            .shouldRecordActionForActiveDocument(false)
-            .run<Exception>{
-                psiFile?.manager?.reloadFromDisk(psiFile)
-            }
-
+        launch {
+            //Update psi with current file contents
+            reloadPsiFile(getCoroutineUiContext(), e.getRequiredData(CommonDataKeys.PROJECT),psiFile, "ChangePageNext")
+        }
     }
 }
