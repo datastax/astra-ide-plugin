@@ -32,6 +32,7 @@ class CollectionPagedVirtualFile(var endpointInfo: EndpointInfo, var setPageSize
     }
 
     override fun buildPagesAndSet(){
+        pages.clear()
         var nextMap = LinkedTreeMap<String, Any>()
         var pageIndex = 0
         //Either have to index it, or transform it and then iterate, or add the incomplete page after for loop
@@ -46,6 +47,7 @@ class CollectionPagedVirtualFile(var endpointInfo: EndpointInfo, var setPageSize
         }
 
         setContent(this,pages[0].data,true)
+        updatePageCount()
     }
 
 }

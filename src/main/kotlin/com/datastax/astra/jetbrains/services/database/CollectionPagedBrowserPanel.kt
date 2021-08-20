@@ -40,11 +40,11 @@ class CollectionPagedBrowserPanel(
 
     init {
         launch {
-            loadFirstCollectionPage()
+            loadFirstPage()
         }
     }
 
-    private suspend fun loadFirstCollectionPage(){
+    private suspend fun loadFirstPage(){
         val responseData = (loadPage() as? LinkedTreeMap<*, *>).orEmpty()
 
         //TODO: Revisit the null safety of assigning the editor
@@ -61,6 +61,8 @@ class CollectionPagedBrowserPanel(
                         true
                     )!!
             }
+            //Make file read-only while we load the rest of it
+            collectionPagedFile.isWritable = false
             loadRemainingPages()
         }
         else{
@@ -70,12 +72,13 @@ class CollectionPagedBrowserPanel(
 
     fun loadRemainingPages(){
         //Keep doing this until the previous page state is empty again. Indicating all pages have loaded.
+        //TODO: Add a timeout in case the server keeps sending the same page-state back
         launch {
             while (prevPageState.isNotEmpty()) {
                 collectionPagedFile.addData((loadPage() as? LinkedTreeMap<*, *>).orEmpty())
             }
+            collectionPagedFile.isWritable = true
             collectionPagedFile.buildPagesAndSet()
-
             reloadPsiFile(edtContext,openEditor,"PostLoadRefresh")
         }
     }

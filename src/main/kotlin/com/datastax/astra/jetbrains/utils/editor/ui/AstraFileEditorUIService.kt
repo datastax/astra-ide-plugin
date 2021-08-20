@@ -20,11 +20,11 @@ import com.intellij.openapi.project.Project
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotifications
+import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.*
-import java.awt.BorderLayout
-import java.awt.GridLayout
+import java.awt.FlowLayout
 import java.util.UUID.randomUUID
 import javax.swing.*
 
@@ -73,40 +73,38 @@ class AstraFileEditorUIService(private val project: Project) :
 
     private fun createHeaderComponent(fileEditor: FileEditor, editor: Editor, file: VirtualFile): JComponent {
         // If this is a CollectionVirtualFile set the combo boxes to match the file's resources
-        val jsonEditorComboBoxes = if (file is CollectionPagedVirtualFile) {
-            val collectionFile = file
+        val endpointComboBoxes = if (file is CollectionPagedVirtualFile) {
             EndpointComboBoxes(
                 project,
                 databaseList,
-                collectionFile.endpointInfo
+                file.endpointInfo
             )
         } else {
             EndpointComboBoxes(project, databaseList)
         }
-        val collectionActions = DefaultActionGroup()
-        collectionActions.add(InsertDocumentsAction(editor, jsonEditorComboBoxes))
-        collectionActions.add(PreviousPageAction(file))
-        collectionActions.add(NextPageAction(file))
+        val toolbarActions = DefaultActionGroup(InsertDocumentsAction(editor, endpointComboBoxes))
 
         // Add upsert documents button
 
         val headerComponent = AstraEditorHeaderComponent()
-        val upsertToolbar = createToolbar(collectionActions, headerComponent)
-        val innerPanel = JPanel(GridLayout()).add(upsertToolbar, 0)
-        headerComponent.add(jsonEditorComboBoxes.getPanel(), BorderLayout.WEST)
-        headerComponent.add(innerPanel, BorderLayout.CENTER)
+        headerComponent.layout = FlowLayout(FlowLayout.LEFT,1,0)
+        val upsertToolbar = createToolbar(toolbarActions, headerComponent)
+        headerComponent.add(endpointComboBoxes.getPanel())
+        headerComponent.add(upsertToolbar)
+
+        if (file is CollectionPagedVirtualFile){
+            toolbarActions.addSeparator()
+            toolbarActions.add(PreviousPageAction(file))
+            headerComponent.add(
+                PageControlToolbar(project,file,headerComponent).getPanel()
+            )
+        }
+
 
         return headerComponent
     }
 
-    private fun createToolbar(actionGroup: ActionGroup, parent: JComponent): JComponent {
-        val toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, actionGroup, true)
-        toolbar.setReservePlaceAutoPopupIcon(false) // don't want space after the last button
-        toolbar.setTargetComponent(parent)
-        val component = toolbar.component
-        component.border = BorderFactory.createMatteBorder(0, 0, 0, 2, JBUI.CurrentTheme.ToolWindow.headerBackground())
-        return component
-    }
+
 
     // Build or rebuild database list
     fun indexCollections(cList: List<DocCollection>?, keyspace: Keyspace, database: Database) {
@@ -196,6 +194,15 @@ class AstraFileEditorUIService(private val project: Project) :
     fun endpoints(): MutableList<SimpleDatabase> {
         return databaseList
     }
+}
+
+fun createToolbar(actionGroup: ActionGroup, parent: JComponent, leftSpace: Int = 0, rightSpace: Int = 0): JComponent {
+    val toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, actionGroup, true)
+    toolbar.setReservePlaceAutoPopupIcon(false) // don't want space after the last button
+    toolbar.setTargetComponent(parent)
+    val component = toolbar.component
+    component.border = BorderFactory.createMatteBorder(0, leftSpace, 0, rightSpace, JBUI.CurrentTheme.ToolWindow.headerBackground())
+    return component
 }
 
 // TODO: Refactor this as a hash map of collections with a keyspace and database

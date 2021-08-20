@@ -26,9 +26,6 @@ class EndpointComboBoxes(
     var databaseList: List<SimpleDatabase>,
     var initEndpoint: EndpointInfo = EndpointInfo(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE),"",""),
 ) : Disposable, ProfileChangeEventListener {
-    // Default instantiation. If all file[Value] given overwrite these below.
-    // Ask Garrett if there's a better way to do this.
-
 
     var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), initEndpoint.collection)
     var keyspaceComboBox = KeyspaceComboBox(mutableListOf(emptySimpleKs), initEndpoint.keyspace, collectionComboBox)
