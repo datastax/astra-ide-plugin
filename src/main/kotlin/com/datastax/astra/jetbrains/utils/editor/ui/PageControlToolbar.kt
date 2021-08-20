@@ -7,26 +7,32 @@ import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.icons.AllIcons
 import com.intellij.json.psi.impl.JsonFileImpl
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.ui.border.CustomLineBorder
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.awt.Dimension
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import org.apache.commons.lang3.math.NumberUtils.toInt
+import org.apache.tools.ant.taskdefs.Execute.launch
 import java.awt.FlowLayout
-import java.awt.GridLayout
-import javax.swing.*
-import javax.swing.border.MatteBorder
+import java.awt.event.ActionEvent
+import javax.swing.AbstractAction
+import javax.swing.Action
+import javax.swing.BorderFactory
+import javax.swing.JPanel
+
 
 class PageControlToolbar(
     val project: Project,
@@ -35,13 +41,31 @@ class PageControlToolbar(
 ){
     val pageField = JBTextField("1",2)
     val pageCountLabel = JBLabel("of 1")
-
+    val pageSearchField = JBTextArea("1")
+    val edtContext = getCoroutineUiContext()
     init {
-        pageField.border = BorderFactory.createEmptyBorder(0,-1,0,0)
-        file.setRemoteLabels(pageField,pageCountLabel)
+        //pageField.border = BorderFactory.createEmptyBorder(0,0,0,0)
+        file.setRemoteLabels(pageField, pageCountLabel)
+        runBlocking {
+            withContext(edtContext) {
+                pageField.isEnabled = true
+                pageField.isEditable = true
+                pageField.isFocusable = true
+            }
+        }
     }
 
+    var action: Action = object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+            println("some action")
+        }
+    }
+
+
+
     fun getPanel(): JPanel {
+        pageField.addActionListener(action)
+
         //Add the previous page action to the other toolbar section to more easily add separator
         val nextPageActionComponent = createToolbar(DefaultActionGroup(NextPageAction(file)),parentHeader,1,0)
 
@@ -61,13 +85,6 @@ class PageControlToolbar(
         //TODO: Add page size ComboBox
 
         return panel
-    }
-}
-
-class BlankAction():
-    DumbAwareAction("", null, null){
-
-    override fun actionPerformed(e: AnActionEvent) {
     }
 }
 
