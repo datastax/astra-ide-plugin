@@ -49,7 +49,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-scalars:$retrofitVersion")
 
     // Retrofit Gson Conversion
-    implementation("com.google.code.gson:gson:2.8.6")
+    implementation("com.google.code.gson:gson:2.8.8")
     implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 
     // Retrofit Moshi Conversion
