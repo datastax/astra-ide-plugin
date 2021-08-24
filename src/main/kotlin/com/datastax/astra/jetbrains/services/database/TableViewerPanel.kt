@@ -2,40 +2,40 @@ package com.datastax.astra.jetbrains.services.database
 
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.telemetry.CrudEnum
+import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
+import com.datastax.astra.jetbrains.utils.editor.ui.EndpointTable
 import com.datastax.astra.stargate_rest_v2.models.Table
+import com.google.gson.internal.LinkedTreeMap
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.impl.coroutineDispatchingContext
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.TableSpeedSearch
-import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.swing.JComponent
-import javax.swing.JTable
+import java.util.*
 import javax.swing.SortOrder
 
 class TableViewerPanel(
-    disposable: Disposable,
     val project: Project,
-    val table: Table,
-    val database: Database
+    val endpointTable: EndpointTable,
 ) : CoroutineScope by ApplicationThreadPoolScope("Table"), Disposable {
-    val component: JComponent
-    val tableView: TableView<*>
-
+    lateinit var tableVirtualFile: TablePagedVirtualFile
     protected val edtContext = getCoroutineUiContext(disposable = this)
+    var prevPageState = ""
 
     init {
 
         val model = ListTableModel(
-            table.columnDefinitions?.map {
+            endpointTable.table.columnDefinitions?.map {
                 // TODO: Map each TypeDefinition to the appropriate column info
                 AstraColumnInfo(it.name)
             }.orEmpty().toTypedArray(),
@@ -43,47 +43,85 @@ class TableViewerPanel(
             -1,
             SortOrder.UNSORTED
         )
-
-        tableView = TableView<Map<String, String>>(model).apply {
-            autoscrolls = true
-            autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS
-            cellSelectionEnabled = true
-            setPaintBusy(true)
-        }
-
-        TableSpeedSearch(tableView)
-
-        component = ScrollPaneFactory.createScrollPane(tableView)
         launch {
-            loadInitialTableData()
+        tableVirtualFile = TablePagedVirtualFile(endpointTable,model)
+            loadFirstPage()
         }
     }
 
-    private suspend fun loadInitialTableData() {
-        try {
-            withContext(edtContext) {
-                tableView.setPaintBusy(true)
+    private suspend fun loadFirstPage(){
+            val responseData = (loadPage() as? ArrayList<*>).orEmpty()
+
+            //TODO: Revisit the null safety of assigning the editor
+            if (responseData.isNotEmpty()) {
+                tableVirtualFile.addData(responseData)
+                tableVirtualFile.buildPagesAndSet()
+
+                //Make file read-only while we load the rest of it
+                withContext(edtContext) {
+                    FileEditorManager.getInstance(project).openTextEditor(
+                        OpenFileDescriptor(
+                            project,
+                            tableVirtualFile
+                        ),
+                        false
+                    )
+                    //Use isFocusable as a flag to disable change table buttons,
+                    //Also makes it impossible to click table while the rest of it loads.
+                    tableVirtualFile.tableView.isFocusable = false
+                    tableVirtualFile.tableView.setPaintBusy(true)
+                    loadRemainingPages()
+                }
+
+            } else {
+                //TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, false)
             }
-            val response = AstraClient.dataApiForDatabase(database).getRows(
-                AstraClient.accessToken,
-                table.keyspace.orEmpty(),
-                table.name.orEmpty(),
-                "rows" // table?.primaryKey?.partitionKey?.joinToString("/").orEmpty()
-            )
-            if (response.isSuccessful) {
-                val rows = response.body()?.data
-                if (rows != null) {
-                    withContext(edtContext) {
-                        tableView.listTableModel.items = rows
-                    }
+    }
+
+
+    fun loadRemainingPages(){
+        //Keep doing this until the previous page state is empty again. Indicating all pages have loaded.
+        //TODO: Add a timeout in case the server keeps sending the same page-state back
+        launch {
+            while (prevPageState.isNotEmpty()) {
+                tableVirtualFile.addData((loadPage() as? ArrayList<*>).orEmpty())
+            }
+            tableVirtualFile.buildPagesAndSet()
+        }
+    }
+
+    private suspend fun loadPage(): Any? {
+        val response = AstraClient.dataApiForDatabase(endpointTable.database).searchTable(
+            AstraClient.accessToken,
+            endpointTable.table.keyspace.orEmpty(),
+            endpointTable.table.name.orEmpty(),
+            pageState = prevPageState.ifEmpty { null },
+            where = "{}" // table?.primaryKey?.partitionKey?.joinToString("/").orEmpty()
+
+        )
+
+        when(response.code()){
+            200 -> {
+                if (response.body()?.data != null) {
+                    prevPageState = response.body()?.pageState.orEmpty()
                 }
             }
-        } finally {
-            withContext(edtContext) {
-                tableView.tableViewModel.fireTableDataChanged()
-                tableView.setPaintBusy(false)
+            400 -> {
+                //TODO:
+                // Telemetry
+                // Notify user: 400 Error and something not scary but useful, "Failed to load a page", etc
+            }
+            401 ->{}
+            //TODO:
+            // Telemetry
+            // Notify user: 401 Error. Not authorized
+            else -> {
+                //TODO:
+                // Telemetry
+                // Notify user: Error Code. Error during retrieval, "Failed to load a page", etc
             }
         }
+        return response.body()?.data
     }
 
     override fun dispose() {}

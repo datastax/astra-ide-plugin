@@ -6,13 +6,14 @@ import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
 import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
+import com.datastax.astra.jetbrains.services.database.TablePagedVirtualFile
+import com.datastax.astra.jetbrains.services.database.TableViewerEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.components.ServiceManager
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.fileEditor.*
@@ -20,7 +21,6 @@ import com.intellij.openapi.project.Project
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.*
@@ -49,7 +49,7 @@ class AstraFileEditorUIService(private val project: Project) :
     // -- editor header component --
     private fun insertEditorHeaderComponentIfApplicable(source: FileEditorManager, file: VirtualFile) {
         // use extension and file type to include scratch files and simply identifying relevant files
-        if ((file.extension?.contains("json", true) == true || file is CollectionPagedVirtualFile)) {
+        if ((file.extension?.contains("json", true) == true || file is CollectionPagedVirtualFile || file is TablePagedVirtualFile)) {
             UIUtil.invokeLaterIfNeeded {
                 // ensure components are created on the swing thread
                 val fileEditor = source.getSelectedEditor(file)
@@ -59,11 +59,24 @@ class AstraFileEditorUIService(private val project: Project) :
                     if (editor.headerComponent is AstraEditorHeaderComponent) {
                         return@invokeLaterIfNeeded
                     }
-                    val headerComponent = createHeaderComponent(fileEditor, editor, file)
+                    val headerComponent = createHeaderComponent(fileEditor, file)
                     editor.headerComponent = headerComponent
                     if (editor is EditorEx) {
                         editor.permanentHeaderComponent = headerComponent
                     }
+                }
+                else if (fileEditor is TableViewerEditor){
+
+                    val editor =
+                        fileEditor
+                    if (editor.myHeaderPanel.isEnabled) {
+                        return@invokeLaterIfNeeded
+                    }
+                    val headerComponent = createHeaderComponent(fileEditor, file)
+                    launch {
+                        editor.setHeaderComponent(headerComponent)
+                    }
+
                 }
             }
         }
@@ -71,7 +84,7 @@ class AstraFileEditorUIService(private val project: Project) :
 
     private class AstraEditorHeaderComponent : EditorHeaderComponent()
 
-    private fun createHeaderComponent(fileEditor: FileEditor, editor: Editor, file: VirtualFile): JComponent {
+    private fun createHeaderComponent(fileEditor: FileEditor, file: VirtualFile): JComponent {
         // If this is a CollectionVirtualFile set the combo boxes to match the file's resources
         val endpointComboBoxes = if (file is CollectionPagedVirtualFile) {
             EndpointComboBoxes(
@@ -82,7 +95,7 @@ class AstraFileEditorUIService(private val project: Project) :
         } else {
             EndpointComboBoxes(project, databaseList)
         }
-        val toolbarActions = DefaultActionGroup(InsertDocumentsAction(editor, endpointComboBoxes))
+        val toolbarActions = DefaultActionGroup(InsertDocumentsAction(endpointComboBoxes))
 
         // Add upsert documents button
 
@@ -94,9 +107,14 @@ class AstraFileEditorUIService(private val project: Project) :
 
         if (file is CollectionPagedVirtualFile){
             toolbarActions.addSeparator()
-            toolbarActions.add(PreviousPageAction(file))
-            headerComponent.add(
-                PageControlToolbar(project,file,headerComponent).getPanel()
+            toolbarActions.add(
+                PageControlToolbarActions(project,file,headerComponent).getActions()
+            )
+        }
+        if (file is TablePagedVirtualFile){
+            toolbarActions.addSeparator()
+            toolbarActions.add(
+                PageControlToolbarActions(project,file,headerComponent).getActions()
             )
         }
 

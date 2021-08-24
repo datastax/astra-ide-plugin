@@ -5,7 +5,7 @@ import com.datastax.astra.devops_v2.models.DatabaseInfo
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
-import com.google.api.Endpoint
+import com.datastax.astra.stargate_rest_v2.models.Table
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -24,7 +24,7 @@ val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databa
 class EndpointComboBoxes(
     val project: Project,
     var databaseList: List<SimpleDatabase>,
-    var initEndpoint: EndpointInfo = EndpointInfo(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE),"",""),
+    var initEndpoint: EndpointCollection = EndpointCollection(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE),"",""),
 ) : Disposable, ProfileChangeEventListener {
 
     var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), initEndpoint.collection)
@@ -71,8 +71,8 @@ class EndpointComboBoxes(
 
     }
 
-    fun getSelected(): EndpointInfo {
-        return EndpointInfo(
+    fun getSelected(): EndpointCollection {
+        return EndpointCollection(
             databaseComboBox.selectedItem.database,
             keyspaceComboBox.selectedItem.keyspace.name,
             collectionComboBox.selectedItem
@@ -269,8 +269,20 @@ internal class IconListRenderer(icons: Map<Any, Icon>?) :
     }
 }
 
-data class EndpointInfo(
-    var database: Database,
-    var keyspace: String,
-    var collection: String,
+data class EndpointCollection(
+    val database: Database,
+    val keyspace: String,
+    val collection: String,
+): Endpoint(database,keyspace,collection)
+
+data class EndpointTable(
+    val database: Database,
+    val keyspace: String,
+    var table: Table,
+): Endpoint(database,keyspace,table)
+
+abstract class Endpoint(
+    database: Database,
+    keyspace: String,
+    tableOrCollection: Any
 )

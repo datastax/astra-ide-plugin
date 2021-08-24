@@ -1,6 +1,7 @@
 package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
+import com.datastax.astra.jetbrains.services.database.TablePagedVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.editor.PagedVirtualFile
 import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
@@ -34,9 +35,9 @@ import javax.swing.BorderFactory
 import javax.swing.JPanel
 
 
-class PageControlToolbar(
+class PageControlToolbarActions(
     val project: Project,
-    val file: PagedVirtualFile,
+    val file: VirtualFile,
     val parentHeader: EditorHeaderComponent
 ){
     val pageField = JBTextField("1",2)
@@ -45,47 +46,48 @@ class PageControlToolbar(
     val edtContext = getCoroutineUiContext()
     init {
         //pageField.border = BorderFactory.createEmptyBorder(0,0,0,0)
-        file.setRemoteLabels(pageField, pageCountLabel)
-        runBlocking {
-            withContext(edtContext) {
-                pageField.isEnabled = true
-                pageField.isEditable = true
-                pageField.isFocusable = true
+        //file.setRemoteLabels(pageField, pageCountLabel)
+    }
+
+    fun getActions(): DefaultActionGroup =
+        when (file) {
+            is CollectionPagedVirtualFile -> {
+                DefaultActionGroup(
+                    PreviousPageAction(file),
+                    PageSelectorComboBoxAction(project,file),
+                    NextPageAction(file),
+                )
+            }
+            is TablePagedVirtualFile -> {
+                DefaultActionGroup(
+                    PreviousTableAction(file),
+                    PageSelectorComboBoxAction(project,file),
+                    NextTableAction(file),
+                )
+            }
+            else -> {
+                DefaultActionGroup()
             }
         }
-    }
-
-    var action: Action = object : AbstractAction() {
-        override fun actionPerformed(e: ActionEvent) {
-            println("some action")
-        }
-    }
-
-
-
-    fun getPanel(): JPanel {
-        pageField.addActionListener(action)
-
-        //Add the previous page action to the other toolbar section to more easily add separator
-        val nextPageActionComponent = createToolbar(DefaultActionGroup(NextPageAction(file)),parentHeader,1,0)
+        val nextPageAction = createToolbar(DefaultActionGroup(NextPageAction(file)),parentHeader,0,0)
 
         //pageControlActions.add(ChangePageActionField(file,newPageNumber,::updatePageNumber))
         //pageControlActions.add(ChangePageActionField(file,newPageNumber,::updatePageNumber))
         //pageControlActions.add(ChangeRowsActionBox(file))
-        val panel = JPanel(FlowLayout(FlowLayout.LEFT,2,0))
+        //val panel = JPanel(FlowLayout(FlowLayout.LEFT,2,0))
         //Disabled because it didn't seem to add anything and made things more busy
         //panel.add(JBLabel("Pg"))
-        panel.add(pageField)
-        panel.add(pageCountLabel)
-        panel.add(nextPageActionComponent)
+        //panel.add(pageField)
+        //panel.add(pageCountLabel)
+        //panel.add(nextPageAction)
 
 
         //TODO: Add page selection
         //TODO: Add right button
         //TODO: Add page size ComboBox
 
-        return panel
-    }
+        //return panel
+
 }
 
 class PreviousPageAction(val file: VirtualFile):
@@ -131,26 +133,42 @@ class NextPageAction(val file: VirtualFile):
     }
 }
 
-class ChangePageAction(val file: VirtualFile, val pageNumber: Int):
-    AnAction("Page Number", null, AllIcons.Actions.ArrowExpand),
+class PreviousTableAction(val file: VirtualFile):
+    AnAction("Previous Page", null, AllIcons.Actions.ArrowCollapse),
     CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
 
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = file is CollectionPagedVirtualFile
+        if(!(file as TablePagedVirtualFile).tableView.isFocusable){
+            e.presentation.isEnabled = false
+        }
+    }
+
+    //TODO: Ask Garret about how to detect errors on a table
+    override fun actionPerformed(e: AnActionEvent) {
+        //Gather information about the paged file
+
+        //Tell the file to change pages
+        launch {
+            (e.getData(CommonDataKeys.VIRTUAL_FILE) as TablePagedVirtualFile).prevPage(false)
+        }
+    }
+}
+
+class NextTableAction(val file: VirtualFile):
+    AnAction("Next Page", null, AllIcons.Actions.ArrowExpand),
+    CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+
+    override fun update(e: AnActionEvent) {
+        if(!(file as TablePagedVirtualFile).tableView.isFocusable){
+            e.presentation.isEnabled = false
+        }
+
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        val collectionFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
-        val psiFile = e.getData(CommonDataKeys.PSI_FILE)
-        (collectionFile as CollectionPagedVirtualFile).setPage(
-            PsiTreeUtil.findChildOfType(
-                (psiFile as JsonFileImpl).topLevelValue?.containingFile?.originalElement,
-                PsiErrorElement::class.java
-            ) != null, pageNumber
-        )
-
+        //Tell the file to change pages
         launch {
-            reloadPsiFile(getCoroutineUiContext(), e.getRequiredData(CommonDataKeys.PROJECT), psiFile, "ChangePageNext")
+            (e.getData(CommonDataKeys.VIRTUAL_FILE) as TablePagedVirtualFile).nextPage(false)
         }
     }
 }

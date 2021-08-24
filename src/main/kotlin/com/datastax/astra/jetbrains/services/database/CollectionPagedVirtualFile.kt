@@ -2,13 +2,13 @@ package com.datastax.astra.jetbrains.services.database
 
 import com.datastax.astra.jetbrains.utils.editor.PagedVirtualFile
 import com.datastax.astra.jetbrains.utils.editor.VirtualFilePage
-import com.datastax.astra.jetbrains.utils.editor.ui.EndpointInfo
+import com.datastax.astra.jetbrains.utils.editor.ui.EndpointCollection
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
 import com.google.gson.internal.LinkedTreeMap
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.jetbrains.rd.util.put
 
-class CollectionPagedVirtualFile(var endpointInfo: EndpointInfo, var setPageSize: Int = 10) :
+class CollectionPagedVirtualFile(var endpointInfo: EndpointCollection, var setPageSize: Int = 10) :
     PagedVirtualFile(endpointInfo.collection,FileTypeManager.getInstance().getFileTypeByExtension("JSON"),setPageSize){
     var jsonDocs = LinkedTreeMap<String, Any>()
 

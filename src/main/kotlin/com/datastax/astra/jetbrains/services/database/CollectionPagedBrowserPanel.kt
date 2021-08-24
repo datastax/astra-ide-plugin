@@ -9,7 +9,7 @@ import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
-import com.datastax.astra.jetbrains.utils.editor.ui.EndpointInfo
+import com.datastax.astra.jetbrains.utils.editor.ui.EndpointCollection
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
@@ -26,7 +26,7 @@ class CollectionPagedBrowserPanel(
     val keyspace: com.datastax.astra.stargate_rest_v2.models.Keyspace,
     val database: Database,
 ) : CoroutineScope by ApplicationThreadPoolScope("Collection"), Disposable {
-    val collectionPagedFile = CollectionPagedVirtualFile(EndpointInfo(database, keyspace.name, collection.name))
+    val collectionPagedFile = CollectionPagedVirtualFile(EndpointCollection(database, keyspace.name, collection.name))
     lateinit var openEditor: Editor
     protected val edtContext = getCoroutineUiContext(disposable = this)
     var prevPageState = ""

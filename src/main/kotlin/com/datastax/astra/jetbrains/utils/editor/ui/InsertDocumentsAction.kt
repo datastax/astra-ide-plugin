@@ -10,7 +10,6 @@ import com.intellij.json.psi.impl.JsonFileImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
 import kotlinx.coroutines.*
@@ -20,7 +19,6 @@ import retrofit2.Response
 import java.util.*
 
 class InsertDocumentsAction(
-    var editor: Editor,
     val cBoxes: EndpointComboBoxes,
     var state: Long = 0L,
     text: String = message("collection.editor.upsert.title"),
@@ -93,7 +91,7 @@ class InsertDocumentsAction(
         }
     }
 
-    suspend fun insertAndWait(docList: List<String>, selected: EndpointInfo): List<Response<Unit>> {
+    suspend fun insertAndWait(docList: List<String>, selected: EndpointCollection): List<Response<Unit>> {
         var responses = runBlocking {
             docList.map { doc ->
                 async {

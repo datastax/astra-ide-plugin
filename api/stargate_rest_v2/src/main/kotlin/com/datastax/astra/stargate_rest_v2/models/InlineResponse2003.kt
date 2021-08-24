@@ -23,5 +23,8 @@ data class InlineResponse2003(
     @SerializedName("data")
     val data: kotlin.collections.List<kotlin.collections.Map<kotlin.String, kotlin.String>>? = null,
     @SerializedName("count")
-    val count: kotlin.Int? = null
+    val count: kotlin.Int? = null,
+    /* A string representing the paging state to be used on future paging requests. */
+    @SerializedName("pageState")
+    val pageState: kotlin.String? = null,
 )
