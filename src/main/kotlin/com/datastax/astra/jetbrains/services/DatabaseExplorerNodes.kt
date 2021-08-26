@@ -229,7 +229,7 @@ class TableNode(project: Project, val table: Table, val database: Database) :
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick() {
-        TableViewerPanel(nodeProject, EndpointTable(database,table))
+        TableViewerPanel(nodeProject, EndpointTable(database, table))
     }
 }
 
@@ -244,6 +244,7 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
         ExplorerEmptyNode(nodeProject, message("astra.no_collections_in_keyspace"))
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
+
     // If upgrade is available then it's not really a document.
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
         cached(Pair(database, keyspace), loader = fetchCollections)?.filter { it.upgradeAvailable == false }?.map {

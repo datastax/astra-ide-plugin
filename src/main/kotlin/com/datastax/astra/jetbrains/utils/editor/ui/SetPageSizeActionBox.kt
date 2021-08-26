@@ -16,40 +16,39 @@ import javax.swing.JComponent
 private class SetPageSizeActionGroup(project: Project, val file: PagedVirtualFile) : ComputableActionGroup(), DumbAware {
 
     override fun createChildrenProvider(actionManager: ActionManager?): CachedValueProvider<Array<AnAction>> = CachedValueProvider {
-        val collectionPageSizeOptions = intArrayOf(1,5,10,20,50)
-        val tablePageSizeOptions = intArrayOf(10,20,50,100,200)
+        val collectionPageSizeOptions = intArrayOf(1, 5, 10, 20, 50)
+        val tablePageSizeOptions = intArrayOf(10, 20, 50, 100, 200)
         val actions = mutableListOf<AnAction>()
-        //Can check this inside the for loop but that would check the file type each loop
+        // Can check this inside the for loop but that would check the file type each loop
         actions.add(Separator.create("Page Size"))
         when (file) {
             is CollectionVirtualFile -> {
-                for(pageSize in collectionPageSizeOptions){
-                    actions.add(SetPageSizeAction(file,pageSize))
+                for (pageSize in collectionPageSizeOptions) {
+                    actions.add(SetPageSizeAction(file, pageSize))
                 }
             }
             is TableVirtualFile -> {
-                for(pageSize in tablePageSizeOptions){
-                    actions.add(SetPageSizeAction(file,pageSize))
+                for (pageSize in tablePageSizeOptions) {
+                    actions.add(SetPageSizeAction(file, pageSize))
                 }
             }
         }
         actions.add(SetPageSizeAllAction(file))
-        CachedValueProvider.Result.create(actions.toTypedArray(),file)
-
+        CachedValueProvider.Result.create(actions.toTypedArray(), file)
     }
 }
 
-internal class SetPageSizeAction(val file: PagedVirtualFile, val pageSize: Int):
+internal class SetPageSizeAction(val file: PagedVirtualFile, val pageSize: Int) :
     ToggleAction("$pageSize"),
     DumbAware {
-        override fun isSelected(e: AnActionEvent): Boolean = file.pageSize == pageSize
+    override fun isSelected(e: AnActionEvent): Boolean = file.pageSize == pageSize
 
-        override fun setSelected(e: AnActionEvent, state: Boolean) {
-            file.setVirtualPageSize(pageSize)
-        }
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+        file.setVirtualPageSize(pageSize)
     }
+}
 
-internal class SetPageSizeAllAction(val file: PagedVirtualFile):
+internal class SetPageSizeAllAction(val file: PagedVirtualFile) :
     ToggleAction("All"),
     CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService"),
     DumbAware {
@@ -71,16 +70,14 @@ class SetPageSizeComboBoxAction(
 
     override fun update(e: AnActionEvent) {
         val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
-        if(virtualFile is PagedVirtualFile){
-            if(virtualFile.isLocked()) {
+        if (virtualFile is PagedVirtualFile) {
+            if (virtualFile.isLocked()) {
                 loadingPresentation(e.presentation)
-            }
-            else{
+            } else {
                 e.presentation.isEnabled = true
                 updatePresentation(e.presentation)
             }
-        }
-        else{
+        } else {
             e.presentation.isEnabled = false
         }
     }
@@ -92,38 +89,36 @@ class SetPageSizeComboBoxAction(
     }
 
     override fun createPopupActionGroup(button: JComponent?): DefaultActionGroup {
-        return DefaultActionGroup(SetPageSizeActionGroup(project,virtualFile))
+        return DefaultActionGroup(SetPageSizeActionGroup(project, virtualFile))
     }
 
-    private fun loadingPresentation(presentation: Presentation){
+    private fun loadingPresentation(presentation: Presentation) {
         presentation.isEnabled = false
         presentation.description = "Loading pages..."
     }
 
     private fun updatePresentation(presentation: Presentation) {
-            when(virtualFile){
-                is CollectionVirtualFile -> {
-                    presentation.text = if(virtualFile.pageSize > 1){
-                        "${virtualFile.pageSize} docs"
-                    } else {
-                        "${virtualFile.pageSize} doc"
-                    }
-                    presentation.description = "Page Size: ${presentation.text}"
+        when (virtualFile) {
+            is CollectionVirtualFile -> {
+                presentation.text = if (virtualFile.pageSize > 1) {
+                    "${virtualFile.pageSize} docs"
+                } else {
+                    "${virtualFile.pageSize} doc"
                 }
-                is TableVirtualFile -> {
-                    presentation.text = if(virtualFile.pageSize > 1){
-                        "${virtualFile.pageSize} rows"
-                    } else {
-                        "${virtualFile.pageSize} row"
-                    }
-                    presentation.description = "Page Size: ${presentation.text}"
+                presentation.description = "Page Size: ${presentation.text}"
+            }
+            is TableVirtualFile -> {
+                presentation.text = if (virtualFile.pageSize > 1) {
+                    "${virtualFile.pageSize} rows"
+                } else {
+                    "${virtualFile.pageSize} row"
                 }
-                else -> {
-                    ""
-                }
+                presentation.description = "Page Size: ${presentation.text}"
+            }
+            else -> {
+                ""
+            }
         }
-        //TODO: Ask if there's something better to set as the description?
-
+        // TODO: Ask if there's something better to set as the description?
     }
 }
-

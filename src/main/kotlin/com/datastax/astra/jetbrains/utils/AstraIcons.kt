@@ -6,7 +6,6 @@ class AstraIcons {
 
     object UI {
         val InsertDoc = IconLoader.getIcon("/icons/insert.svg", AstraIcons::class.java)
-
     }
     object IntelliJ {
         val Dbms = IconLoader.getIcon("/icons/dbms.svg", AstraIcons::class.java)

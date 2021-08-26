@@ -15,16 +15,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSize: Int = 5) :
-    PagedVirtualFile(endpointInfo.collection,
+    PagedVirtualFile(
+        endpointInfo.collection,
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
-        setPageSize){
+        setPageSize
+    ) {
     var jsonDocs = LinkedTreeMap<String, Any>()
     lateinit var editor: Editor
     override var pages = mutableListOf<VirtualCollectionPage>()
     val gson = Serializer.gsonBuilder
         .setPrettyPrinting()
         .disableHtmlEscaping()
-        //.enableComplexMapKeySerialization()
+        // .enableComplexMapKeySerialization()
         .create()
 
     init {
@@ -33,12 +35,12 @@ class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSiz
 
     override fun getSize() = jsonDocs.size
 
-    //TODO: Make this a list of a custom object or something to keep returned values in order
+    // TODO: Make this a list of a custom object or something to keep returned values in order
     override fun addData(responseMap: Any) {
         try {
             (responseMap as LinkedTreeMap<*, *>).forEach { jsonDocs[it.key as String] = it.value }
         } catch (exception: Exception) {
-            //TODO: Ask Garrett what to do about this or if doing it unsafely is actually 'safe'
+            // TODO: Ask Garrett what to do about this or if doing it unsafely is actually 'safe'
         }
     }
 
@@ -46,7 +48,7 @@ class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSiz
         pages.clear()
         val nextMap = LinkedTreeMap<String, Any>()
         var buildingIndex = 0
-        //Either have to index it, or transform it and then iterate, or add the incomplete page after for loop
+        // Either have to index it, or transform it and then iterate, or add the incomplete page after for loop
         var loopIndex = 0
         for (jsonDoc in jsonDocs) {
             nextMap.put(jsonDoc)
@@ -62,7 +64,7 @@ class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSiz
     }
 
     override fun setPage(currentPageStatus: Boolean, nextIndex: Int) {
-        //Save the current page state
+        // Save the current page state
         pages[pageIndex].let { lastPage ->
             lastPage.data = content
             lastPage.hasError = currentPageStatus
@@ -75,7 +77,7 @@ class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSiz
             } else {
                 nextIndex
             }
-        //Set contents of page to next page
+        // Set contents of page to next page
         setContent(null, pages[pageIndex].data, true)
         reloadPsiFile()
     }
@@ -95,7 +97,6 @@ class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSiz
                     }
             }
         }
-
     }
 }
 

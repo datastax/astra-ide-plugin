@@ -100,12 +100,10 @@ changelog {
     groups.set(listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"))
 }
 
-/*
-ktlint {
-    enableExperimentalRules.set(true)
-    disabledRules.set(setOf("experimental:package-name", "no-wildcard-imports"))
-}
-*/
+// ktlint {
+//    enableExperimentalRules.set(true)
+//    disabledRules.set(setOf("experimental:package-name", "no-wildcard-imports"))
+// }
 
 // Configure detekt plugin.
 // Read more: https://detekt.github.io/detekt/kotlindsl.html
@@ -188,3 +186,6 @@ tasks {
         channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
     }
 }
+
+//TODO: Montior https://github.com/JLLeitschuh/ktlint-gradle/issues/457
+// If needed add fixes from bug report to successfully run ktlint check/format

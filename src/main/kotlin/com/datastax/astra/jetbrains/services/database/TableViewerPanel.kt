@@ -38,44 +38,42 @@ class TableViewerPanel(
             SortOrder.UNSORTED
         )
         launch {
-        tableVirtualFile = TableVirtualFile(endpointTable,model)
+            tableVirtualFile = TableVirtualFile(endpointTable, model)
             loadFirstPage()
         }
     }
 
-    private suspend fun loadFirstPage(){
-            val responseData = (loadPage() as? ArrayList<*>).orEmpty()
+    private suspend fun loadFirstPage() {
+        val responseData = (loadPage() as? ArrayList<*>).orEmpty()
 
-            //TODO: Revisit the null safety of assigning the editor
-            if (responseData.isNotEmpty()) {
-                tableVirtualFile.addData(responseData)
-                tableVirtualFile.buildPagesAndSet()
+        // TODO: Revisit the null safety of assigning the editor
+        if (responseData.isNotEmpty()) {
+            tableVirtualFile.addData(responseData)
+            tableVirtualFile.buildPagesAndSet()
 
-                //Make file read-only while we load the rest of it
-                withContext(edtContext) {
-                    FileEditorManager.getInstance(project).openTextEditor(
-                        OpenFileDescriptor(
-                            project,
-                            tableVirtualFile
-                        ),
-                        false
-                    )
-                    tableVirtualFile.tableView.isFocusable = false
-                    tableVirtualFile.tableView.setPaintBusy(true)
-                    //Use isFocusable as a flag to disable change table buttons,
-                    //Also makes it impossible to click table while the rest of it loads.
-                }
-                loadRemainingPages()
-
-            } else {
-                //TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, false)
+            // Make file read-only while we load the rest of it
+            withContext(edtContext) {
+                FileEditorManager.getInstance(project).openTextEditor(
+                    OpenFileDescriptor(
+                        project,
+                        tableVirtualFile
+                    ),
+                    false
+                )
+                tableVirtualFile.tableView.isFocusable = false
+                tableVirtualFile.tableView.setPaintBusy(true)
+                // Use isFocusable as a flag to disable change table buttons,
+                // Also makes it impossible to click table while the rest of it loads.
             }
+            loadRemainingPages()
+        } else {
+            // TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, false)
+        }
     }
 
-
-    fun loadRemainingPages(){
-        //Keep doing this until the previous page state is empty again. Indicating all pages have loaded.
-        //TODO: Add a timeout in case the server keeps sending the same page-state back
+    fun loadRemainingPages() {
+        // Keep doing this until the previous page state is empty again. Indicating all pages have loaded.
+        // TODO: Add a timeout in case the server keeps sending the same page-state back
         launch {
             while (prevPageState.isNotEmpty()) {
                 tableVirtualFile.addData((loadPage() as? ArrayList<*>).orEmpty())
@@ -97,23 +95,23 @@ class TableViewerPanel(
 
         )
 
-        when(response.code()){
+        when (response.code()) {
             200 -> {
                 if (response.body()?.data != null) {
                     prevPageState = response.body()?.pageState.orEmpty()
                 }
             }
             400 -> {
-                //TODO:
+                // TODO:
                 // Telemetry
                 // Notify user: 400 Error and something not scary but useful, "Failed to load a page", etc
             }
-            401 ->{}
-            //TODO:
+            401 -> {}
+            // TODO:
             // Telemetry
             // Notify user: 401 Error. Not authorized
             else -> {
-                //TODO:
+                // TODO:
                 // Telemetry
                 // Notify user: Error Code. Error during retrieval, "Failed to load a page", etc
             }

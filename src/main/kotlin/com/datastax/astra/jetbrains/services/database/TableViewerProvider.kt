@@ -45,7 +45,6 @@ class TableViewerEditor(project: Project, val tableVirtualFile: TableVirtualFile
 
     suspend fun setHeaderComponent(header: JComponent?) {
         withContext(edtContext) {
-
             var header = header
             myHeaderPanel.removeAll()
             header = header ?: getPermanentHeaderComponent()
@@ -55,17 +54,16 @@ class TableViewerEditor(project: Project, val tableVirtualFile: TableVirtualFile
             myHeaderPanel.isEnabled = true
             myHeaderPanel.revalidate()
             myHeaderPanel.repaint()
-            //myPanel.add(myHeader,BorderLayout.NORTH)
+            // myPanel.add(myHeader,BorderLayout.NORTH)
             //            myPanel.revalidate()
             //            myPanel.repaint()
         }
-        //TODO: Ask Garrett about touchbar
+        // TODO: Ask Garrett about touchbar
     }
 
     fun getPermanentHeaderComponent(): JComponent? {
         return getUserData(PERMANENT_HEADER)
     }
-
 
     fun setPermanentHeaderComponent(component: JComponent?) {
         putUserData(PERMANENT_HEADER, component)
@@ -113,12 +111,14 @@ class TableViewerEditor(project: Project, val tableVirtualFile: TableVirtualFile
             var height = myOldHeight
             super.validateTree()
             height -= getHeight()
-            if (height != 0 && !(myOldHeight == 0 && componentCount > 0 && getPermanentHeaderComponent() === getComponent(
-                    0
-                ))
+            if (height != 0 && !(
+                myOldHeight == 0 && componentCount > 0 && getPermanentHeaderComponent() === getComponent(
+                        0
+                    )
+                )
             ) {
-                //TODO: Use this if the scrollbar os acting funny
-                //myVerticalScrollBar.setValue(myVerticalScrollBar.getValue() - height)
+                // TODO: Use this if the scrollbar os acting funny
+                // myVerticalScrollBar.setValue(myVerticalScrollBar.getValue() - height)
             }
             myOldHeight = getHeight()
         }

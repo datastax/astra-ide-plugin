@@ -24,7 +24,7 @@ val emptySimpleDb = SimpleDatabase(Database("", "", "", DatabaseInfo("<No Databa
 class EndpointComboBoxes(
     val project: Project,
     var databaseList: List<SimpleDatabase>,
-    var initEndpoint: EndpointCollection = EndpointCollection(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE),"",""),
+    var initEndpoint: EndpointCollection = EndpointCollection(Database("", "", "", DatabaseInfo("<No Databases>"), StatusEnum.ACTIVE), "", ""),
 ) : Disposable, ProfileChangeEventListener {
 
     var collectionComboBox = CollectionComboBox(mutableListOf(emptyDoc.name), initEndpoint.collection)
@@ -64,11 +64,10 @@ class EndpointComboBoxes(
     }
 
     fun setSelected() {
-        //TODO: Possibly set the file's endpoint selection as well
+        // TODO: Possibly set the file's endpoint selection as well
         databaseComboBox.activeDatabaseId = databaseComboBox.selectedItem.database.id
         keyspaceComboBox.activeKeyspace = keyspaceComboBox.selectedItem.keyspace.name
         collectionComboBox.activeCollection = collectionComboBox.activeCollection
-
     }
 
     fun getSelected(): EndpointCollection {
@@ -169,16 +168,15 @@ class KeyspaceComboBox(
         if (keyspaces == null || keyspaces.isEmpty()) {
             data.add(emptySimpleKs)
             selectedItem = data[0]
-        }
-        else {
+        } else {
             data.addAll(sort(keyspaces))
-            val selIndex = data.indexOfFirst{ it.keyspace.name == activeKeyspace }
-            selectedItem =  if(selIndex >= 0){
+            val selIndex = data.indexOfFirst { it.keyspace.name == activeKeyspace }
+            selectedItem = if (selIndex >= 0) {
                 data[selIndex]
             } else {
                 data[0]
-                //Set the active keyspace to one with a collection
-                //data.filter { it.collections.isNotEmpty() }.first()
+                // Set the active keyspace to one with a collection
+                // data.filter { it.collections.isNotEmpty() }.first()
             }
         }
 
@@ -274,12 +272,12 @@ data class EndpointCollection(
     val database: Database,
     val keyspace: String,
     val collection: String,
-): Endpoint(database,keyspace,collection)
+) : Endpoint(database, keyspace, collection)
 
 data class EndpointTable(
     val database: Database,
     var table: Table,
-): Endpoint(database,table.keyspace.toString(),table)
+) : Endpoint(database, table.keyspace.toString(), table)
 
 abstract class Endpoint(
     database: Database,

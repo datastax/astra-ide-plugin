@@ -6,8 +6,8 @@ import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
 import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
-import com.datastax.astra.jetbrains.services.database.TableVirtualFile
 import com.datastax.astra.jetbrains.services.database.TableViewerEditor
+import com.datastax.astra.jetbrains.services.database.TableVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
@@ -18,7 +18,6 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.fileEditor.*
 import com.intellij.openapi.project.Project
-
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.JBUI
@@ -64,9 +63,7 @@ class AstraFileEditorUIService(private val project: Project) :
                     if (editor is EditorEx) {
                         editor.permanentHeaderComponent = headerComponent
                     }
-                }
-                else if (fileEditor is TableViewerEditor){
-
+                } else if (fileEditor is TableViewerEditor) {
                     val editor =
                         fileEditor
                     if (editor.myHeaderPanel.isEnabled) {
@@ -76,7 +73,6 @@ class AstraFileEditorUIService(private val project: Project) :
                     launch {
                         editor.setHeaderComponent(headerComponent)
                     }
-
                 }
             }
         }
@@ -100,29 +96,26 @@ class AstraFileEditorUIService(private val project: Project) :
         // Add upsert documents button
 
         val headerComponent = AstraEditorHeaderComponent()
-        headerComponent.layout = FlowLayout(FlowLayout.LEFT,0,0)
+        headerComponent.layout = FlowLayout(FlowLayout.LEFT, 0, 0)
         val upsertToolbar = createToolbar(toolbarActions, headerComponent)
         headerComponent.add(endpointComboBoxes.getPanel())
         headerComponent.add(upsertToolbar)
 
-        if (file is CollectionVirtualFile){
+        if (file is CollectionVirtualFile) {
             toolbarActions.addSeparator()
             toolbarActions.add(
-                PageControlToolbarActions(project,file).getActions()
+                PageControlToolbarActions(project, file).getActions()
             )
         }
-        if (file is TableVirtualFile){
+        if (file is TableVirtualFile) {
             toolbarActions.addSeparator()
             toolbarActions.add(
-                PageControlToolbarActions(project,file).getActions()
+                PageControlToolbarActions(project, file).getActions()
             )
         }
-
 
         return headerComponent
     }
-
-
 
     // Build or rebuild database list
     fun indexCollections(cList: List<DocCollection>?, keyspace: Keyspace, database: Database) {
@@ -142,18 +135,18 @@ class AstraFileEditorUIService(private val project: Project) :
         val response = AstraClient.dbOperationsApi().listDatabases()
         if (response.isSuccessful && !response.body().isNullOrEmpty()) {
             response.body()?.forEach { database ->
-                    launch {
-                        val keyspaceResponse = AstraClient.schemasApiForDatabase(database).getKeyspaces(AstraClient.accessToken)
-                        if (keyspaceResponse.isSuccessful && !keyspaceResponse.body()?.data.isNullOrEmpty()) {
-                            keyspaceResponse.body()?.data?.forEach { keyspace ->
-                                    val collectionResponse = AstraClient.documentApiForDatabase(database)
-                                        .listCollections(randomUUID(), AstraClient.accessToken, keyspace.name)
-                                    if (collectionResponse.isSuccessful && collectionResponse.body()?.data != null) {
-                                        indexCollections(collectionResponse.body()?.data, keyspace, database)
-                                        }
+                launch {
+                    val keyspaceResponse = AstraClient.schemasApiForDatabase(database).getKeyspaces(AstraClient.accessToken)
+                    if (keyspaceResponse.isSuccessful && !keyspaceResponse.body()?.data.isNullOrEmpty()) {
+                        keyspaceResponse.body()?.data?.forEach { keyspace ->
+                            val collectionResponse = AstraClient.documentApiForDatabase(database)
+                                .listCollections(randomUUID(), AstraClient.accessToken, keyspace.name)
+                            if (collectionResponse.isSuccessful && collectionResponse.body()?.data != null) {
+                                indexCollections(collectionResponse.body()?.data, keyspace, database)
                             }
                         }
                     }
+                }
             }
         }
     }
@@ -173,6 +166,7 @@ class AstraFileEditorUIService(private val project: Project) :
             newState.displayMessage.contains("placehold") -> rebuildAndNotify()
         }
     }
+
     // -- instance management --
     override fun dispose() {}
 
@@ -184,7 +178,7 @@ class AstraFileEditorUIService(private val project: Project) :
     }
 
     init {
-        //Get the message bus service
+        // Get the message bus service
 
         val messageBusConnection = project.messageBus.connect(this)
         // Subscribe to profile change notifications

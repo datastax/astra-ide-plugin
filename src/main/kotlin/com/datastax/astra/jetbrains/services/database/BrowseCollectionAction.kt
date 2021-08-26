@@ -9,9 +9,7 @@ import com.intellij.openapi.project.DumbAwareAction
 class BrowseCollectionAction : DumbAwareAction(message("collection.open.title"), null, null) {
     override fun actionPerformed(e: AnActionEvent) {
         e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? CollectionNode }?.singleOrNull()?.run {
-
             CollectionBrowserPanel(this.nodeProject, this.collection, this.keyspace, this.database)
-
         }
     }
 }
@@ -19,9 +17,7 @@ class BrowseCollectionAction : DumbAwareAction(message("collection.open.title"),
 class BrowseAndEditCollectionAction : DumbAwareAction(message("collection.open.title"), null, null) {
     override fun actionPerformed(e: AnActionEvent) {
         e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? CollectionNode }?.singleOrNull()?.run {
-
             CollectionBrowserPanel(this.nodeProject, this.collection, this.keyspace, this.database)
-
         }
     }
 }

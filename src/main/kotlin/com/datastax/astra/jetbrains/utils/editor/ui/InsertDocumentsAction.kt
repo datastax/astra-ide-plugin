@@ -68,7 +68,6 @@ class InsertDocumentsAction(
                 ((e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue as JsonArray).valueList.map { it.text }
                     .toList()
             launch {
-
                 val responses = insertAndWait(docList, cBoxes.getSelected())
                 val success = responses.filter { it.isSuccessful }
                 val failed = responses.filter { !it.isSuccessful }

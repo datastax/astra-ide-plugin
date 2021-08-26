@@ -37,6 +37,7 @@ data class DocCollection(
      * Values: SAI_INDEX_UPGRADE
      */
     enum class UpgradeType(val value: kotlin.String) {
-        @SerializedName(value = "SAI_INDEX_UPGRADE") SAI_INDEX_UPGRADE("SAI_INDEX_UPGRADE");
+        @SerializedName(value = "SAI_INDEX_UPGRADE")
+        SAI_INDEX_UPGRADE("SAI_INDEX_UPGRADE");
     }
 }
