@@ -1,69 +1,63 @@
 package com.datastax.astra.jetbrains.utils.editor
 
+import com.datastax.astra.devops_v2.models.Database
+import com.datastax.astra.jetbrains.services.database.getCoroutineUiContext
+import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 
-abstract class PagedVirtualFile(val fileName: String, val pagedFileType: FileType, var pageSize: Int = 20) :
-    LightVirtualFile(fileName,pagedFileType,""){
-    var pages = mutableListOf<VirtualFilePage>()
+abstract class PagedVirtualFile(val fileName: String, val pagedFileType: FileType?, var pageSize: Int = 10) :
+    LightVirtualFile(fileName,pagedFileType,""), CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+    abstract val pages: List<VirtualFilePage>
     var pageIndex = 0
-    var pageIndexComponent: JBTextField? = null
-    var pageCountComponent: JBLabel? = null
+    var lockedForUpdate = AtomicBoolean(true)
+    protected val edtContext = getCoroutineUiContext()
+
+    fun unlock(){
+        lockedForUpdate.set(false)
+    }
+
+    fun lock(){
+        lockedForUpdate.set(true)
+    }
+
+    fun isLocked() = lockedForUpdate.get()
 
 
     abstract fun addData(responseMap: Any)
 
     abstract fun buildPagesAndSet()
 
-    fun updatePageCount(){
-        if(pageCountComponent != null){
-            pageCountComponent!!.text = "of ${pages.size}"
-        }
-    }
-
-    fun nextPage(errorOnCurrentPage: Boolean){
+    fun nextPage(currentPageStatus: Boolean){
         //forward-cycle through pages
-        setPage(errorOnCurrentPage,(pageIndex+1)%pages.size)
+        setPage(currentPageStatus,(pageIndex+1)%pages.size)
     }
 
-    fun prevPage(errorOnCurrentPage: Boolean){
+    fun prevPage(currentPageStatus: Boolean){
         //back-cycle through pages
-        setPage(errorOnCurrentPage,((pageIndex-1)+pages.size)%pages.size)
+        setPage(currentPageStatus,((pageIndex-1)+pages.size)%pages.size)
     }
 
-    fun setPage(errorOnCurrentPage: Boolean, nextIndex: Int) {
-        //Save the current page state
-        pages[pageIndex].let { lastPage ->
-            lastPage.data = content
-            lastPage.hasError = errorOnCurrentPage
-        }
-        pageIndex =
-            if (nextIndex < 0) {
-                0
-            } else if (nextIndex >= pages.size) {
-                pages.size - 1
-            } else {
-                nextIndex
-            }
-        //Set contents of page to next page
-        setContent(null, pages[pageIndex].data, true)
+    abstract fun setPage(currentPageStatus: Boolean, nextIndex: Int)
 
-        if(pageIndexComponent != null){
-            pageIndexComponent!!.text = "${pageIndex+1}"
-        }
+    fun setVirtualPageSize(newPageSize: Int){
+        pageSize = newPageSize
+        buildPagesAndSet()
     }
 
-    fun setRemoteLabels(indexLabel: JBTextField, countLabel: JBLabel){
-        pageIndexComponent = indexLabel
-        pageCountComponent = countLabel
-    }
+    abstract fun getSize(): Int
 
     fun noErrors(): Boolean = pages.none{ it.hasError }
 }
-data class VirtualFilePage(
-    var data: CharSequence,
-    var hasError: Boolean
+
+abstract class VirtualFilePage(
+    open val data: Any,
+    open var hasError: Boolean
 )

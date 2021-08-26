@@ -1,14 +1,8 @@
 package com.datastax.astra.jetbrains.services.database
 
-import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.AstraClient
-import com.datastax.astra.jetbrains.telemetry.CrudEnum
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
 import com.datastax.astra.jetbrains.utils.editor.ui.EndpointTable
-import com.datastax.astra.stargate_rest_v2.models.Table
-import com.google.gson.internal.LinkedTreeMap
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ModalityState
@@ -28,7 +22,7 @@ class TableViewerPanel(
     val project: Project,
     val endpointTable: EndpointTable,
 ) : CoroutineScope by ApplicationThreadPoolScope("Table"), Disposable {
-    lateinit var tableVirtualFile: TablePagedVirtualFile
+    lateinit var tableVirtualFile: TableVirtualFile
     protected val edtContext = getCoroutineUiContext(disposable = this)
     var prevPageState = ""
 
@@ -44,7 +38,7 @@ class TableViewerPanel(
             SortOrder.UNSORTED
         )
         launch {
-        tableVirtualFile = TablePagedVirtualFile(endpointTable,model)
+        tableVirtualFile = TableVirtualFile(endpointTable,model)
             loadFirstPage()
         }
     }
@@ -66,12 +60,12 @@ class TableViewerPanel(
                         ),
                         false
                     )
-                    //Use isFocusable as a flag to disable change table buttons,
-                    //Also makes it impossible to click table while the rest of it loads.
                     tableVirtualFile.tableView.isFocusable = false
                     tableVirtualFile.tableView.setPaintBusy(true)
-                    loadRemainingPages()
+                    //Use isFocusable as a flag to disable change table buttons,
+                    //Also makes it impossible to click table while the rest of it loads.
                 }
+                loadRemainingPages()
 
             } else {
                 //TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, false)
@@ -87,6 +81,9 @@ class TableViewerPanel(
                 tableVirtualFile.addData((loadPage() as? ArrayList<*>).orEmpty())
             }
             tableVirtualFile.buildPagesAndSet()
+            withContext(edtContext) {
+                tableVirtualFile.unlock()
+            }
         }
     }
 

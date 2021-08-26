@@ -12,7 +12,7 @@ import com.intellij.openapi.project.DumbAwareAction
 class OpenTableAction : DumbAwareAction(message("table.open.title"), null, null) {
     override fun actionPerformed(e: AnActionEvent) {
         e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? TableNode }?.singleOrNull()?.run {
-            TableViewerPanel(this.nodeProject,EndpointTable(this.database, this.table.keyspace.toString(), this.table))
+            TableViewerPanel(this.nodeProject,EndpointTable(this.database, this.table))
 
         }
     }

@@ -1,10 +1,8 @@
 package com.datastax.astra.jetbrains.utils.editor.ui
 
-import com.datastax.astra.jetbrains.services.database.CollectionPagedVirtualFile
-import com.datastax.astra.jetbrains.services.database.TablePagedVirtualFile
-import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
+import com.datastax.astra.jetbrains.services.database.TableVirtualFile
 import com.datastax.astra.jetbrains.utils.editor.PagedVirtualFile
-import com.datastax.astra.jetbrains.utils.editor.reloadPsiFile
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.icons.AllIcons
 import com.intellij.json.psi.impl.JsonFileImpl
@@ -12,37 +10,16 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.editor.impl.EditorHeaderComponent
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBTextArea
-import com.intellij.ui.components.JBTextField
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import org.apache.commons.lang3.math.NumberUtils.toInt
-import org.apache.tools.ant.taskdefs.Execute.launch
-import java.awt.FlowLayout
-import java.awt.event.ActionEvent
-import javax.swing.AbstractAction
-import javax.swing.Action
-import javax.swing.BorderFactory
-import javax.swing.JPanel
 
 
 class PageControlToolbarActions(
     val project: Project,
     val file: VirtualFile,
-    val parentHeader: EditorHeaderComponent
 ){
-    val pageField = JBTextField("1",2)
-    val pageCountLabel = JBLabel("of 1")
-    val pageSearchField = JBTextArea("1")
     val edtContext = getCoroutineUiContext()
     init {
         //pageField.border = BorderFactory.createEmptyBorder(0,0,0,0)
@@ -51,25 +28,27 @@ class PageControlToolbarActions(
 
     fun getActions(): DefaultActionGroup =
         when (file) {
-            is CollectionPagedVirtualFile -> {
+            is CollectionVirtualFile -> {
                 DefaultActionGroup(
                     PreviousPageAction(file),
-                    PageSelectorComboBoxAction(project,file),
+                    SelectPageComboBoxAction(project,file),
                     NextPageAction(file),
+                    SetPageSizeComboBoxAction(project,file),
                 )
             }
-            is TablePagedVirtualFile -> {
+            is TableVirtualFile -> {
                 DefaultActionGroup(
                     PreviousTableAction(file),
-                    PageSelectorComboBoxAction(project,file),
+                    SelectPageComboBoxAction(project,file),
                     NextTableAction(file),
+                    SetPageSizeComboBoxAction(project,file),
                 )
             }
             else -> {
                 DefaultActionGroup()
             }
         }
-        val nextPageAction = createToolbar(DefaultActionGroup(NextPageAction(file)),parentHeader,0,0)
+        //val nextPageAction = createToolbar(DefaultActionGroup(NextPageAction(file)),parentHeader,0,0)
 
         //pageControlActions.add(ChangePageActionField(file,newPageNumber,::updatePageNumber))
         //pageControlActions.add(ChangePageActionField(file,newPageNumber,::updatePageNumber))
@@ -90,12 +69,24 @@ class PageControlToolbarActions(
 
 }
 
-class PreviousPageAction(val file: VirtualFile):
-    AnAction("Previous Page", null, AllIcons.Actions.ArrowCollapse),
-    CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+class PreviousPageAction(val file: PagedVirtualFile):
+    AnAction("Previous Page", null, AllIcons.Actions.ArrowCollapse) {
 
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = file is CollectionPagedVirtualFile
+        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if(virtualFile is PagedVirtualFile){
+            if(virtualFile.isLocked()) {
+                e.presentation.isEnabled = false
+                e.presentation.text = "Loading..."
+            }
+            else{
+                e.presentation.isEnabled = true
+                e.presentation.text = "Previous Page"
+            }
+        }
+        else{
+            e.presentation.isEnabled = false
+        }
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -103,42 +94,55 @@ class PreviousPageAction(val file: VirtualFile):
         val collectionFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
         val psiFile = e.getData(CommonDataKeys.PSI_FILE)
         //Tell the file to change pages
-        (collectionFile as CollectionPagedVirtualFile).prevPage(
+        (collectionFile as CollectionVirtualFile).prevPage(
             PsiTreeUtil.findChildOfType((psiFile as JsonFileImpl).topLevelValue?.containingFile?.originalElement, PsiErrorElement::class.java) != null )
-
-        //Update psi with current file contents
-        launch {
-            reloadPsiFile(getCoroutineUiContext(), e.getRequiredData(CommonDataKeys.PROJECT),psiFile, "ChangePageNext")
-        }
     }
 }
 
-class NextPageAction(val file: VirtualFile):
-    AnAction("Next Page", null, AllIcons.Actions.ArrowExpand),
-    CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+class NextPageAction(val file: PagedVirtualFile):
+    AnAction("Next Page", null, AllIcons.Actions.ArrowExpand){
 
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = file is CollectionPagedVirtualFile
+        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if(virtualFile is PagedVirtualFile){
+            if(virtualFile.isLocked()) {
+                e.presentation.isEnabled = false
+                e.presentation.text = "Loading..."
+            }
+            else{
+                e.presentation.isEnabled = true
+                e.presentation.text = "Next Page"
+            }
+        }
+        else{
+            e.presentation.isEnabled = false
+        }
     }
 
     override fun actionPerformed(e: AnActionEvent) {
         val collectionFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
         val psiFile = e.getData(CommonDataKeys.PSI_FILE)
-        (collectionFile as CollectionPagedVirtualFile).nextPage(
+        (collectionFile as CollectionVirtualFile).nextPage(
             PsiTreeUtil.findChildOfType((psiFile as JsonFileImpl).topLevelValue?.containingFile?.originalElement, PsiErrorElement::class.java) != null)
-
-        launch {
-            reloadPsiFile(getCoroutineUiContext(), e.getRequiredData(CommonDataKeys.PROJECT),psiFile, "ChangePageNext")
-        }
     }
 }
 
-class PreviousTableAction(val file: VirtualFile):
-    AnAction("Previous Page", null, AllIcons.Actions.ArrowCollapse),
-    CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+class PreviousTableAction(val file: PagedVirtualFile):
+    AnAction("Previous Page", null, AllIcons.Actions.ArrowCollapse){
 
     override fun update(e: AnActionEvent) {
-        if(!(file as TablePagedVirtualFile).tableView.isFocusable){
+        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if(virtualFile is PagedVirtualFile){
+            if(virtualFile.isLocked()) {
+                e.presentation.isEnabled = false
+                e.presentation.text = "Loading..."
+            }
+            else{
+                e.presentation.isEnabled = true
+                e.presentation.text = "Previous Page"
+            }
+        }
+        else{
             e.presentation.isEnabled = false
         }
     }
@@ -148,18 +152,28 @@ class PreviousTableAction(val file: VirtualFile):
         //Gather information about the paged file
 
         //Tell the file to change pages
-        launch {
-            (e.getData(CommonDataKeys.VIRTUAL_FILE) as TablePagedVirtualFile).prevPage(false)
-        }
+
+        (e.getData(CommonDataKeys.VIRTUAL_FILE) as TableVirtualFile).prevPage(false)
+
     }
 }
 
-class NextTableAction(val file: VirtualFile):
-    AnAction("Next Page", null, AllIcons.Actions.ArrowExpand),
-    CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+class NextTableAction(val file: PagedVirtualFile):
+    AnAction("Next Page", null, AllIcons.Actions.ArrowExpand){
 
     override fun update(e: AnActionEvent) {
-        if(!(file as TablePagedVirtualFile).tableView.isFocusable){
+        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if(virtualFile is PagedVirtualFile){
+            if(virtualFile.isLocked()) {
+                e.presentation.isEnabled = false
+                e.presentation.text = "Loading..."
+            }
+            else{
+                e.presentation.isEnabled = true
+                e.presentation.text = "Next Page"
+            }
+        }
+        else{
             e.presentation.isEnabled = false
         }
 
@@ -167,8 +181,7 @@ class NextTableAction(val file: VirtualFile):
 
     override fun actionPerformed(e: AnActionEvent) {
         //Tell the file to change pages
-        launch {
-            (e.getData(CommonDataKeys.VIRTUAL_FILE) as TablePagedVirtualFile).nextPage(false)
-        }
+        (e.getData(CommonDataKeys.VIRTUAL_FILE) as TableVirtualFile).nextPage(false)
+
     }
 }

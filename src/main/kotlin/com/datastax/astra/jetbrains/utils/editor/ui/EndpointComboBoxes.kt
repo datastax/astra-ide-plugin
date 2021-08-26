@@ -205,6 +205,7 @@ class CollectionComboBox(var list: MutableList<String>, var activeCollection: St
     ListComboBoxModel<String>(list) {
 
     init {
+
         selectedItem = list.first()
         addListDataListener(object : ListDataListener {
             override fun intervalAdded(listDataEvent: ListDataEvent) {}
@@ -277,9 +278,8 @@ data class EndpointCollection(
 
 data class EndpointTable(
     val database: Database,
-    val keyspace: String,
     var table: Table,
-): Endpoint(database,keyspace,table)
+): Endpoint(database,table.keyspace.toString(),table)
 
 abstract class Endpoint(
     database: Database,

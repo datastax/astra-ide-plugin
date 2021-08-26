@@ -10,7 +10,17 @@ class BrowseCollectionAction : DumbAwareAction(message("collection.open.title"),
     override fun actionPerformed(e: AnActionEvent) {
         e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? CollectionNode }?.singleOrNull()?.run {
 
-            CollectionPagedBrowserPanel(this.nodeProject, this.collection, this.keyspace, this.database)
+            CollectionBrowserPanel(this.nodeProject, this.collection, this.keyspace, this.database)
+
+        }
+    }
+}
+
+class BrowseAndEditCollectionAction : DumbAwareAction(message("collection.open.title"), null, null) {
+    override fun actionPerformed(e: AnActionEvent) {
+        e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? CollectionNode }?.singleOrNull()?.run {
+
+            CollectionBrowserPanel(this.nodeProject, this.collection, this.keyspace, this.database)
 
         }
     }

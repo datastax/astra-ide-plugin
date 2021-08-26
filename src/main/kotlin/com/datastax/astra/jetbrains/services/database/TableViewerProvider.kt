@@ -1,7 +1,5 @@
 package com.datastax.astra.jetbrains.services.database
 
-import com.datastax.astra.devops_v2.models.Database
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.*
 import com.intellij.openapi.project.PossiblyDumbAware
 import com.intellij.openapi.project.Project
@@ -18,10 +16,10 @@ class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
 
     override fun isDumbAware() = true
 
-    override fun accept(project: Project, file: VirtualFile) = file is TablePagedVirtualFile
+    override fun accept(project: Project, file: VirtualFile) = file is TableVirtualFile
 
     override fun createEditor(project: Project, file: VirtualFile): FileEditor =
-        TableViewerEditor(project, file as TablePagedVirtualFile)
+        TableViewerEditor(project, file as TableVirtualFile)
 
     override fun getEditorTypeId() = EDITOR_TYPE_ID
 
@@ -32,7 +30,7 @@ class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
     }
 }
 
-class TableViewerEditor(project: Project, val tableVirtualFile: TablePagedVirtualFile) : UserDataHolderBase(), FileEditor {
+class TableViewerEditor(project: Project, val tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
     val myPanel = JPanel(BorderLayout())
     var myHeaderPanel: JPanel = MyHeaderPanel(::getPermanentHeaderComponent)
     protected val edtContext = getCoroutineUiContext(disposable = this)
@@ -125,14 +123,4 @@ class TableViewerEditor(project: Project, val tableVirtualFile: TablePagedVirtua
             myOldHeight = getHeight()
         }
     }
-}
-
-fun openEditor(project: Project, table: com.datastax.astra.stargate_rest_v2.models.Table, database: Database): Editor? {
-    return FileEditorManager.getInstance(project).openTextEditor(
-        OpenFileDescriptor(
-            project,
-            TableVirtualFile(table, database)
-        ),
-        true
-    )
 }
