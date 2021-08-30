@@ -7,6 +7,7 @@ import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.services.database.CollectionBrowserPanel
 import com.datastax.astra.jetbrains.services.database.TableViewerPanel
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.ui.EndpointCollection
 import com.datastax.astra.jetbrains.utils.editor.ui.EndpointTable
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
@@ -262,7 +263,7 @@ class CollectionNode(project: Project, val collection: DocCollection, val keyspa
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick(): Unit = runBlocking {
-        CollectionBrowserPanel(nodeProject, collection, keyspace, database)
+        CollectionBrowserPanel(nodeProject, EndpointCollection(database,keyspace.name,collection.name))
     }
 }
 

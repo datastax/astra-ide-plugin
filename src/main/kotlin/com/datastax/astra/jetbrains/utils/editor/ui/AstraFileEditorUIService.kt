@@ -91,7 +91,7 @@ class AstraFileEditorUIService(private val project: Project) :
         } else {
             EndpointComboBoxes(project, databaseList)
         }
-        val toolbarActions = DefaultActionGroup(InsertDocumentsAction(endpointComboBoxes))
+        val toolbarActions = DefaultActionGroup(InsertDocumentsAction(endpointComboBoxes),OpenFileAction())
 
         // Add upsert documents button
 
@@ -106,6 +106,7 @@ class AstraFileEditorUIService(private val project: Project) :
             toolbarActions.add(
                 PageControlToolbarActions(project, file).getActions()
             )
+            headerComponent.add(file.whereSearchBox)
         }
         if (file is TableVirtualFile) {
             toolbarActions.addSeparator()

@@ -10,24 +10,29 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.psi.PsiManager
+import com.intellij.ui.components.JBPanelWithEmptyText
+import com.intellij.ui.components.JBTextField
 import com.jetbrains.rd.util.put
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class CollectionVirtualFile(var endpointInfo: EndpointCollection, var setPageSize: Int = 5) :
+class CollectionVirtualFile(var endpointInfo: EndpointCollection, initialWhereParams: String = "",var setPageSize: Int = 5) :
+
     PagedVirtualFile(
         endpointInfo.collection,
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
-        setPageSize
+        5
     ) {
     var jsonDocs = LinkedTreeMap<String, Any>()
     lateinit var editor: Editor
+    var whereSearchBox: JBTextField = JBTextField("initialWhereParams")
     override var pages = mutableListOf<VirtualCollectionPage>()
     val gson = Serializer.gsonBuilder
         .setPrettyPrinting()
         .disableHtmlEscaping()
         // .enableComplexMapKeySerialization()
         .create()
+
 
     init {
         lock()

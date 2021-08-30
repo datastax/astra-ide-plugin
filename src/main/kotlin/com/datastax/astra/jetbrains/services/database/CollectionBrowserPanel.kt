@@ -21,11 +21,11 @@ import java.util.UUID.randomUUID
 
 class CollectionBrowserPanel(
     val project: Project,
-    val collection: DocCollection,
-    val keyspace: com.datastax.astra.stargate_rest_v2.models.Keyspace,
-    val database: Database,
+    val endpoint: EndpointCollection,
+    val editOnOpen: Boolean = false,
+    val whereSearchParam: String = "",
 ) : CoroutineScope by ApplicationThreadPoolScope("Collection"), Disposable {
-    val collectionPagedFile = CollectionVirtualFile(EndpointCollection(database, keyspace.name, collection.name))
+    val collectionPagedFile = CollectionVirtualFile(endpoint,"")
     lateinit var openEditor: Editor
     protected val edtContext = getCoroutineUiContext(disposable = this)
     var prevPageState = ""
@@ -47,7 +47,7 @@ class CollectionBrowserPanel(
 
         // TODO: Revisit the null safety of assigning the editor
         if (responseData.isNotEmpty()) {
-            TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, true)
+            TelemetryManager.trackStargateCrud("Collection", endpoint.collection, CrudEnum.READ, true)
             withContext(edtContext) {
                 openEditor = FileEditorManager.getInstance(project).openTextEditor(
                     OpenFileDescriptor(
@@ -57,6 +57,7 @@ class CollectionBrowserPanel(
                     true
                 )!!
             }
+            collectionPagedFile.whereSearchBox.text = whereSearchParam
             collectionPagedFile.setReloadEditor(openEditor)
             collectionPagedFile.addData(responseData)
             collectionPagedFile.buildPagesAndSet()
@@ -64,7 +65,7 @@ class CollectionBrowserPanel(
             collectionPagedFile.isWritable = false
             loadRemainingPages()
         } else {
-            TelemetryManager.trackStargateCrud("Collection", collection.name, CrudEnum.READ, false)
+            TelemetryManager.trackStargateCrud("Collection", endpoint.collection, CrudEnum.READ, false)
         }
     }
 
@@ -84,13 +85,13 @@ class CollectionBrowserPanel(
     }
 
     private suspend fun loadPage(): Any? {
-        val response = AstraClient.documentApiForDatabase(database).searchDoc(
+        val response = AstraClient.documentApiForDatabase(endpoint.database).searchDoc(
             randomUUID(),
             AstraClient.accessToken,
-            keyspace.name,
-            collection.name.orEmpty(),
+            endpoint.keyspace,
+            endpoint.collection,
             null,
-            null,
+            whereSearchParam.ifEmpty { null },
             pageSize = 5,
             // If page state is empty send null so query isn't sent.
             pageState = prevPageState.ifEmpty { null }

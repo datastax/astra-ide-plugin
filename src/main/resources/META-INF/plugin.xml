@@ -54,6 +54,14 @@
         <group id="astra.explorer.databases.collection" popup="true" compact="false">
             <action id="collection.open"
                     class="com.datastax.astra.jetbrains.services.database.BrowseCollectionAction"/>
+            <action id="collection.open_and_edit"
+                    class="com.datastax.astra.jetbrains.services.database.BrowseAndEditCollectionAction"/>
+            <action id="collection.filter"
+                    class="com.datastax.astra.jetbrains.services.database.FilterCollectionAction"/>
+            <action id="collection.filter_and_edit"
+                    class="com.datastax.astra.jetbrains.services.database.FilterEditCollectionAction"/>
+            <action id="collection.upload"
+                    class="com.datastax.astra.jetbrains.services.database.UploadJsonCollectionAction"/>
         </group>
 
 

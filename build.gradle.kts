@@ -187,5 +187,5 @@ tasks {
     }
 }
 
-//TODO: Montior https://github.com/JLLeitschuh/ktlint-gradle/issues/457
+// TODO: Montior https://github.com/JLLeitschuh/ktlint-gradle/issues/457
 // If needed add fixes from bug report to successfully run ktlint check/format
