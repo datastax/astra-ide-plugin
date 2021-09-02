@@ -7,9 +7,10 @@ import com.intellij.testFramework.LightVirtualFile
 import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.atomic.AtomicBoolean
 
-abstract class PagedVirtualFile(val fileName: String, val pagedFileType: FileType?, var pageSize: Int = 10) :
+abstract class PagedVirtualFile(val fileName: String, val pagedFileType: FileType?) :
     LightVirtualFile(fileName, pagedFileType, ""), CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
     abstract val pages: List<VirtualFilePage>
+    var pageSize: Int = 1
     var pageIndex = 0
     var lockedForUpdate = AtomicBoolean(true)
     protected val edtContext = getCoroutineUiContext()

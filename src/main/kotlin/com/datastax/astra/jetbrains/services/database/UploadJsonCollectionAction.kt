@@ -1,38 +1,39 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.amazon.ion.system.IonTextWriterBuilder.json
 import com.datastax.astra.jetbrains.explorer.CollectionNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.editor.ui.EndpointCollection
+import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
+import com.google.gson.GsonBuilder
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooser
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor
+import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.psi.PsiManager
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.*
-import com.jetbrains.rd.swing.mouseClicked
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.awt.Component
 import java.awt.event.ActionEvent
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
+import java.io.File
+import java.io.IOException
 import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.text.JTextComponent
+
 
 class UploadJsonCollectionAction : DumbAwareAction("Insert Documents", null, null) {
     override fun actionPerformed(e: AnActionEvent) {
         e.getData(ExplorerDataKeys.SELECTED_NODES)?.map { it as? CollectionNode }?.singleOrNull()?.run {
             UploadJsonCollectionDialog(this.nodeProject,
-                EndpointCollection(this.database, this.keyspace.name, this.collection.name,),"",false).show()
+                EndpointCollection(this.database, this.keyspace.name, this.collection.name),"",false).show()
         }
     }
 }
@@ -61,6 +62,12 @@ class UploadJsonCollectionDialog(
     lateinit var filePathField: CellBuilder<JBTextField>
     lateinit var checkBox: CellBuilder<JBCheckBox>
     val browseFilesButton = JButton("Browse...")
+    val edtContext = getCoroutineUiContext()
+    val gson = Serializer.gsonBuilder
+        .setPrettyPrinting()
+        .disableHtmlEscaping()
+        // .enableComplexMapKeySerialization()
+        .create()
 
     val view = panel {
         row {
@@ -146,14 +153,54 @@ class UploadJsonCollectionDialog(
             return
         }
         view.apply()
-        //println("Loading documents from $filePath to $newCollectionName")
-        close(OK_EXIT_CODE)
+        //Load file
 
-    }
+
+        try {
+
+            val builder = GsonBuilder()
+            val o: Any = builder.create().fromJson(File(filePath).readText(Charsets.UTF_8), Any::class.java)
+
+            println(o)
+
+            //If file is an array add the JSON brackets
+            //val docList = (
+            //        JsonFileImpl(
+            //    PsiManager.getInstance(project).findFile(jsonFile)?.viewProvider,
+            //    getRegisteredLanguages().find{it.id=="JSON"},).topLevelValue as JsonArray
+            //        ).valueList.map { it.text }
+
+            //println(jsonAtr)
+            //JsonArray()
+
+        } catch (ioException: IOException) {
+            ioException.printStackTrace()
+
+
+        }finally {
+            close(OK_EXIT_CODE)
+        }
+
+        //TODO:
+        // 1) Access file and turn it into a PSI file
+        // 2) process it like before
+        // 3) Allow choosing a field to name the document with
+        //   i)replaceDoc if provided
+        //   ii)addDoc if not provided
+        //launch(ApplicationThreadPoolScope("Explorer").coroutineContext ) {
+
+        //}
+
+
+
+            //println("Loading documents from $filePath to $newCollectionName")
+
+
+        }
 
     fun changeSelectedFile() {
             view.apply()
             close(CANCEL_EXIT_CODE)
-            UploadJsonCollectionDialog(project,endpoint,filePath,createNewCollection,newCollectionName,).show()
+            UploadJsonCollectionDialog(project, endpoint, filePath, createNewCollection, newCollectionName).show()
     }
 }

@@ -14,7 +14,7 @@ import javax.swing.JComponent
 import javax.swing.JTable
 
 class TableVirtualFile(val endpointTable: EndpointTable, model: ListTableModel<Map<String, String>>,) :
-    PagedVirtualFile(endpointTable.table.name.toString(), null, 20) {
+    PagedVirtualFile(endpointTable.table.name.toString(), null) {
     var allRows = mutableListOf<Any>()
     override var pages = mutableListOf<VirtualTablePage>()
     val component: JComponent
@@ -22,6 +22,7 @@ class TableVirtualFile(val endpointTable: EndpointTable, model: ListTableModel<M
 
     init {
         lock()
+        pageSize = 20
         tableView = TableView<Map<String, String>>(model).apply {
             autoscrolls = true
             autoResizeMode = JTable.AUTO_RESIZE_ALL_COLUMNS

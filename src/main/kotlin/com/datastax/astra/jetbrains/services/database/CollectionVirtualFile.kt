@@ -16,12 +16,10 @@ import com.jetbrains.rd.util.put
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class CollectionVirtualFile(var endpointInfo: EndpointCollection, initialWhereParams: String = "",var setPageSize: Int = 5) :
-
+class CollectionVirtualFile(var endpointInfo: EndpointCollection, initialWhereParams: String = "",) :
     PagedVirtualFile(
         endpointInfo.collection,
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
-        5
     ) {
     var jsonDocs = LinkedTreeMap<String, Any>()
     lateinit var editor: Editor
@@ -35,6 +33,7 @@ class CollectionVirtualFile(var endpointInfo: EndpointCollection, initialWherePa
 
 
     init {
+        pageSize = 5
         lock()
     }
 

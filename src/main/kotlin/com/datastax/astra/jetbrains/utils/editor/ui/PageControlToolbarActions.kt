@@ -47,23 +47,6 @@ class PageControlToolbarActions(
                 DefaultActionGroup()
             }
         }
-    // val nextPageAction = createToolbar(DefaultActionGroup(NextPageAction(file)),parentHeader,0,0)
-
-    // pageControlActions.add(ChangePageActionField(file,newPageNumber,::updatePageNumber))
-    // pageControlActions.add(ChangePageActionField(file,newPageNumber,::updatePageNumber))
-    // pageControlActions.add(ChangeRowsActionBox(file))
-    // val panel = JPanel(FlowLayout(FlowLayout.LEFT,2,0))
-    // Disabled because it didn't seem to add anything and made things more busy
-    // panel.add(JBLabel("Pg"))
-    // panel.add(pageField)
-    // panel.add(pageCountLabel)
-    // panel.add(nextPageAction)
-
-    // TODO: Add page selection
-    // TODO: Add right button
-    // TODO: Add page size ComboBox
-
-    // return panel
 }
 
 class PreviousPageAction(val file: PagedVirtualFile) :
