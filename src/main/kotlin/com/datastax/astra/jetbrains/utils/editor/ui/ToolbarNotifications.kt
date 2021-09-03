@@ -36,6 +36,15 @@ fun failedDocInsertNotification(numFailedDocs: Int) {
     )
 }
 
+fun failedBrowseCollections() {
+    notifyWarn(
+        title = "Browsing Collections Failed",
+        content = "Server failed to respond to the request successfully",
+        notificationActions = emptyList()
+        // createNotificationExpiringAction(NeverShowAgain()),
+    )
+}
+
 fun successfulDocInsertNotification(numInsertedDocs: Int, collectionName: String) {
     notifyInfo(
         title = "Document Insert Successful",

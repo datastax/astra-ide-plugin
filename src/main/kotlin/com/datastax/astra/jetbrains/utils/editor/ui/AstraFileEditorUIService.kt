@@ -1,6 +1,7 @@
 package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.devops_v2.models.Database
+import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
@@ -124,8 +125,8 @@ class AstraFileEditorUIService(private val project: Project) :
     suspend fun buildDatabaseMap() = coroutineScope {
         databaseList.clear()
         val response = AstraClient.dbOperationsApi().listDatabases()
-        if (response.isSuccessful && !response.body().isNullOrEmpty()) {
-            response.body()?.forEach { database ->
+        if (response.isSuccessful && !response.body()?.filter{it.status==StatusEnum.ACTIVE}.isNullOrEmpty()) {
+            response.body()?.filter { it.status==StatusEnum.ACTIVE }?.forEach { database ->
                 launch {
                     val keyspaceResponse = AstraClient.schemasApiForDatabase(database).getKeyspaces(AstraClient.accessToken)
                     if (keyspaceResponse.isSuccessful && !keyspaceResponse.body()?.data.isNullOrEmpty()) {

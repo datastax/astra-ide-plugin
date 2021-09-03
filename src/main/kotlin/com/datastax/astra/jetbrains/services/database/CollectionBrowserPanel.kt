@@ -5,6 +5,7 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.ui.failedBrowseCollections
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.intellij.openapi.Disposable
@@ -20,7 +21,7 @@ class CollectionBrowserPanel(
     val collection: DocCollection,
     val keyspace: com.datastax.astra.stargate_rest_v2.models.Keyspace,
     val database: Database
-) : CoroutineScope by ApplicationThreadPoolScope("Table"), Disposable {
+) : CoroutineScope by ApplicationThreadPoolScope("Collection"), Disposable {
 
     protected val edtContext = getCoroutineUiContext(disposable = this)
     val gson = Serializer.gsonBuilder
@@ -62,6 +63,9 @@ class CollectionBrowserPanel(
                 )
             }
         } else {
+            withContext(edtContext) {
+                failedBrowseCollections()
+            }
             TelemetryManager.trackStargateCrud("Collection", collection.name.orEmpty(), CrudEnum.READ, false)
         }
     }

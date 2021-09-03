@@ -259,7 +259,7 @@ class CollectionNode(project: Project, val collection: DocCollection, val keyspa
     override fun actionGroupName(): String = "astra.explorer.databases.collection"
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
-    override fun onDoubleClick(): Unit = runBlocking {
+    override fun onDoubleClick()  {
         CollectionBrowserPanel(nodeProject, collection, keyspace, database)
     }
 }
