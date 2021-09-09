@@ -7,14 +7,10 @@ import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.editor.ui.EndpointCollection
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
-import com.datastax.astra.stargate_document_v2.models.InlineResponse202
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.stream.JsonReader
-import com.intellij.icons.AllIcons
-import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor
 import com.intellij.openapi.project.DumbAwareAction
@@ -22,29 +18,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
-import com.intellij.openapi.util.NlsContexts
-import com.intellij.ui.DeferredIconImpl
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.*
-import com.intellij.util.IconUtil
-import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.JBScalableIcon
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.components.JBComponent
 import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
 import java.awt.Component
-import java.awt.Graphics
-import java.awt.Rectangle
-import java.awt.event.FocusEvent
-import java.awt.event.FocusListener
 import java.io.*
 import java.lang.Thread.sleep
 import java.util.*
-import javax.swing.Icon
 import javax.swing.JComponent
 
 
@@ -78,8 +62,8 @@ class UploadJsonCollectionDialog(
     var slidingAvg = 0.0
     val slidingWindow = mutableListOf<WindowPoint>()
     var requestIndex = 0
-    var throttlingDelay = 1000L
-    var rateLimit = 550
+    var throttlingDelay = 500L
+    var rateLimit = 2000
     val gson = Serializer.gsonBuilder
         .setPrettyPrinting()
         .disableHtmlEscaping()
@@ -229,7 +213,8 @@ class UploadJsonCollectionDialog(
 
 
                 //    println(jsonFieldName)
-                uploadAndGiveFeedback(parseSplitSerialize(filePath), jsonFieldName.takeIf { useFieldAsDocid }.orEmpty())
+                count(filePath)
+                parseSplitSerialize(filePath)
             }
         } catch (ioException: IOException) {
             ioException.printStackTrace()
@@ -257,49 +242,153 @@ class UploadJsonCollectionDialog(
         //create JsonReader object and pass it the json file,json source or json text.
         val serializedSubLists = mutableListOf<String>()
         val fieldSizeList = mutableListOf<Int>()
+        val startTime = System.currentTimeMillis()
+        var maxStreams = 100
+        var firstOverrate = true
         try {
             JsonReader(
                 InputStreamReader(
                     FileInputStream(jsonFilePath), Charsets.UTF_8)).use { jsonReader ->
                 val gson = GsonBuilder().create()
                 jsonReader.beginArray() //start of json array
-                val nextDocsList = mutableListOf<LinkedTreeMap<*, *>>()
+                val nextDocList = mutableListOf<String>()
 
                 var fieldCount = 0
-                while (jsonReader.hasNext()) { //next json array element
+                var concurrentRequests = 8
+                var nonRateFailure = false
+                var docListIndex = 0
+                while (!nonRateFailure && jsonReader.hasNext()) { //next json array element
                     val nextDoc = (gson.fromJson(jsonReader, Any::class.java) as LinkedTreeMap<*, *>)
                     nextDoc.forEach {
                         if (it.value is Collection<*>) {
                             fieldCount += (it.value as Collection<*>).size
                         } else {
-                            fieldCount += nextDoc.size
+                            fieldCount++
                         }
                     }
-                    nextDocsList.add(nextDoc)
-                    //If it's larger than 800000 chars or 4096 field changes/s it could be too large to send over the wire or hit rate limit
-                    //Try to send <~4000 field changes/s or 4 split requests/s
-                    if (nextDocsList.size % 8 == 0 && (nextDocsList.toString()
-                            .toByteArray(Charsets.UTF_8).size > 600000 || fieldCount > 1800)
-                    ) {
-                        if (nextDocsList.toString().toByteArray(Charsets.UTF_8).size > 800000 || fieldCount > 2400) {
-                            serializedSubLists.add(gson.toJson(nextDocsList.subList(0, (nextDocsList.size / 2) - 1))
-                                .toString())
-                            serializedSubLists.add(gson.toJson(nextDocsList.subList(nextDocsList.size / 2,
-                                nextDocsList.size - 1)).toString())
-                            fieldSizeList.add(fieldCount / 2)
-                            fieldSizeList.add(fieldCount / 2)
-                        } else {
-                            fieldSizeList.add(fieldCount)
-                            serializedSubLists.add(gson.toJson(nextDocsList).toString())
-                        }
-                        nextDocsList.clear()
-                        fieldCount = 0
-                    }
-                }
-                if (nextDocsList.isNotEmpty()) {
-                    serializedSubLists.add(gson.toJson(nextDocsList).toString())
                     fieldSizeList.add(fieldCount)
+                    serializedSubLists.add(gson.toJson(nextDoc))
+                    fieldCount = 0
+                    nextDocList.add(gson.toJson(nextDoc))
+                    if (nextDocList.size% concurrentRequests == 0) {
+                        val concurrentRequestsStart = concurrentRequests
+                        var overRate = false
+                        runBlocking {
+                            do {
+                                val responses = if (overRate) {
+                                    println("Resending set #${docListIndex++} with ${nextDocList.size} request(s). RateLimit:$rateLimit, Delay:$throttlingDelay, Rate:$slidingAvg")
+                                    overRate = false
+                                    addAndWait(nextDocList, fieldSizeList, startTime)
+
+                                } else {
+                                    println("Sending set #${docListIndex++} with ${nextDocList.size} requests. RateLimit:$rateLimit, Delay:$throttlingDelay, Rate:$slidingAvg")
+                                    addAndWait(nextDocList, fieldSizeList, startTime)
+                                }
+
+                                val success = responses.filter { it.isSuccessful }
+                                val failed = responses.filter { !it.isSuccessful }
+                                // Do the rest in the UI context because we show some notifications and possibly generate dialog boxes from them
+
+                                if (failed.isNotEmpty()) {
+
+                                    //failedDocInsertNotification(failed.size)
+                                    if (failed.filter {
+                                            it.getErrorResponse<Any?>().toString().contains("500")
+                                        }.size == failed.size) {
+                                        overRate = true
+                                        val newList = mutableListOf<String>()
+                                        failed.forEach {
+                                            requestIndex--
+                                            rateLimit = if (rateLimit > 500) {
+                                                rateLimit - 250
+                                            } else {
+                                                rateLimit
+                                            }
+                                            throttlingDelay += 100
+                                            newList.add(nextDocList[responses.indexOf(it)])
+                                        }
+                                        if(concurrentRequestsStart - concurrentRequests<2){
+                                            concurrentRequests--
+                                        }
+                                        nextDocList.clear()
+                                        nextDocList.addAll(newList)
+                                        docListIndex--
+                                        println("${failed.size} request(s) failed")
+                                    } else {
+                                        nonRateFailure = true
+                                    }
+
+                                    if(firstOverrate){
+                                        firstOverrate=false
+                                        maxStreams=concurrentRequests
+                                    }
+                                }
+
+                                if (success.isNotEmpty()) {
+                                    if (rateLimit <= 4000) {
+                                        rateLimit += (100 * success.size)
+                                    } else if (rateLimit < 4400) {
+                                        rateLimit += 100
+                                    }
+
+                                    if(concurrentRequests - concurrentRequestsStart<2 && concurrentRequests<maxStreams){
+                                        concurrentRequests++
+                                    }
+
+                                    println("${success.size} request(s) succeeded. $requestIndex/??")
+                                    //successfulDocInsertNotification(success.size, cBoxes.collectionComboBox.selectedItem)
+                                }
+                            } while (!nonRateFailure && overRate)
+                            nextDocList.clear()
+                        }
+                    }
                 }
+                if (nextDocList.isNotEmpty()) {
+                    //serializedSubLists.add(gson.toJson(nextDocsList).toString())
+                    //fieldSizeList.add(fieldCount)
+                }
+                jsonReader.endArray()
+                println("Total requests required: ${serializedSubLists.size}")
+            }
+        } catch (e: UnsupportedEncodingException) {
+            e.printStackTrace()
+        } catch (e: FileNotFoundException) {
+            // TODO: Handle this!
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        return Pair(serializedSubLists, fieldSizeList)
+    }
+
+    fun count(jsonFilePath: String?): Pair<List<String>, List<Int>> {
+        //create JsonReader object and pass it the json file,json source or json text.
+        val serializedSubLists = mutableListOf<String>()
+        val fieldSizeList = mutableListOf<Int>()
+        val startTime = System.currentTimeMillis()
+        var maxStreams = 100
+        var firstOverrate = true
+        try {
+            JsonReader(
+                InputStreamReader(
+                    FileInputStream(jsonFilePath), Charsets.UTF_8)).use { jsonReader ->
+                val gson = GsonBuilder().create()
+                jsonReader.beginArray() //start of json array
+                val nextDocList = mutableListOf<String>()
+
+                var fieldCount = 0
+                var concurrentRequests = 8
+                var nonRateFailure = false
+                var docListCount = 0
+                while (!nonRateFailure && jsonReader.hasNext()) { //next json array element
+                    val nextDoc = (gson.fromJson(jsonReader, Any::class.java) as LinkedTreeMap<*, *>)
+                    docListCount++
+                }
+                if (nextDocList.isNotEmpty()) {
+                    //serializedSubLists.add(gson.toJson(nextDocsList).toString())
+                    //fieldSizeList.add(fieldCount)
+                }
+                println("Total Doc Count: $docListCount")
                 jsonReader.endArray()
                 println("Total requests required: ${serializedSubLists.size}")
             }
@@ -327,7 +416,7 @@ class UploadJsonCollectionDialog(
             var nonRateFailure = false
             var overRate = false
             var sublistIndex = 0
-            val concurrentRequests = 5
+            val concurrentRequests = 14
             val splitLists = sublistAndRates.first.chunked(concurrentRequests)
             val startTime = System.currentTimeMillis()
             var requestsSublist = mutableListOf<String>()
@@ -353,36 +442,38 @@ class UploadJsonCollectionDialog(
 
                     //failedDocInsertNotification(failed.size)
                     if (failed.filter {
-                            it.getErrorResponse<Any?>().toString().contains("Rate limit reached")
+                            it.getErrorResponse<Any?>().toString().contains("500")
                         }.size == failed.size) {
                         overRate = true
                         val newSublist = mutableListOf<String>()
                         failed.forEach {
                             requestIndex--
-                            rateLimit = if (rateLimit >= 2500) {
-                                rateLimit - 1000
+                            rateLimit = if (rateLimit > 500) {
+                                rateLimit - 250
                             } else {
                                 rateLimit
                             }
-                            throttlingDelay += 500
+                            throttlingDelay += 100
                             newSublist.add(requestsSublist[responses.indexOf(it)])
                         }
                         requestsSublist.clear()
                         requestsSublist.addAll(newSublist)
                         sublistIndex--
                         println("${failed.size} request(s) failed")
-                    }else{
-                        nonRateFailure=true
+                    } else {
+                        nonRateFailure = true
                     }
                 }
 
                 if (success.isNotEmpty()) {
-                    val rateDelta = (slidingAvg - rateLimit)/2
-                    rateLimit = if (rateDelta > 200) {
-                        rateLimit + rateDelta.toInt()
-                    } else {
-                        rateLimit + 200
+                    if (rateLimit <= 4000) {
+                        rateLimit += (100 * success.size)
+                    } else if (rateLimit < 4400) {
+                        rateLimit += 100
                     }
+
+
+
                     println("${success.size} request(s) succeeded. $requestIndex/${sublistAndRates.first.size}")
                     //successfulDocInsertNotification(success.size, cBoxes.collectionComboBox.selectedItem)
                 }
@@ -402,33 +493,39 @@ class UploadJsonCollectionDialog(
         requestsSublist: List<String>,
         fieldSizeList: List<Int>,
         startTime: Long,
-    ): List<Response<InlineResponse202>> {
+    ): List<Response<Unit>> {
         val responses = runBlocking {
             sleep(throttlingDelay / requestsSublist.size)
             requestsSublist.map { doc ->
                 slidingWindow.add(0, WindowPoint(fieldSizeList[requestIndex++], System.currentTimeMillis()))
                 slidingAvg =
                     slidingWindow.sumOf { it.fieldSize } / ((slidingWindow.first().time - slidingWindow.last().time) / 1000.0)
-                if (slidingAvg < rateLimit && throttlingDelay > 20) {
-                    throttlingDelay -= 20
+                if (slidingAvg < rateLimit && throttlingDelay >= 2) {
+                    throttlingDelay -= if (throttlingDelay >= 200) {
+                        100
+                    } else if (throttlingDelay >= 20) {
+                        10
+                    } else {
+                        2
+                    }
                 } else if (slidingAvg > rateLimit && throttlingDelay <= 1000) {
-                    throttlingDelay += 100
+                    throttlingDelay += 50
                 }
-                if (slidingAvg > 2000) {
+                if ((slidingWindow.first().time - slidingWindow.last().time) > 2000) {
                     slidingWindow.removeLast()
                 }
-                if (slidingWindow.size > 10) {
+                if (slidingWindow.size > (requestsSublist.size * 1.5)) {
                     slidingWindow.removeLast()
                 }
                 sleep(throttlingDelay)
                 async {
-                    AstraClient.documentApiForDatabase(endpoint.database).addMany(
+                    AstraClient.documentApiForDatabase(endpoint.database).addDoc(
                         UUID.randomUUID(),
                         AstraClient.accessToken,
                         endpoint.keyspace,
                         endpoint.collection,
                         doc.toRequestBody("text/plain".toMediaTypeOrNull()),
-                        jsonFieldName.ifEmpty { null },
+                        //jsonFieldName.ifEmpty { null },
                     )
                 }
             }

@@ -49,7 +49,7 @@ interface DocumentsApi {
      * @param pretty format results (optional)
      * @return [Unit]
      */
-    @POST("api/rest/v2/namespaces/{namespace-id}/collections/{collection-id}")
+    @POST("api/rest/v2/namespaces/{namespace-id}/collections/{collection-id}/batch")
     @Headers("Accept: application/json", "Content-Type: application/json")
     suspend fun addMany(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Body body: RequestBody, @Query("id-path") idPath: kotlin.String? = null): Response<InlineResponse202>
 
