@@ -4,20 +4,10 @@
 
 ## [Unreleased]
 ### Added
+- Basic support for viewing document collections
 
 ### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-## [0.6.0]
-### Added
-
-### Changed
+- Minimum supported IntelliJ Platform is 2021.2
 
 ### Deprecated
 
