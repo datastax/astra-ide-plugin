@@ -59,6 +59,15 @@ enum class StatusEnum(val value: kotlin.String) {
     @SerializedName(value = "MAINTENANCE")
     MAINTENANCE("MAINTENANCE"),
 
+    @SerializedName(value = "HIBERNATING")
+    HIBERNATING("HIBERNATING"),
+
+    @SerializedName(value = "HIBERNATED")
+    HIBERNATED("HIBERNATED"),
+
+    @SerializedName(value = "RESUMING")
+    RESUMING("RESUMING"),
+
     @SerializedName(value = "UNKNOWN")
     UNKNOWN("UNKNOWN");
 
