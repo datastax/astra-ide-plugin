@@ -262,7 +262,7 @@ interface DocumentsApi {
      * @return [DocumentResponseWrapper]
      */
     @GET("api/rest/v2/namespaces/{namespace-id}/collections/{collection-id}")
-    suspend fun searchDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("where") where: kotlin.String? = null, @Query("fields") fields: kotlin.String? = null, @Query("page-size") pageSize: kotlin.Int? = null, @Query("page-state") pageState: kotlin.String? = null, @Query("sort") sort: kotlin.Any? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<DocumentResponseWrapper>
+    suspend fun searchDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("where") where: kotlin.String? = null, @Query("fields") fields: kotlin.String? = null, @Query("page-size") pageSize: kotlin.Int? = null, @Query("page-state") pageState: kotlin.String? = null, @Query("sort") sort: kotlin.Any? = null, @Query("profile") profile: kotlin.Boolean? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<DocumentResponseWrapper>
 
     /**
      * Update part of a document
