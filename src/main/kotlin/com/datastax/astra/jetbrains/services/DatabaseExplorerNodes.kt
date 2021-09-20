@@ -215,20 +215,20 @@ class TableParentNode(project: Project, val keyspace: Keyspace, val database: Da
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
         cached(Pair(database, keyspace), loader = fetchTables)?.filter { !collectionList.contains(it.name) }?.map {
-            TableNode(nodeProject, it, database)
+            TableNode(nodeProject, TableEndpoint(database,keyspace,it))
         } ?: emptyList()
     }
 }
 
-class TableNode(project: Project, val table: Table, val database: Database) :
-    ExplorerNode<String>(project, table.name.orEmpty(), null),
+class TableNode(project: Project, val endpoint:TableEndpoint) :
+    ExplorerNode<String>(project, endpoint.table.name.orEmpty(), null),
     ResourceActionNode {
 
     override fun actionGroupName(): String = "astra.explorer.databases.table"
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick() {
-        openEditor(nodeProject, table, database)
+        openEditor(nodeProject, endpoint)
     }
 }
 
@@ -306,3 +306,9 @@ fun StatusEnum.isProcessing(): Boolean {
         else -> false
     }
 }
+
+data class TableEndpoint(
+    val database: Database,
+    val keyspace: Keyspace,
+    val table: Table,
+)

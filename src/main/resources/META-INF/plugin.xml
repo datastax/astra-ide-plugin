@@ -15,7 +15,7 @@
         <projectService serviceImplementation="com.datastax.astra.jetbrains.explorer.ExplorerToolWindow"/>
         <toolWindow id="astra.explorer" anchor="left" secondary="true"
                     factoryClass="com.datastax.astra.jetbrains.explorer.ExplorerFactory"/>
-        <fileEditorProvider implementation="com.datastax.astra.jetbrains.services.database.TableViewerEditorProvider"/>
+        <fileEditorProvider implementation="com.datastax.astra.jetbrains.services.database.TableEditorProvider"/>
         <jcef.appRequiredArgumentsProvider implementation="com.datastax.astra.jetbrains.utils.JcefProvider"/>
 
         <projectService serviceImplementation="com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService"/>

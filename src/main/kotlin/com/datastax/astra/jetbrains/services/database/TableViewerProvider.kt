@@ -1,22 +1,24 @@
 package com.datastax.astra.jetbrains.services.database
 
-import com.datastax.astra.devops_v2.models.Database
-import com.intellij.openapi.editor.Editor
+import com.datastax.astra.jetbrains.explorer.TableEndpoint
+import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.openapi.fileEditor.*
 import com.intellij.openapi.project.PossiblyDumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
+import kotlinx.coroutines.CoroutineScope
 import java.beans.PropertyChangeListener
 
-class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
+class TableEditorProvider : FileEditorProvider, PossiblyDumbAware {
 
     override fun isDumbAware() = true
 
     override fun accept(project: Project, file: VirtualFile) = file is TableVirtualFile
 
     override fun createEditor(project: Project, file: VirtualFile): FileEditor =
-        TableViewerEditor(project, file as TableVirtualFile)
+        TableEditor(project, file as TableVirtualFile)
 
     override fun getEditorTypeId() = EDITOR_TYPE_ID
 
@@ -27,16 +29,14 @@ class TableViewerEditorProvider : FileEditorProvider, PossiblyDumbAware {
     }
 }
 
-class TableViewerEditor(project: Project, tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
-
-    private val tablePanel: TableViewerPanel =
-        TableViewerPanel(this, project, tableVirtualFile.table, tableVirtualFile.database)
+class TableEditor(project: Project, tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
+    private val tableWindow = TableManager(project, tableVirtualFile.endpoint).tableUI
 
     override fun dispose() {}
 
-    override fun getComponent() = tablePanel.component
+    override fun getComponent() = tableWindow.component
 
-    override fun getPreferredFocusedComponent() = tablePanel.component
+    override fun getPreferredFocusedComponent() = tableWindow.tableView
 
     override fun getName() = "Table Panel"
 
@@ -51,14 +51,19 @@ class TableViewerEditor(project: Project, tableVirtualFile: TableVirtualFile) : 
     override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
 
     override fun getCurrentLocation(): FileEditorLocation? = null
+
+    override fun getFile(): VirtualFile {
+        return FileEditor.FILE_KEY[this]
+    }
 }
 
-fun openEditor(project: Project, table: com.datastax.astra.stargate_rest_v2.models.Table, database: Database): Editor? {
-    return FileEditorManager.getInstance(project).openTextEditor(
-        OpenFileDescriptor(
-            project,
-            TableVirtualFile(table, database)
-        ),
+class TableVirtualFile(val endpoint: TableEndpoint) :
+    LightVirtualFile(endpoint.table?.name.orEmpty()),
+    CoroutineScope by ApplicationThreadPoolScope("Table")
+
+fun openEditor(project: Project, endpoint: TableEndpoint): Array<out FileEditor> {
+    return FileEditorManager.getInstance(project).openFile(
+        TableVirtualFile(endpoint),
         true
     )
 }
