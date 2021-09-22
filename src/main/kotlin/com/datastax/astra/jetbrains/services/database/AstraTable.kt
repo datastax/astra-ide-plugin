@@ -14,6 +14,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.SearchTextField
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ListTableModel
@@ -22,7 +23,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jdesktop.swingx.combobox.ListComboBoxModel
 import java.awt.BorderLayout
+import java.awt.Dimension
 import java.awt.FlowLayout
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -41,8 +45,9 @@ class TableManager(
     val endpoint: TableEndpoint,
 ): CoroutineScope by ApplicationThreadPoolScope("Table") {
     protected val edtContext = getCoroutineUiContext()
-    val tableUI = TableUI(endpoint,::changePage,::changePageSize)
+    val tableUI = TableUI(endpoint,::changePage,::changePageSize,::changeWhereField)
     var pageSize = 10
+    var whereFieldText = "{}"
     private val previousPages = mutableListOf<String>()
     private var nextPage = ""
     private var currentPage = ""
@@ -64,13 +69,13 @@ class TableManager(
                 Page.NEXT -> {
                     previousPages.add(currentPage)
                     currentPage = nextPage
-                    nextPage = fetchPageAndSet(AstraClient,currentPage)
+                    nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
                         .also { tableUI.hasNext(it.isNotEmpty()) }
                 }
                 Page.PREVIOUS -> {
                     if(previousPages.isNotEmpty()) {
                         currentPage = previousPages.removeLast()
-                        nextPage = fetchPageAndSet(AstraClient,currentPage)
+                        nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
                             .also { tableUI.hasNext(it.isNotEmpty()) }
                     }
                     else{
@@ -91,7 +96,20 @@ class TableManager(
             tableUI.hasPrev(false)
             pageSize = newPageSize
             currentPage = ""
-            nextPage = fetchPageAndSet(AstraClient,currentPage)
+            nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
+                .also { tableUI.hasNext(it.isNotEmpty()) }
+            tableUI.setBusy(false)
+        }
+    }
+
+    fun changeWhereField(whereQuery: String){
+        launch {
+            tableUI.setBusy(true)
+            previousPages.clear()
+            tableUI.hasPrev(false)
+            whereFieldText = whereQuery
+            currentPage = ""
+            nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
                 .also { tableUI.hasNext(it.isNotEmpty()) }
             tableUI.setBusy(false)
         }
@@ -135,7 +153,12 @@ class TableManager(
     }
 }
 
-class TableUI(endpoint: TableEndpoint, changePage: (Page) -> Unit, changePageSize: (Int) -> Unit){
+class TableUI(
+    endpoint: TableEndpoint,
+    changePage: (Page) -> Unit,
+    changePageSize: (Int) -> Unit,
+    changeWhereQuery: (String) -> Unit
+){
     protected val edtContext = getCoroutineUiContext()
     val component: JComponent
     var prevAvailable = false
@@ -154,12 +177,13 @@ class TableUI(endpoint: TableEndpoint, changePage: (Page) -> Unit, changePageSiz
 
     val toolbar = JPanel(FlowLayout(FlowLayout.LEFT))
 
+    val whereField = SearchTextField()
     val prevButton = JButton(AllIcons.Actions.ArrowCollapse)
     val nextButton = JButton(AllIcons.Actions.ArrowExpand)
     val pageSizeComboBox = ComboBox(PageSizeComboBox(changePageSize))
-    val toolbarComponents: List<JComponent> = listOf(prevButton,nextButton,pageSizeComboBox)
+    val toolbarComponents: List<JComponent> = listOf(whereField,prevButton,nextButton,pageSizeComboBox)
     init {
-
+        setUpWhereField(changeWhereQuery)
         //Set Up Table View
         //TODO: Paint for busy on creation?
         tableView = TableView<Map<String, String>>(model).apply {
@@ -183,6 +207,25 @@ class TableUI(endpoint: TableEndpoint, changePage: (Page) -> Unit, changePageSiz
         component.add(toolbar,BorderLayout.NORTH)
     }
 
+    private fun setUpWhereField(changeWhereQuery: (String) -> Unit) {
+        whereField.preferredSize= Dimension(300,whereField.preferredSize.height)
+
+        //Do something in this state?
+        //whereField.onEmpty {
+
+        whereField
+        whereField.onEnter {
+            // If it is not empty do a search
+            if (whereField.text.isNotEmpty()) {
+                changeWhereQuery(whereField.text)
+            }
+            else {
+                changeWhereQuery("{}")
+            }
+        }
+    }
+
+
     suspend fun setBusy(busy: Boolean = true){
         if(busy){
             withContext(edtContext) {
@@ -198,6 +241,7 @@ class TableUI(endpoint: TableEndpoint, changePage: (Page) -> Unit, changePageSiz
             withContext(edtContext) {
                 tableView.setPaintBusy(false)
 
+                whereField.isEnabled=true
                 toolbar.isEnabled=true
                 pageSizeComboBox.isEnabled=true
                 prevButton.isEnabled=prevAvailable
@@ -214,9 +258,26 @@ class TableUI(endpoint: TableEndpoint, changePage: (Page) -> Unit, changePageSiz
     }
 
 }
+
+fun SearchTextField.onEnter(block: () -> Unit) {
+    textEditor.addActionListener(
+        object : ActionListener {
+            private var lastText = ""
+            override fun actionPerformed(e: ActionEvent?) {
+                val searchFieldText = text.trim()
+                if (searchFieldText == lastText) {
+                    return
+                }
+                lastText = searchFieldText
+                block()
+            }
+        }
+    )
+}
+
 //TODO:
 // Ask Garrett if these numbers are good, should we have a custom option?
-// It can go up to 1000
+// It can go up to
 class PageSizeComboBox(
     changePageSize: (Int) -> Unit,
     val list: List<Int> = listOf(10,20,50,100,200)
@@ -235,7 +296,6 @@ class PageSizeComboBox(
         })
     }
 }
-
 
 
 enum class Page(val nextPage: String) {
