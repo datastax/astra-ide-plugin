@@ -3,22 +3,38 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.MessagesBundle
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
 import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
+import com.intellij.codeInspection.SuppressionUtil.createComment
+import com.intellij.ide.BrowserUtil
+import com.intellij.json.psi.JsonArray
+import com.intellij.json.psi.JsonObject
+import com.intellij.json.psi.impl.JsonFileImpl
+import com.intellij.lang.Language.findInstance
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.fileEditor.*
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.nextLeaf
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -36,6 +52,7 @@ class AstraFileEditorUIService(private val project: Project) :
     private var databaseList = mutableListOf<SimpleDatabase>()
     private val myLock = Any()
     private var fileEditor: FileEditor? = null
+    val edtContext = getCoroutineUiContext()
     // private var queryResultLabel: JBLabel? = null
     // private var querySuccessLabel: JBLabel? = null
 
@@ -67,11 +84,43 @@ class AstraFileEditorUIService(private val project: Project) :
                 }
             }
         }
+
+    }
+
+    fun addLinks(fileEditor: FileEditor, editor: Editor, file: VirtualFile){
+
+
+
+
+        launch {
+            withContext(edtContext) {
+                val jsonArray = (PsiManager.getInstance(project).findFile(file) as JsonFileImpl).topLevelValue as JsonObject
+                val psiFile = PsiManager.getInstance(project).findFile(file)
+                WriteCommandAction.writeCommandAction(project).withName("Adding to Json")
+                    .shouldRecordActionForActiveDocument(false)
+                    .run<Exception> {
+                        jsonArray.children.forEach {
+                            //it.addAfter(createComment(project,"Comment",com.intellij.lang.Language.findLanguageByID("JSON")!!),(it.lastChild as PsiElement).firstChild)
+
+                            val rowEnd = editor.document.getLineEndOffset(editor.document.getLineNumber(it.lastChild.textOffset))
+                            editor.document.insertString(rowEnd,"Comment")
+
+                        }
+
+                        PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(editor.document)
+                    }
+            }
+        }
+
+
+
+        editor.contentComponent.add(JButton("Button Added"))
     }
 
     private class AstraEditorHeaderComponent : EditorHeaderComponent()
 
     private fun createHeaderComponent(fileEditor: FileEditor, editor: Editor, file: VirtualFile): JComponent {
+
         // If this is a CollectionVirtualFile set the combo boxes to match the file's resources
         val jsonEditorComboBoxes = if (file is CollectionVirtualFile) {
             val collectionFile = file
@@ -215,5 +264,11 @@ class SimpleKeyspace(
 ) {
     override fun toString(): String {
         return "${keyspace.name}"
+    }
+}
+
+class UserRegisterAction () : AnAction("Register"), DumbAware {
+    override fun actionPerformed(e: AnActionEvent) {
+        BrowserUtil.browse("https://www.google.com")
     }
 }

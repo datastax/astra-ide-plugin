@@ -49,7 +49,6 @@ class TableManager(
 
     init {
 
-        //TODO: populate the window with data
         launch {
             tableUI.setBusy()
             nextPage = fetchPageAndSet(AstraClient,currentPage)
@@ -78,6 +77,7 @@ class TableManager(
                         //TODO: Ask garrett if this check should be here
                     }
                 }
+                //Page.CURRENT -> Refresh current page
             }
             tableUI.hasPrev(previousPages.isNotEmpty())
             tableUI.setBusy(false)
@@ -215,7 +215,8 @@ class TableUI(endpoint: TableEndpoint, changePage: (Page) -> Unit, changePageSiz
 
 }
 //TODO:
-// Change Row function
+// Ask Garrett if these numbers are good, should we have a custom option?
+// It can go up to 1000
 class PageSizeComboBox(
     changePageSize: (Int) -> Unit,
     val list: List<Int> = listOf(10,20,50,100,200)
