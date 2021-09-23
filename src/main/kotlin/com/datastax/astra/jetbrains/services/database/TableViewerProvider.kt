@@ -30,7 +30,7 @@ class TableEditorProvider : FileEditorProvider, PossiblyDumbAware {
 }
 
 class TableEditor(project: Project, tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
-    private val tableWindow = TableManager(project, tableVirtualFile.endpoint).tableUI
+    private val tableWindow = TableManager(this,project, tableVirtualFile.endpoint).tableUI
 
     override fun dispose() {}
 

@@ -9,6 +9,7 @@ import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -16,17 +17,18 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.TableSpeedSearch
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ListTableModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jdesktop.swingx.combobox.ListComboBoxModel
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.FlowLayout
+import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import javax.swing.*
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -41,11 +43,12 @@ class OpenTableAction : DumbAwareAction(MessagesBundle.message("table.open.title
 }
 
 class TableManager(
+    val disposable: Disposable,
     val project: Project,
     val endpoint: TableEndpoint,
 ): CoroutineScope by ApplicationThreadPoolScope("Table") {
-    protected val edtContext = getCoroutineUiContext()
-    val tableUI = TableUI(endpoint,::changePage,::changePageSize,::changeWhereField)
+    protected val edtContext = getCoroutineUiContext(disposable = disposable)
+    val tableUI = TableUI(disposable,endpoint,::changePage,::changePageSize,::changeWhereField)
     var pageSize = 10
     var whereFieldText = "{}"
     private val previousPages = mutableListOf<String>()
@@ -55,10 +58,7 @@ class TableManager(
     init {
 
         launch {
-            tableUI.setBusy()
-            nextPage = fetchPageAndSet(AstraClient,currentPage)
-                .also { tableUI.hasNext(it.isNotEmpty()) }
-            tableUI.setBusy(false)
+            resetTable(AstraClient,"",pageSize,whereFieldText)
         }
     }
 
@@ -67,83 +67,94 @@ class TableManager(
             tableUI.setBusy()
             when (page) {
                 Page.NEXT -> {
-                    previousPages.add(currentPage)
-                    currentPage = nextPage
-                    nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
-                        .also { tableUI.hasNext(it.isNotEmpty()) }
+                    val(newRows,newToken)=requestPage(AstraClient,nextPage,pageSize,whereFieldText)
+                    if(newRows.isNotEmpty()){
+                        previousPages.add(currentPage)
+                        currentPage = nextPage
+                        nextPage = newToken
+                        setRows(newRows)
+
+                    }
+                    tableUI.hasPrev(!previousPages.isEmpty())
                 }
                 Page.PREVIOUS -> {
                     if(previousPages.isNotEmpty()) {
-                        currentPage = previousPages.removeLast()
-                        nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
-                            .also { tableUI.hasNext(it.isNotEmpty()) }
-                    }
-                    else{
-                        //TODO: Ask garrett if this check should be here
+                        val(newRows,newToken)=requestPage(AstraClient,previousPages.last(),pageSize,whereFieldText)
+                        if(newRows.isNotEmpty()){
+                            currentPage = previousPages.removeLast()
+                            nextPage = newToken
+                            setRows(newRows)
+                        }
+                        tableUI.hasPrev(!previousPages.isEmpty())
                     }
                 }
                 //Page.CURRENT -> Refresh current page
             }
-            tableUI.hasPrev(previousPages.isNotEmpty())
             tableUI.setBusy(false)
         }
     }
 
     fun changePageSize(newPageSize: Int){
+        resetTable(AstraClient,"",newPageSize,whereFieldText)
+    }
+
+    fun changeWhereField(newText: String){
+        resetTable(AstraClient,"",pageSize,newText)
+    }
+
+    fun resetTable(client: AstraClient, nextToken: String,newPageSize:Int, newText: String){
         launch {
             tableUI.setBusy(true)
-            previousPages.clear()
-            tableUI.hasPrev(false)
-            pageSize = newPageSize
-            currentPage = ""
-            nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
-                .also { tableUI.hasNext(it.isNotEmpty()) }
+            val(newRows,newToken)=requestPage(AstraClient,nextToken,newPageSize,newText)
+            if(newRows.isNotEmpty()){
+                previousPages.clear()
+                currentPage = ""
+                nextPage = newToken
+                tableUI.hasPrev(false)
+                tableUI.hasNext(newToken.isNotEmpty())
+                setRows(newRows)
+                pageSize = newPageSize
+                whereFieldText = newText
+                tableUI.whereFieldInvalid(false)
+            }
             tableUI.setBusy(false)
         }
     }
 
-    fun changeWhereField(whereQuery: String){
-        launch {
-            tableUI.setBusy(true)
-            previousPages.clear()
-            tableUI.hasPrev(false)
-            whereFieldText = whereQuery
-            currentPage = ""
-            nextPage = fetchPageAndSet(AstraClient,currentPage,whereFieldText)
-                .also { tableUI.hasNext(it.isNotEmpty()) }
-            tableUI.setBusy(false)
-        }
-    }
-
-    suspend fun fetchPageAndSet(client: AstraClient, pageToken: String,whereQuery: String = ""): String {
-        val response = client.dataApiForDatabase(endpoint.database).searchTable(
-            client.accessToken,
+    suspend fun requestPage(AstraClient: AstraClient, nextToken: String, pageSize: Int, whereFieldText: String): Pair<List<Map<String, String>>,String> {
+        val response = AstraClient.dataApiForDatabase(endpoint.database).searchTable(
+            AstraClient.accessToken,
             endpoint.table.keyspace.orEmpty(),
             endpoint.table.name.orEmpty(),
-            pageState = pageToken.ifEmpty { null },
-            pageSize = this.pageSize,
-            where = whereQuery.ifEmpty { "{}" }
+            pageState = nextToken.ifEmpty { null },
+            pageSize = pageSize,
+            where = whereFieldText.ifEmpty { "{}" }
         )
-
         when (response.code()) {
             200 -> {
-                if (response.body()?.data != null) {
-                    setRows(response.body()?.data!!)
-                    //prevPageState = response.body()?.pageState.orEmpty()
+                //TODO: Ask if theres a less messy way to do this null check stuff
+                if( response.body() != null && !response.body()!!.data.isNullOrEmpty()){
+                    return Pair(response.body()!!.data!!,response.body()!!.pageState.orEmpty())
                 }
+                else{
+                    //TODO: Successful query but no data returned?
+                    //Show notification
+                }
+
             }
-            400 -> { // Notify user: 400 Error and something not scary but useful, "Failed to load a page", etc
+            400 -> {
+                tableUI.whereFieldInvalid(true)
+                // Notify user: 400 Error and something not scary but useful, "Failed to load a page", etc
             }
-            401 -> { // Notify user: 401 Error. Not authorized
+            401 -> {
+                // Notify user: 401 Error. Not authorized
             }
-            else -> { // Notify user: Error Code. Error during retrieval, "Failed to load a page", etc
+            else -> {
+                // Notify user: Error Code. Error during retrieval, "Failed to load a page", etc
             }
         }
-
-        return response.body()?.pageState.orEmpty()
+        return Pair(emptyList(),"")
     }
-
-
 
     suspend fun setRows(newRows: List<Map<String, String>>){
         tableUI.tableView.listTableModel.items = newRows
@@ -151,15 +162,17 @@ class TableManager(
             tableUI.tableView.tableViewModel.fireTableDataChanged()
         }
     }
+
 }
 
 class TableUI(
+    disposable: Disposable,
     endpoint: TableEndpoint,
     changePage: (Page) -> Unit,
     changePageSize: (Int) -> Unit,
-    changeWhereQuery: (String) -> Unit
+    changeWhereQuery: (String) -> Unit,
 ){
-    protected val edtContext = getCoroutineUiContext()
+    protected val edtContext = getCoroutineUiContext(disposable=disposable)
     val component: JComponent
     var prevAvailable = false
     var nextAvailable = false
@@ -203,17 +216,17 @@ class TableUI(
         }
 
         component = JPanel(BorderLayout())
-        component.add(ScrollPaneFactory.createScrollPane(tableView),BorderLayout.CENTER,)
+        component.add(ScrollPaneFactory.createScrollPane(tableView), BorderLayout.CENTER)
         component.add(toolbar,BorderLayout.NORTH)
     }
 
     private fun setUpWhereField(changeWhereQuery: (String) -> Unit) {
         whereField.preferredSize= Dimension(300,whereField.preferredSize.height)
 
-        //Do something in this state?
-        //whereField.onEmpty {
+        whereField.onEmpty {
+            //whereFieldInvalid(false)
+        }
 
-        whereField
         whereField.onEnter {
             // If it is not empty do a search
             if (whereField.text.isNotEmpty()) {
@@ -225,6 +238,51 @@ class TableUI(
         }
     }
 
+    fun SearchTextField.onEnter(block: () -> Unit) {
+        textEditor.addActionListener(
+            object : ActionListener {
+                private var lastText = ""
+                override fun actionPerformed(e: ActionEvent?) {
+                    val searchFieldText = text.trim()
+                    if (searchFieldText == lastText) {
+                        return
+                    }
+                    lastText = searchFieldText
+                    block()
+                }
+            }
+        )
+    }
+
+    fun SearchTextField.onEmpty(block: () -> Unit) {
+        textEditor.addPropertyChangeListener(
+            object : PropertyChangeListener {
+                private var lastText = ""
+                override fun propertyChange(evt: PropertyChangeEvent?) {
+                    val searchFieldText = text.trim()
+                    if (searchFieldText == lastText) {
+                        return
+                    }
+                    lastText = searchFieldText
+                    if (text.isEmpty()) {
+                        block()
+                    }
+                }
+            }
+        )
+    }
+
+    suspend fun whereFieldInvalid(invalid: Boolean = true){
+        withContext(edtContext) {
+            whereField.textEditor.border = if(invalid){
+                BorderFactory.createLineBorder(Color.red,2)
+            } else {
+                BorderFactory.createEmptyBorder()
+            }
+
+
+        }
+    }
 
     suspend fun setBusy(busy: Boolean = true){
         if(busy){
@@ -259,28 +317,14 @@ class TableUI(
 
 }
 
-fun SearchTextField.onEnter(block: () -> Unit) {
-    textEditor.addActionListener(
-        object : ActionListener {
-            private var lastText = ""
-            override fun actionPerformed(e: ActionEvent?) {
-                val searchFieldText = text.trim()
-                if (searchFieldText == lastText) {
-                    return
-                }
-                lastText = searchFieldText
-                block()
-            }
-        }
-    )
-}
+
 
 //TODO:
 // Ask Garrett if these numbers are good, should we have a custom option?
 // It can go up to
 class PageSizeComboBox(
     changePageSize: (Int) -> Unit,
-    val list: List<Int> = listOf(10,20,50,100,200)
+    val list: List<Int> = listOf(10, 20, 50, 100, 200),
 ) : ListComboBoxModel<Int>(list) {
 
     init {

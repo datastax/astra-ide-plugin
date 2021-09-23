@@ -12,7 +12,6 @@ import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
-import com.intellij.codeInspection.SuppressionUtil.createComment
 import com.intellij.ide.BrowserUtil
 import com.intellij.json.psi.JsonArray
 import com.intellij.json.psi.JsonObject
@@ -85,36 +84,6 @@ class AstraFileEditorUIService(private val project: Project) :
             }
         }
 
-    }
-
-    fun addLinks(fileEditor: FileEditor, editor: Editor, file: VirtualFile){
-
-
-
-
-        launch {
-            withContext(edtContext) {
-                val jsonArray = (PsiManager.getInstance(project).findFile(file) as JsonFileImpl).topLevelValue as JsonObject
-                val psiFile = PsiManager.getInstance(project).findFile(file)
-                WriteCommandAction.writeCommandAction(project).withName("Adding to Json")
-                    .shouldRecordActionForActiveDocument(false)
-                    .run<Exception> {
-                        jsonArray.children.forEach {
-                            //it.addAfter(createComment(project,"Comment",com.intellij.lang.Language.findLanguageByID("JSON")!!),(it.lastChild as PsiElement).firstChild)
-
-                            val rowEnd = editor.document.getLineEndOffset(editor.document.getLineNumber(it.lastChild.textOffset))
-                            editor.document.insertString(rowEnd,"Comment")
-
-                        }
-
-                        PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(editor.document)
-                    }
-            }
-        }
-
-
-
-        editor.contentComponent.add(JButton("Button Added"))
     }
 
     private class AstraEditorHeaderComponent : EditorHeaderComponent()
