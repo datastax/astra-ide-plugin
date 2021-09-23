@@ -50,6 +50,7 @@ class TableManager(
     protected val edtContext = getCoroutineUiContext(disposable = disposable)
     val tableUI = TableUI(disposable,endpoint,::changePage,::changePageSize,::changeWhereField)
     var pageSize = 10
+    var pageCount = 0
     var whereFieldText = "{}"
     private val previousPages = mutableListOf<String>()
     private var nextPage = ""
@@ -73,7 +74,7 @@ class TableManager(
                         currentPage = nextPage
                         nextPage = newToken
                         setRows(newRows)
-
+                        tableUI.pageLabel.text="${++pageCount}"
                     }
                     tableUI.hasPrev(!previousPages.isEmpty())
                 }
@@ -84,6 +85,7 @@ class TableManager(
                             currentPage = previousPages.removeLast()
                             nextPage = newToken
                             setRows(newRows)
+                            tableUI.pageLabel.text="${--pageCount}"
                         }
                         tableUI.hasPrev(!previousPages.isEmpty())
                     }
@@ -107,6 +109,8 @@ class TableManager(
             tableUI.setBusy(true)
             val(newRows,newToken)=requestPage(AstraClient,nextToken,newPageSize,newText)
             if(newRows.isNotEmpty()){
+                pageCount = 1
+                tableUI.pageLabel.text="1"
                 previousPages.clear()
                 currentPage = ""
                 nextPage = newToken
@@ -192,9 +196,10 @@ class TableUI(
 
     val whereField = SearchTextField()
     val prevButton = JButton(AllIcons.Actions.ArrowCollapse)
+    val pageLabel = JLabel("1")
     val nextButton = JButton(AllIcons.Actions.ArrowExpand)
     val pageSizeComboBox = ComboBox(PageSizeComboBox(changePageSize))
-    val toolbarComponents: List<JComponent> = listOf(whereField,prevButton,nextButton,pageSizeComboBox)
+    val toolbarComponents: List<JComponent> = listOf(whereField,prevButton,pageLabel,nextButton,pageSizeComboBox)
     init {
         setUpWhereField(changeWhereQuery)
         //Set Up Table View
@@ -299,6 +304,7 @@ class TableUI(
             withContext(edtContext) {
                 tableView.setPaintBusy(false)
 
+                pageLabel.isEnabled=true
                 whereField.isEnabled=true
                 toolbar.isEnabled=true
                 pageSizeComboBox.isEnabled=true
