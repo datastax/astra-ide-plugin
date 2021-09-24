@@ -43,4 +43,7 @@ interface SchemasApi {
      */
     @GET("api/rest/v2/schemas/namespaces/{namespace-id}")
     suspend fun getNamespace(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Query("pretty") pretty: kotlin.Boolean? = null, @Query("raw") raw: kotlin.Boolean? = null): Response<Keyspace>
+
+
+
 }

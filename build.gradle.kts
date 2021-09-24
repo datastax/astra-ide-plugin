@@ -121,7 +121,9 @@ detekt {
 // Configure UI tests plugin
 // Read more: https://github.com/JetBrains/intellij-ui-test-robot
 tasks {
-
+    test {
+        useJUnitPlatform()
+    }
     buildSearchableOptions {
         // Disabled due to failure to run with 2020.3.4
         enabled = false
