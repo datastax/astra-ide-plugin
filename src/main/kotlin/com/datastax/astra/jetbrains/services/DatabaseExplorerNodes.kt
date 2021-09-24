@@ -312,3 +312,9 @@ data class TableEndpoint(
     val keyspace: Keyspace,
     val table: Table,
 )
+
+data class CollectionEndpoint(
+    val database: Database,
+    val keyspace: Keyspace,
+    val collection: DocCollection,
+)

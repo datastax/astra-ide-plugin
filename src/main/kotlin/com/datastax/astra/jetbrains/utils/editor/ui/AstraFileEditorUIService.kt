@@ -13,13 +13,10 @@ import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
 import com.intellij.ide.BrowserUtil
-import com.intellij.json.psi.JsonArray
-import com.intellij.json.psi.JsonObject
-import com.intellij.json.psi.impl.JsonFileImpl
-import com.intellij.lang.Language.findInstance
+
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.command.WriteCommandAction
+
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
@@ -28,12 +25,7 @@ import com.intellij.openapi.fileEditor.*
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
-import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.nextLeaf
-import com.intellij.testFramework.LightVirtualFile
+
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil

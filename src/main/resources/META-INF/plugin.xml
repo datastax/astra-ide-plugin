@@ -54,6 +54,9 @@
         <group id="astra.explorer.databases.collection" popup="true" compact="false">
             <action id="collection.open"
                     class="com.datastax.astra.jetbrains.services.database.BrowseCollectionAction"/>
+            <separator/>
+            <action id="collection.foobar"
+                    class="com.datastax.astra.jetbrains.services.database.FooAction"/>
         </group>
 
 

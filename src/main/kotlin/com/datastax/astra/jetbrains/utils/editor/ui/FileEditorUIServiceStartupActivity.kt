@@ -12,6 +12,6 @@ class FileEditorUIServiceStartupActivity : StartupActivity {
             return
         }
         // startup the UI service
-        AstraFileEditorUIService.getService(project)
+        //AstraFileEditorUIService.getService(project)
     }
 }
