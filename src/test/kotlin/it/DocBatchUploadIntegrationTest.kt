@@ -48,37 +48,49 @@ class DocBatchUploadIntegrationTest {
         testClient.setToken("AstraCS:btyqoZkoxsmrumyGdBTZMskq:e25ab35a9bfd54dee86d83d08618c6351c99544054f8b74e32946d732bcf8216")
 
         runBlocking {
-            val response = async {testClient.dbOperationsApi().getDatabase(databaseId)}.await()
+            val response = async { testClient.dbOperationsApi().getDatabase(databaseId) }.await()
             if (response.isSuccessful && !response.body()?.dataEndpointUrl.isNullOrEmpty() && response.body()?.status == StatusEnum.ACTIVE) {
                 database = (response.body() as Database)
-                val ksResponse = async {testClient.documentApiForDatabase(database).listCollections(
-                    UUID.randomUUID(),
-                    testClient.accessToken,
-                    keyspace,)}.await()
-                if(ksResponse.isSuccessful) {
-                    if(ksResponse.body()?.data?.any { it.name == collection } == true){
-                        async {  testClient.documentApiForDatabase(database).deleteCollection(
-                            UUID.randomUUID(),
-                            testClient.accessToken,
-                            keyspace,
-                            collection
-                        )}.await()
+                val ksResponse = async {
+                    testClient.documentApiForDatabase(database).listCollections(
+                        UUID.randomUUID(),
+                        testClient.accessToken,
+                        keyspace,
+                    )
+                }.await()
+                if (ksResponse.isSuccessful) {
+                    if (ksResponse.body()?.data?.any { it.name == collection } == true) {
+                        async {
+                            testClient.documentApiForDatabase(database).deleteCollection(
+                                UUID.randomUUID(),
+                                testClient.accessToken,
+                                keyspace,
+                                collection
+                            )
+                        }.await()
                     }
                 }
             }
-            endpoint = EndpointCollection(database,keyspace,collection)
-            batchWriter = BatchDocWriter("testJsonFilePath",endpoint)
+            endpoint = EndpointCollection(database, keyspace, collection)
+            batchWriter = BatchDocWriter("testJsonFilePath", endpoint)
             //Add the same document twice
             testBatch.add(buildBatch(testJsonFilePath))
 
         }
 
 
-
     }
 
     @AfterAll
     fun teardown() {
+        runBlocking {
+            testClient.documentApiForDatabase(database).deleteCollection(
+                UUID.randomUUID(),
+                testClient.accessToken,
+                keyspace,
+                collection
+            )
+        }
 
     }
 
@@ -87,9 +99,9 @@ class DocBatchUploadIntegrationTest {
     fun canDoBatchUploadAndDownload() = runBlocking {
         var destinationJson = mutableListOf<LinkedTreeMap<*, *>>()
 
-        val putResponse = batchWriter.sendBatchAndWait(testBatch,testClient).first()
+        val putResponse = batchWriter.sendBatchAndWait(testBatch, testClient).first()
         val getResponse: Response<DocumentResponseWrapper>
-        if(putResponse.isSuccessful){
+        if (putResponse.isSuccessful) {
             getResponse = testClient.documentApiForDatabase(database).getCollection(
                 UUID.randomUUID(),
                 testClient.accessToken,
@@ -97,13 +109,14 @@ class DocBatchUploadIntegrationTest {
                 endpoint.collection,
                 pageSize = "5"
             )
-            if(getResponse.isSuccessful){
-                destinationJson.addAll((getResponse.body()?.data as LinkedTreeMap<*, *>).map { it.value as LinkedTreeMap<*, *>}.toList())
+            if (getResponse.isSuccessful) {
+                destinationJson.addAll((getResponse.body()?.data as LinkedTreeMap<*, *>).map { it.value as LinkedTreeMap<*, *> }
+                    .toList())
             }
         }
 
-        Assertions.assertEquals(testBatch.first().size,destinationJson.size)
-        Assertions.assertTrue(testBatch.first().containsAll(destinationJson) )
+        Assertions.assertEquals(testBatch.first().size, destinationJson.size)
+        Assertions.assertTrue(testBatch.first().containsAll(destinationJson))
     }
 
 
