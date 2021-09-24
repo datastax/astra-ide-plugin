@@ -1,0 +1,225 @@
+[
+  {
+    "_id": "10066928",
+    "listing_url": "https://www.airbnb.com/rooms/10066928",
+    "name": "3 chambres au coeur du Plateau",
+    "summary": "Notre appartement comporte 3 chambres avec chacune un lit queen. Nous avons également un salon, une salle de bain avec baignoire, et une cuisine toute équipée, avec laveuse et sécheuse.",
+    "space": "Notre logement est lumineux, plein de vie et chaleureux! Vous disposerez de l'appartement entier avec 3 chambres fermées, chacune avec 1 lit queen size.",
+    "description": "Notre appartement comporte 3 chambres avec chacune un lit queen. Nous avons également un salon, une salle de bain avec baignoire, et une cuisine toute équipée, avec laveuse et sécheuse. Notre logement est lumineux, plein de vie et chaleureux! Vous disposerez de l'appartement entier avec 3 chambres fermées, chacune avec 1 lit queen size. Le logement sera disponible en entier pour votre séjour. N'hésitez pas à m'écrire pour toute demande de renseignement ! L'appartement se situe au coeur du Plateau, donc très central pour toutes vos activités. À 1 min à pied se trouvent bars, restaurants, magasins, épiceries. Le quartier est très vivant et idéal pour découvrir Montréal. L'appartement se situe à égale distance des métros Sherbrooke et Mont-Royal et à proximité de nombreux arrêts d'autobus.",
+    "neighborhood_overview": "L'appartement se situe au coeur du Plateau, donc très central pour toutes vos activités. À 1 min à pied se trouvent bars, restaurants, magasins, épiceries. Le quartier est très vivant et idéal pour découvrir Montréal.",
+    "notes": "",
+    "transit": "L'appartement se situe à égale distance des métros Sherbrooke et Mont-Royal et à proximité de nombreux arrêts d'autobus.",
+    "access": "Le logement sera disponible en entier pour votre séjour.",
+    "interaction": "N'hésitez pas à m'écrire pour toute demande de renseignement !",
+    "house_rules": "Merci de respecter ce lieu de vie.",
+    "property_type": "Apartment",
+    "room_type": "Entire home/apt",
+    "bed_type": "Real Bed",
+    "minimum_nights": "1",
+    "maximum_nights": "1125",
+    "cancellation_policy": "flexible",
+    "last_scraped": {
+      "$date": "2019-03-11T04:00:00Z"
+    },
+    "calendar_last_scraped": {
+      "$date": "2019-03-11T04:00:00Z"
+    },
+    "accommodates": 6,
+    "bedrooms": 3,
+    "beds": 3,
+    "number_of_reviews": 0,
+    "bathrooms": {
+      "$numberDecimal": "1.0"
+    },
+    "amenities": [
+      "Internet",
+      "Wifi",
+      "Kitchen",
+      "Heating",
+      "Family/kid friendly",
+      "Washer",
+      "Dryer",
+      "Essentials",
+      "Shampoo",
+      "Hangers",
+      "Hair dryer",
+      "Iron",
+      "Laptop friendly workspace"
+    ],
+    "price": {
+      "$numberDecimal": "140.00"
+    },
+    "extra_people": {
+      "$numberDecimal": "0.00"
+    },
+    "guests_included": {
+      "$numberDecimal": "1"
+    },
+    "images": {
+      "thumbnail_url": "",
+      "medium_url": "",
+      "picture_url": "https://a0.muscache.com/im/pictures/f208bdd7-bdab-4d4d-b529-8e6b1e5a83c1.jpg?aki_policy=large",
+      "xl_picture_url": ""
+    },
+    "host": {
+      "host_id": "9036477",
+      "host_url": "https://www.airbnb.com/users/show/9036477",
+      "host_name": "Margaux",
+      "host_location": "Montreal, Quebec, Canada",
+      "host_about": "",
+      "host_thumbnail_url": "https://a0.muscache.com/im/users/9036477/profile_pic/1425247510/original.jpg?aki_policy=profile_small",
+      "host_picture_url": "https://a0.muscache.com/im/users/9036477/profile_pic/1425247510/original.jpg?aki_policy=profile_x_medium",
+      "host_neighbourhood": "Le Plateau",
+      "host_is_superhost": false,
+      "host_has_profile_pic": true,
+      "host_identity_verified": false,
+      "host_listings_count": 2,
+      "host_total_listings_count": 2,
+      "host_verifications": [
+        "email",
+        "phone",
+        "reviews",
+        "work_email"
+      ]
+    },
+    "address": {
+      "street": "Montréal, Québec, Canada",
+      "suburb": "Le Plateau-Mont-Royal",
+      "government_area": "Le Plateau-Mont-Royal",
+      "market": "Montreal",
+      "country": "Canada",
+      "country_code": "CA",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -73.57383,
+          45.52233
+        ],
+        "is_location_exact": true
+      }
+    },
+    "availability": {
+      "availability_30": 0,
+      "availability_60": 0,
+      "availability_90": 0,
+      "availability_365": 0
+    },
+    "review_scores": {},
+    "reviews": []
+  },
+  {
+    "_id": "10057447",
+    "listing_url": "https://www.airbnb.com/rooms/10057447",
+    "name": "Modern Spacious 1 Bedroom Loft",
+    "summary": "Prime location, amazing lighting and no annoying neighbours.  Good place to rent if you want a relaxing time in Montreal.",
+    "space": "Lot's of plants and lights.  Really great modern bathroom that you will love showering in :) and a kitchen equipped with everything you need to cook a great meal.  (we live here)",
+    "description": "Prime location, amazing lighting and no annoying neighbours.  Good place to rent if you want a relaxing time in Montreal. Lot's of plants and lights.  Really great modern bathroom that you will love showering in :) and a kitchen equipped with everything you need to cook a great meal.  (we live here)",
+    "neighborhood_overview": "",
+    "notes": "",
+    "transit": "",
+    "access": "",
+    "interaction": "",
+    "house_rules": "",
+    "property_type": "Apartment",
+    "room_type": "Entire home/apt",
+    "bed_type": "Real Bed",
+    "minimum_nights": "1",
+    "maximum_nights": "1125",
+    "cancellation_policy": "flexible",
+    "last_scraped": {
+      "$date": "2019-03-11T04:00:00Z"
+    },
+    "calendar_last_scraped": {
+      "$date": "2019-03-11T04:00:00Z"
+    },
+    "accommodates": 4,
+    "bedrooms": 1,
+    "beds": 2,
+    "number_of_reviews": 0,
+    "bathrooms": {
+      "$numberDecimal": "1.0"
+    },
+    "amenities": [
+      "Internet",
+      "Wifi",
+      "Kitchen",
+      "Heating",
+      "Family/kid friendly",
+      "Washer",
+      "Dryer",
+      "Smoke detector",
+      "First aid kit",
+      "Safety card",
+      "Fire extinguisher",
+      "Essentials",
+      "Shampoo",
+      "24-hour check-in",
+      "Hangers",
+      "Iron",
+      "Laptop friendly workspace"
+    ],
+    "price": {
+      "$numberDecimal": "50.00"
+    },
+    "extra_people": {
+      "$numberDecimal": "31.00"
+    },
+    "guests_included": {
+      "$numberDecimal": "1"
+    },
+    "images": {
+      "thumbnail_url": "",
+      "medium_url": "",
+      "picture_url": "https://a0.muscache.com/im/pictures/9fa69ad8-c9be-45dd-966b-b8f59bdccb2b.jpg?aki_policy=large",
+      "xl_picture_url": ""
+    },
+    "host": {
+      "host_id": "51612949",
+      "host_url": "https://www.airbnb.com/users/show/51612949",
+      "host_name": "Konstantin",
+      "host_location": "Montreal, Quebec, Canada",
+      "host_about": "",
+      "host_thumbnail_url": "https://a0.muscache.com/im/pictures/beb6b50e-0a26-4b29-9837-d68c3eea413f.jpg?aki_policy=profile_small",
+      "host_picture_url": "https://a0.muscache.com/im/pictures/beb6b50e-0a26-4b29-9837-d68c3eea413f.jpg?aki_policy=profile_x_medium",
+      "host_neighbourhood": "Mile End",
+      "host_is_superhost": false,
+      "host_has_profile_pic": true,
+      "host_identity_verified": false,
+      "host_listings_count": 1,
+      "host_total_listings_count": 1,
+      "host_verifications": [
+        "email",
+        "phone",
+        "jumio",
+        "offline_government_id",
+        "selfie",
+        "government_id",
+        "identity_manual"
+      ]
+    },
+    "address": {
+      "street": "Montréal, Québec, Canada",
+      "suburb": "Mile End",
+      "government_area": "Le Plateau-Mont-Royal",
+      "market": "Montreal",
+      "country": "Canada",
+      "country_code": "CA",
+      "location": {
+        "type": "Point",
+        "coordinates": [
+          -73.59111,
+          45.51889
+        ],
+        "is_location_exact": true
+      }
+    },
+    "availability": {
+      "availability_30": 0,
+      "availability_60": 0,
+      "availability_90": 0,
+      "availability_365": 0
+    },
+    "review_scores": {},
+    "reviews": []
+  }
+]
