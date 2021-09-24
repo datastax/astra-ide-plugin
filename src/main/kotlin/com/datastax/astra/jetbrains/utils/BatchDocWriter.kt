@@ -43,7 +43,7 @@ class BatchDocWriter(
 
     }
 
-    suspend fun loadAndSendAll(client: AstraClientBase) {
+    suspend fun loadAndSendAll(client: AstraClientBase): Boolean {
         var overRate = false
         var nonRateFailure = false
         var requestCount = 0
@@ -90,7 +90,7 @@ class BatchDocWriter(
                 }
             }
         }
-
+        return true
     }
 
     suspend fun streamBatches(filePath: String, channel: Channel<List<LinkedTreeMap<*, *>>>, opsPerBatch: AtomicInteger){

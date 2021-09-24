@@ -45,6 +45,15 @@ fun successfulDocInsertNotification(numInsertedDocs: Int, collectionName: String
     )
 }
 
+fun successfulBatchUploadNotification(collectionName: String) {
+    notifyInfo(
+        title = "Batch Document Upload Successful",
+        content = "All documents were successfully inserted into the '$collectionName' collection.",
+        notificationActions = emptyList()
+        // createNotificationExpiringAction(NeverShowAgain()),
+    )
+}
+
 fun wrongJsonFormatNotification() {
     notifyWarn(
         title = MessagesBundle.message("collection.editor.upsert.invalid.title"),
