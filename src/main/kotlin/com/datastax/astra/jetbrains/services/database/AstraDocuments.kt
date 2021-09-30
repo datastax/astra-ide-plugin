@@ -1,48 +1,150 @@
-
 package com.datastax.astra.jetbrains.services.database
-/*
+
 import com.datastax.astra.jetbrains.AstraClient
-import com.datastax.astra.jetbrains.explorer.CollectionEndpoint
+import com.datastax.astra.jetbrains.explorer.CollectionNode
 import com.datastax.astra.jetbrains.explorer.TableEndpoint
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.*
+import kotlin.collections.ArrayDeque
 
-class AstraCollection {
+interface ToolbarHandler {
+    fun changePage(page: Page)
+    fun changePageSize(size: Int)
+    fun changeWhereQuery(query: String)
+}
 
+abstract class ToolbarHandlerBase : ToolbarHandler {
+
+    private val coroutineScope = ApplicationThreadPoolScope("ToolbarHandler")
+    private val cursors = ArrayDeque<String>()
+    private val currentCursor: String?
+        get() {
+            return cursors.lastOrNull()
+        }
+    private var nextCursor: String? = null
+    private val pageNumber: Int
+        get() {
+            return cursors.size + 1
+        }
+    private var pageSize = 20
+    private var where = ""
+
+    init {
+        /*
+        TODO: UI Stuff
+            Disable page buttons
+            Clear where query search box
+            Set combobox for page size
+
+         */
+        coroutineScope.launch {
+            nextCursor = fetch(pageSize, currentCursor, where)
+            //Reconcile next
+        }
+    }
+
+    override fun changePage(page: Page) {
+        coroutineScope.launch {
+            when (page) {
+                Page.PREVIOUS -> {
+                    val dirtyCursor = cursors.removeLast()
+                    try {
+                        nextCursor = fetch(pageSize, currentCursor, where)
+                        updatePaginatorUi()
+                    } catch (e: Exception) {
+                        //Didn't go back. Stayed on same page
+                        cursors.add(dirtyCursor)
+                        throw e
+                    }
+                }
+                Page.NEXT -> {
+                    try {
+                        cursors.add(nextCursor!!)
+                        nextCursor = fetch(pageSize, currentCursor, where)
+                        updatePaginatorUi()
+
+                    } catch (e: Exception) {
+                        //Didn't advance. Stayed on same page
+                        nextCursor = cursors.removeLast()
+                        throw e
+                    }
+                }
+            }
+        }
+    }
+
+    override fun changePageSize(size: Int) {
+        coroutineScope.launch {
+            cursors.clear()
+            nextCursor = null
+            pageSize = size
+            nextCursor = fetch(pageSize, currentCursor, where)
+            updatePaginatorUi()
+        }
+    }
+
+    override fun changeWhereQuery(query: String) {
+        coroutineScope.launch {
+            cursors.clear()
+            nextCursor = null
+            where = where
+            nextCursor = fetch(pageSize, currentCursor, where)
+            updatePaginatorUi()
+        }
+    }
+
+    fun updatePaginatorUi() {
+        if (nextCursor != null) {
+            //TODO: Enable Next Button
+        } else {
+            //TODO: Disable Next Button
+        }
+        if (pageNumber > 1) {
+            //TODO: Enable Previous Button
+        } else {
+            //TODO: Disable Previous Button
+        }
+        //TODO: paginatorUI.setPageNumber(pageNumber.toString())
+    }
+
+    abstract suspend fun fetch(pageSize: Int, pageState: String?, where: Any?): String?
 
 }
 
-class CollectionManager(
-    val disposable: Disposable,
-    val project: Project,
-    val endpoint: CollectionEndpoint,
-) : CoroutineScope by ApplicationThreadPoolScope("Collection") {
-    protected val edtContext = getCoroutineUiContext(disposable = disposable)
-    val collectionUI = CollectionUI(disposable, endpoint, ::changePage, ::changePageSize, ::changeWhereField)
-    var pageSize = 10
-    var pageCount = 0
-    var whereFieldText = "{}"
-    private val previousPages = mutableListOf<String>()
-    private var nextPage = ""
-    private var currentPage = ""
+class DocumentHandler(val collectionNode: CollectionNode) : ToolbarHandlerBase() {
 
-    init {
+    override suspend fun fetch(pageSize: Int, pageState: String?, where: Any?): String? {
+        val response = AstraClient.documentApiForDatabase(collectionNode.database).searchDoc(
+            UUID.randomUUID(),
+            AstraClient.accessToken,
+            collectionNode.keyspace.name,
+            collectionNode.name.orEmpty(),
+            pageSize = pageSize,
+            pageState = pageState,
+            where = where
+        )
 
-        launch {
-            resetTable(AstraClient, "", pageSize, whereFieldText)
-        }
+        response.body()?.data //Any? Need to check json array size to derive count
+        return response.body()?.pageState //String?
     }
 }
 
-class CollectionUI(
-    disposable: Disposable,
-    endpoint: TableEndpoint,
-    changePage: (Page) -> Unit,
-    changePageSize: (Int) -> Unit,
-    changeWhereQuery: (String) -> Unit,
-) {
+class TableHandler(val tableEndpoint: TableEndpoint) : ToolbarHandlerBase() {
 
-}*/
+    override suspend fun fetch(pageSize: Int, pageState: String?, where: Any?): String? {
+        val response = AstraClient.dataApiForDatabase(tableEndpoint.database).searchTable(
+            AstraClient.accessToken,
+            tableEndpoint.keyspace.name,
+            tableEndpoint.table.name.orEmpty(),
+            pageState = pageState,
+            pageSize = pageSize,
+            where = where
+        )
+
+        response.body()?.count //Int?
+
+        response.body()?.data //List<Map<String,String>>?
+        return response.body()?.pageState //String?
+    }
+}
