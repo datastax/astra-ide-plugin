@@ -4,7 +4,9 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.CollectionNode
 import com.datastax.astra.jetbrains.explorer.ExplorerNode
 import com.datastax.astra.jetbrains.explorer.TableNode
+import com.datastax.astra.jetbrains.services.database.editor.TableEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -121,7 +123,7 @@ class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : 
         .create()
 
     override val pageSizes: List<Int>
-        get() = listOf<Int>(1,2,5,20)
+        get() = listOf<Int>(1, 2, 5, 20)
 
     override suspend fun fetch(pageSize: Int, pageState: String?, where: String): String? {
         val response = AstraClient.documentApiForDatabase(node.database).searchDoc(
@@ -152,7 +154,7 @@ class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : 
     }
 }
 
-class TableHandler(val fileEditor: FileEditor, val node: TableNode) : ToolbarHandlerBase(fileEditor, node) {
+class TableHandler(private val tableEditor: TableEditor, val node: TableNode) : ToolbarHandlerBase(tableEditor, node) {
 
     override val pageSizes: List<Int>
         get() = listOf<Int>(20, 50, 100)
@@ -165,12 +167,32 @@ class TableHandler(val fileEditor: FileEditor, val node: TableNode) : ToolbarHan
             node.endpoint.table.name.orEmpty(),
             pageState = pageState,
             pageSize = pageSize,
-            where = where
+            where = where.ifEmpty { "{}" }
         )
 
-        response.body()?.count //Int?
-
-        response.body()?.data //List<Map<String,String>>?
-        return response.body()?.pageState //String?
+        when (response.code()) {
+            200 -> {
+                response.body()?.data?.let {
+                    withContext(edt) {
+                        tableEditor.tableView.listTableModel.items = it
+                    }
+                }
+            }
+        }
+        return response.body()?.pageState
     }
 }
+
+/*
+    suspend fun whereFieldInvalid(invalid: Boolean = true){
+        withContext(edtContext) {
+            toolbar.whereField.textEditor.border = if(invalid){
+                BorderFactory.createLineBorder(Color.red,2)
+            } else {
+                BorderFactory.createEmptyBorder()
+            }
+
+
+        }
+    }
+ */

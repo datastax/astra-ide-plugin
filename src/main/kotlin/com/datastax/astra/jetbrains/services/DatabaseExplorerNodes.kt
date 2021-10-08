@@ -4,9 +4,8 @@ import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
-import com.datastax.astra.jetbrains.services.database.CollectionBrowserPanel
-import com.datastax.astra.jetbrains.services.database.CollectionManager
-import com.datastax.astra.jetbrains.services.database.openEditor
+import com.datastax.astra.jetbrains.services.database.editor.CollectionManager
+import com.datastax.astra.jetbrains.services.database.editor.TableManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
@@ -229,7 +228,7 @@ class TableNode(project: Project, val endpoint:TableEndpoint) :
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick() {
-        openEditor(nodeProject, endpoint)
+        TableManager.openEditor(this)
     }
 }
 

@@ -108,3 +108,8 @@ class PageSizeComboBox(
         })
     }
 }
+
+enum class Page(val nextPage: String) {
+    PREVIOUS("Previous"),
+    NEXT("Next"),
+}

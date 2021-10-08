@@ -3,11 +3,10 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
-import com.datastax.astra.jetbrains.MessagesBundle
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
-import com.datastax.astra.jetbrains.services.database.CollectionVirtualFile
+import com.datastax.astra.jetbrains.services.database.editor.CollectionVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.models.DocCollection

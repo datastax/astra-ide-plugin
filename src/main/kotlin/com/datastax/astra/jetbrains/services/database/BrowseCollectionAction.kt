@@ -3,6 +3,7 @@ package com.datastax.astra.jetbrains.services.database
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.CollectionNode
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys
+import com.datastax.astra.jetbrains.services.database.editor.CollectionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
