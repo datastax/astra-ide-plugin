@@ -57,7 +57,7 @@ class AstraFileEditorUIService(private val project: Project) :
     // -- editor header component --
     private fun insertEditorHeaderComponentIfApplicable(source: FileEditorManager, file: VirtualFile) {
         // use extension and file type to include scratch files and simply identifying relevant files
-        if ((file.extension?.contains("json", true) == true || file is CollectionVirtualFile)) {
+        if ((file.extension?.contains("json", true) == true)) {
             UIUtil.invokeLaterIfNeeded {
                 // ensure components are created on the swing thread
                 val fileEditor = source.getSelectedEditor(file)
