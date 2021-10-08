@@ -12,5 +12,4 @@ class CollectionVirtualFile(val database: Database, val keyspaceName: String, va
         collectionName,
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
         collectionJson
-    ),
-    CoroutineScope by ApplicationThreadPoolScope("Table")
+    )

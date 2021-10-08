@@ -16,22 +16,18 @@ import javax.swing.JLabel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-class EndpointToolbar(
-    changePage: (Page) -> Unit,
-    changePageSize: (Int) -> Unit,
-    changeWhereQuery: (String) -> Unit,
-) : EditorHeaderComponent(){
+class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>) : EditorHeaderComponent(){
     val whereField = SearchTextField()
     val prevButton = JButton(AllIcons.Actions.ArrowCollapse)
     val pageLabel = JLabel("1")
     val nextButton = JButton(AllIcons.Actions.ArrowExpand)
-    val pageSizeComboBox = ComboBox(PageSizeComboBox(changePageSize))
+    val pageSizeComboBox = ComboBox(PageSizeComboBox(handler::changePageSize, pageSizes))
 
     init{
         super.setLayout(FlowLayout(FlowLayout.LEFT,0, 0))
-        setUpWhereField(changeWhereQuery)
-        prevButton.addActionListener { changePage(Page.PREVIOUS) }
-        nextButton.addActionListener { changePage(Page.NEXT) }
+        setUpWhereField(handler::changeWhereQuery)
+        prevButton.addActionListener { handler.changePage(Page.PREVIOUS) }
+        nextButton.addActionListener { handler.changePage(Page.NEXT) }
         add(whereField)
         add(prevButton)
         add(pageLabel)
@@ -96,11 +92,11 @@ class EndpointToolbar(
 }
 class PageSizeComboBox(
     changePageSize: (Int) -> Unit,
-    val list: List<Int> = listOf(10, 20, 50, 100, 200),
-) : ListComboBoxModel<Int>(list) {
+    val pageSizes: List<Int>
+) : ListComboBoxModel<Int>(pageSizes) {
 
     init {
-        selectedItem = list.first()
+        selectedItem = pageSizes.first()
         addListDataListener(object : ListDataListener {
             override fun intervalAdded(listDataEvent: ListDataEvent) {}
             override fun intervalRemoved(listDataEvent: ListDataEvent) {}

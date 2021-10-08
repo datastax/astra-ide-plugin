@@ -187,7 +187,19 @@ class TableUI(
         SortOrder.UNSORTED
     )
 
-    val toolbar = EndpointToolbar(changePage,changePageSize,changeWhereQuery)
+    val toolbar = EndpointToolbar(object : ToolbarHandler {
+        override fun changePage(page: Page) {
+            TODO("Not yet implemented")
+        }
+
+        override fun changePageSize(size: Int) {
+            TODO("Not yet implemented")
+        }
+
+        override fun changeWhereQuery(query: String) {
+            TODO("Not yet implemented")
+        }
+    }, listOf(1,2,3))
 
 
 

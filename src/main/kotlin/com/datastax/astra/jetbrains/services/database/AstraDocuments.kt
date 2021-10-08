@@ -2,9 +2,16 @@ package com.datastax.astra.jetbrains.services.database
 
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.CollectionNode
-import com.datastax.astra.jetbrains.explorer.TableEndpoint
+import com.datastax.astra.jetbrains.explorer.ExplorerNode
+import com.datastax.astra.jetbrains.explorer.TableNode
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiManager
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import kotlin.collections.ArrayDeque
 
@@ -14,9 +21,11 @@ interface ToolbarHandler {
     fun changeWhereQuery(query: String)
 }
 
-abstract class ToolbarHandlerBase : ToolbarHandler {
+abstract class ToolbarHandlerBase(private val fileEditor: FileEditor, node: ExplorerNode<String>) : ToolbarHandler {
 
     private val coroutineScope = ApplicationThreadPoolScope("ToolbarHandler")
+    internal val edt = getCoroutineUiContext()
+
     private val cursors = ArrayDeque<String>()
     private val currentCursor: String?
         get() {
@@ -27,20 +36,18 @@ abstract class ToolbarHandlerBase : ToolbarHandler {
         get() {
             return cursors.size + 1
         }
-    private var pageSize = 20
+    private var pageSize: Int
+    abstract val pageSizes: List<Int>
     private var where = ""
 
-    init {
-        /*
-        TODO: UI Stuff
-            Disable page buttons
-            Clear where query search box
-            Set combobox for page size
+    private val endpointToolbar by lazy { EndpointToolbar(this, pageSizes) }
 
-         */
+    init {
+        FileEditorManager.getInstance(node.nodeProject).addTopComponent(fileEditor, endpointToolbar)
+        pageSize = endpointToolbar.pageSizeComboBox.selectedItem as Int
         coroutineScope.launch {
             nextCursor = fetch(pageSize, currentCursor, where)
-            //Reconcile next
+            updatePaginatorUi()
         }
     }
 
@@ -95,48 +102,67 @@ abstract class ToolbarHandlerBase : ToolbarHandler {
     }
 
     fun updatePaginatorUi() {
-        if (nextCursor != null) {
-            //TODO: Enable Next Button
-        } else {
-            //TODO: Disable Next Button
+        endpointToolbar.apply {
+            nextButton.isEnabled = (nextCursor != null)
+            prevButton.isEnabled = (pageNumber > 1)
+            pageLabel.text = pageNumber.toString()
         }
-        if (pageNumber > 1) {
-            //TODO: Enable Previous Button
-        } else {
-            //TODO: Disable Previous Button
-        }
-        //TODO: paginatorUI.setPageNumber(pageNumber.toString())
     }
 
-    abstract suspend fun fetch(pageSize: Int, pageState: String?, where: Any?): String?
+    abstract suspend fun fetch(pageSize: Int, pageState: String?, where: String): String?
 
 }
 
-class DocumentHandler(val collectionNode: CollectionNode) : ToolbarHandlerBase() {
+class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : ToolbarHandlerBase(fileEditor, node) {
 
-    override suspend fun fetch(pageSize: Int, pageState: String?, where: Any?): String? {
-        val response = AstraClient.documentApiForDatabase(collectionNode.database).searchDoc(
+    val gson = Serializer.gsonBuilder
+        .setPrettyPrinting()
+        .disableHtmlEscaping()
+        .create()
+
+    override val pageSizes: List<Int>
+        get() = listOf<Int>(1,2,5,20)
+
+    override suspend fun fetch(pageSize: Int, pageState: String?, where: String): String? {
+        val response = AstraClient.documentApiForDatabase(node.database).searchDoc(
             UUID.randomUUID(),
             AstraClient.accessToken,
-            collectionNode.keyspace.name,
-            collectionNode.name.orEmpty(),
+            node.keyspace.name,
+            node.value.orEmpty(),
             pageSize = pageSize,
             pageState = pageState,
-            where = where
+            where = where.ifEmpty { "{}" }
         )
 
-        response.body()?.data //Any? Need to check json array size to derive count
-        return response.body()?.pageState //String?
+        when (response.code()) {
+            200 -> {
+                fileEditor.file?.let {
+                    withContext(edt) {
+                        PsiManager.getInstance(node.nodeProject).findFile(it)?.let {
+                            PsiDocumentManager.getInstance(node.nodeProject).getDocument(it)?.let {
+                                it.setText(gson.toJson(response.body()?.data))
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        return response.body()?.pageState
     }
 }
 
-class TableHandler(val tableEndpoint: TableEndpoint) : ToolbarHandlerBase() {
+class TableHandler(val fileEditor: FileEditor, val node: TableNode) : ToolbarHandlerBase(fileEditor, node) {
 
-    override suspend fun fetch(pageSize: Int, pageState: String?, where: Any?): String? {
-        val response = AstraClient.dataApiForDatabase(tableEndpoint.database).searchTable(
+    override val pageSizes: List<Int>
+        get() = listOf<Int>(20, 50, 100)
+
+    override suspend fun fetch(pageSize: Int, pageState: String?, where: String): String? {
+
+        val response = AstraClient.dataApiForDatabase(node.endpoint.database).searchTable(
             AstraClient.accessToken,
-            tableEndpoint.keyspace.name,
-            tableEndpoint.table.name.orEmpty(),
+            node.endpoint.keyspace.name,
+            node.endpoint.table.name.orEmpty(),
             pageState = pageState,
             pageSize = pageSize,
             where = where

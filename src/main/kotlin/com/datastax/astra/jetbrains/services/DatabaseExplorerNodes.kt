@@ -5,6 +5,7 @@ import com.datastax.astra.devops_v2.models.StatusEnum
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.services.database.CollectionBrowserPanel
+import com.datastax.astra.jetbrains.services.database.CollectionManager
 import com.datastax.astra.jetbrains.services.database.openEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_document_v2.models.DocCollection
@@ -260,7 +261,7 @@ class CollectionNode(project: Project, val collection: DocCollection, val keyspa
     override fun getChildren(): List<AbstractTreeNode<*>> = emptyList()
 
     override fun onDoubleClick()  {
-        CollectionBrowserPanel(nodeProject, collection, keyspace, database)
+        CollectionManager.openEditor(this)
     }
 }
 
