@@ -1,18 +1,18 @@
 package com.datastax.astra.jetbrains.utils
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.AppUIExecutor
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.impl.coroutineDispatchingContext
+import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlin.coroutines.CoroutineContext
 
-fun getCoroutineUiContext(
-    modalityState: ModalityState = ModalityState.defaultModalityState(),
-    disposable: Disposable? = null
-) = AppUIExecutor.onUiThread(modalityState).let {
-    if (disposable == null) {
-        it
-    } else {
-        // This is not actually scheduled for removal in 2019.3
-        it.expireWith(disposable)
+fun getCoroutineUiContext(): CoroutineContext = EdtCoroutineDispatcher
+
+private object EdtCoroutineDispatcher : CoroutineDispatcher() {
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        ApplicationManager.getApplication().invokeLater(block, ModalityState.any())
     }
-}.coroutineDispatchingContext()
+}
+
+fun getCoroutineBgContext(): CoroutineContext = AppExecutorUtil.getAppExecutorService().asCoroutineDispatcher()
