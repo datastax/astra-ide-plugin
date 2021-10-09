@@ -8,6 +8,7 @@ import com.datastax.astra.jetbrains.services.database.editor.TableEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.PsiDocumentManager
@@ -142,7 +143,7 @@ class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : 
                     withContext(edt) {
                         PsiManager.getInstance(node.nodeProject).findFile(it)?.let {
                             PsiDocumentManager.getInstance(node.nodeProject).getDocument(it)?.let {
-                                it.setText(gson.toJson(response.body()?.data))
+                                runWriteAction { it.setText(gson.toJson(response.body()?.data)) }
                             }
                         }
                     }
