@@ -1,4 +1,5 @@
-import com.datastax.astra.jetbrains.services.database.getCoroutineUiContext
+
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.stream.JsonReader

@@ -1,4 +1,4 @@
-package com.datastax.astra.jetbrains.services.database
+package com.datastax.astra.jetbrains.services.database.editor
 
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
@@ -12,5 +12,4 @@ class CollectionVirtualFile(val database: Database, val keyspaceName: String, va
         collectionName,
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
         collectionJson
-    ),
-    CoroutineScope by ApplicationThreadPoolScope("Table")
+    )
