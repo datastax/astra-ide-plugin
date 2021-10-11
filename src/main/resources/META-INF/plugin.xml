@@ -20,6 +20,8 @@
 
         <projectService serviceImplementation="com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService"/>
         <postStartupActivity implementation="com.datastax.astra.jetbrains.utils.editor.ui.FileEditorUIServiceStartupActivity"/>
+
+        <codeInsight.inlayProvider language="JSON" implementationClass="com.datastax.astra.jetbrains.services.database.CollectionTypeHintsProvider"/>
     </extensions>
 
     <extensionPoints >

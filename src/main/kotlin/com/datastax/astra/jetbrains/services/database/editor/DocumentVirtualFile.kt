@@ -4,14 +4,16 @@ import com.datastax.astra.devops_v2.models.Database
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.testFramework.LightVirtualFile
 
-class CollectionVirtualFile(
+class DocumentVirtualFile(
     val database: Database,
     val keyspaceName: String,
     val collectionName: String,
-    val collectionJson: String
+    val documentId: String,
+    val documentJson: String
 ) :
     LightVirtualFile(
-        collectionName,
+        documentId + ".json",
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
-        collectionJson
+        documentJson
     )
+

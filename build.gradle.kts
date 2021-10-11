@@ -115,7 +115,11 @@ tasks {
             targetCompatibility = it
         }
         withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = it
+            kotlinOptions {
+                jvmTarget = it
+                // For creation of default methods in interfaces
+                freeCompilerArgs = listOf("-Xjvm-default=compatibility")
+            }
         }
     }
 
