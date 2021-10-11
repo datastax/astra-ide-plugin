@@ -8,6 +8,7 @@ import com.datastax.astra.jetbrains.explorer.TableNode
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.google.rpc.BadRequest
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -15,6 +16,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.table.TableView
+import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -39,7 +41,7 @@ class TableManager(
     val endpoint: TableEndpoint,
 ): CoroutineScope by ApplicationThreadPoolScope("Table") {
     protected val edtContext = getCoroutineUiContext(disposable = disposable)
-    val tableUI = TableUI(disposable,endpoint,::changePage,::changePageSize,::changeWhereField)
+    val tableUI = TableUI(disposable,endpoint,::changePage,::changePageSize,::changeWhereField,::setRowsRemote)
     var pageSize = 10
     var pageCount = 0
     var whereFieldText = "{}"
@@ -158,6 +160,40 @@ class TableManager(
         }
     }
 
+    fun setRowsRemote(newRow: Map<String,String>, oldValue: String, columnName: String) {
+        launch {
+            tableUI.setBusy(true)
+            val primaryKey = endpoint.table.primaryKey!!.partitionKey.first()
+            try {
+                val response = AstraClient.dataApiForDatabase(endpoint.database).updateRows(
+                    AstraClient.accessToken,
+                    endpoint.table.keyspace.orEmpty(),
+                    endpoint.table.name.orEmpty(),
+
+                    newRow[primaryKey]!!,
+                    newRow.filterNot { it.key == primaryKey }
+                )
+                if(!response.isSuccessful) {
+                    //throw Exception("Failed to update rows")
+                    println("Failed to update rows")
+
+                }
+                else{
+                    println{"Updated successfully"}
+                }
+            } catch (e: Exception) {
+                //Reset to old value
+                //TODO: Change the model a different way or do it from the calling class since this will call itself
+                tableUI.model.let {
+                    it.setValueAt(oldValue,it.indexOf(newRow),it.findColumn(columnName))
+                }
+                //TODO: Notification here
+            } finally {
+                tableUI.setBusy(false)
+            }
+        }
+    }
+
     suspend fun setToolbar(){
 
     }
@@ -170,6 +206,7 @@ class TableUI(
     changePage: (Page) -> Unit,
     changePageSize: (Int) -> Unit,
     changeWhereQuery: (String) -> Unit,
+    setRowsRemote: (Map<String, String>, String,String) -> Unit,
 ){
     protected val edtContext = getCoroutineUiContext(disposable=disposable)
     val component: JComponent
@@ -180,7 +217,7 @@ class TableUI(
     val model = ListTableModel(
         endpoint.table.columnDefinitions?.map {
             // TODO: Map each TypeDefinition to the appropriate column info
-            AstraColumnInfo(it.name)
+            TableDataHandler(it.name,setRowsRemote)
         }.orEmpty().toTypedArray(),
         mutableListOf<Map<String, String>>(),
         -1,
@@ -264,6 +301,26 @@ class TableUI(
         nextAvailable = nextPageAvailable
     }
 
+}
+
+class TableDataHandler(name: String, val updateRemoteTable: (Map<String, String>, String,String) -> Unit) : ColumnInfo<MutableMap<String, String>, String>(name),
+    CoroutineScope by ApplicationThreadPoolScope("Mine") {
+
+    override fun isCellEditable(item: MutableMap<String,String>): Boolean {
+        return true
+    }
+
+    override fun setValue(item: MutableMap<String, String>, value: String) {
+        if(item[name] != value){
+            val oldValue = item[name].orEmpty()
+            item[name] = value
+            updateRemoteTable(item,oldValue,name)
+        }
+    }
+
+    override fun valueOf(item: MutableMap<String, String>?): String? {
+        return item?.get(name)
+    }
 }
 
 
