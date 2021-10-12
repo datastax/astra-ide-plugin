@@ -4,6 +4,8 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SearchTextField
+import com.intellij.ui.components.breadcrumbs.Breadcrumbs
+import com.intellij.ui.components.breadcrumbs.Crumb
 import org.jdesktop.swingx.combobox.ListComboBoxModel
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -13,10 +15,11 @@ import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
 import javax.swing.JButton
 import javax.swing.JLabel
+import javax.swing.JToolBar
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>) : EditorHeaderComponent(){
+class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs: Breadcrumbs) : EditorHeaderComponent(){
     val whereField = SearchTextField()
     val prevButton = JButton(AllIcons.Actions.ArrowCollapse)
     val pageLabel = JLabel("1")
@@ -25,9 +28,11 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>) : EditorHea
 
     init{
         super.setLayout(FlowLayout(FlowLayout.LEFT,0, 0))
+        //breadcrumbs.maximumSize=Dimension(160  ,28)
         setUpWhereField(handler::changeWhereQuery)
         prevButton.addActionListener { handler.changePage(Page.PREVIOUS) }
         nextButton.addActionListener { handler.changePage(Page.NEXT) }
+        add(breadcrumbs)
         add(whereField)
         add(prevButton)
         add(pageLabel)
@@ -38,7 +43,7 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>) : EditorHea
     }
 
     private fun setUpWhereField(changeWhereQuery: (String) -> Unit) {
-        whereField.preferredSize= Dimension(300,whereField.preferredSize.height)
+        whereField.preferredSize= Dimension(250,whereField.preferredSize.height)
 
         whereField.onEmpty {
             //whereFieldInvalid(false)

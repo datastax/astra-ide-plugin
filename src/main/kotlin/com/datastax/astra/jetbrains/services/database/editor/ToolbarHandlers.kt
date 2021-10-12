@@ -4,15 +4,20 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.CollectionNode
 import com.datastax.astra.jetbrains.explorer.ExplorerNode
 import com.datastax.astra.jetbrains.explorer.TableNode
+import com.datastax.astra.jetbrains.services.database.editor.BreadcrumbsEx
 import com.datastax.astra.jetbrains.services.database.editor.TableEditor
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.AstraIcons
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
+import com.intellij.ui.components.breadcrumbs.Breadcrumbs
+import com.intellij.ui.components.breadcrumbs.Crumb
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -43,7 +48,22 @@ abstract class ToolbarHandlerBase(private val fileEditor: FileEditor, node: Expl
     abstract val pageSizes: List<Int>
     private var where = ""
 
-    private val endpointToolbar by lazy { EndpointToolbar(this, pageSizes) }
+    private val breadcrumbs =
+        when(node) {
+            is CollectionNode -> BreadcrumbsEx(
+                node.database.info.name.orEmpty().ifEmpty { "[unnamed_db]" },
+                node.keyspace.name,
+                node.collection
+            )
+            is TableNode -> BreadcrumbsEx(
+                node.endpoint.database.info.name.orEmpty().ifEmpty { "[unnamed_db]" },
+                node.endpoint.keyspace.name,
+                null,
+                node.endpoint.table
+            )
+            else -> Breadcrumbs()
+        }
+    private val endpointToolbar by lazy { EndpointToolbar(this, pageSizes, breadcrumbs) }
 
     init {
         FileEditorManager.getInstance(node.nodeProject).addTopComponent(fileEditor, endpointToolbar)
