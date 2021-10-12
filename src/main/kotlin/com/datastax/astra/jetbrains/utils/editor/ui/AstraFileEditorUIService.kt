@@ -7,6 +7,7 @@ import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
 import com.datastax.astra.jetbrains.services.database.editor.CollectionVirtualFile
+import com.datastax.astra.jetbrains.services.database.editor.DocumentVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_document_v2.models.DocCollection
@@ -56,7 +57,7 @@ class AstraFileEditorUIService(private val project: Project) :
     // -- editor header component --
     private fun insertEditorHeaderComponentIfApplicable(source: FileEditorManager, file: VirtualFile) {
         // use extension and file type to include scratch files and simply identifying relevant files
-        if ((file.extension?.contains("json", true) == true)) {
+        if ((file.extension?.contains("json", true) == true) && file !is DocumentVirtualFile) {
             UIUtil.invokeLaterIfNeeded {
                 // ensure components are created on the swing thread
                 val fileEditor = source.getSelectedEditor(file)
