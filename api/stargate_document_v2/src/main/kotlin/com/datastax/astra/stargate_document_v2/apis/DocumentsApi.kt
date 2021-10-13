@@ -261,7 +261,8 @@ interface DocumentsApi {
      * @return [Unit]
      */
     @PATCH("api/rest/v2/namespaces/{namespace-id}/collections/{collection-id}/{document-id}")
-    suspend fun updatePartOfDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Path("document-id") documentId: kotlin.String, @Body body: kotlin.Any, @Query("pretty") pretty: kotlin.Boolean? = null): Response<Unit>
+    @Headers("Accept: application/json", "Content-Type: application/json")
+    suspend fun updatePartOfDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Path("document-id") documentId: kotlin.String, @Body body: RequestBody, @Query("pretty") pretty: kotlin.Boolean? = null): Response<Unit>
 
     /**
      * Update part of a sub document by {document-path}

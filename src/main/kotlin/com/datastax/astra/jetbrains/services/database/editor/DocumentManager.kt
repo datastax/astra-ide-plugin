@@ -1,7 +1,6 @@
 package com.datastax.astra.jetbrains.services.database.editor
 
-import com.datastax.astra.jetbrains.explorer.CollectionNode
-import com.datastax.astra.jetbrains.services.database.CollectionHandler
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 
@@ -13,7 +12,7 @@ class DocumentManager {
             FileEditorManager.getInstance(project).openFile(virtualFile, false).first().let {
                 //TODO: Is this weird because the object reference will be lost here and it is held by the Editor for callbacks
                 //TODO: Does it need to be registered in a weak hashmap or similar and be disposed?
-                //CollectionHandler(it, node)
+                DocumentHandler(it,project,virtualFile)
             }
         }
     }
