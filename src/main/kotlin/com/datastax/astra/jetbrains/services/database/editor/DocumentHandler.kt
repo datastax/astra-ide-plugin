@@ -2,6 +2,7 @@ package com.datastax.astra.jetbrains.services.database.editor
 
 import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.services.database.notifyReloadDocError
 import com.datastax.astra.jetbrains.services.database.notifyUpdateDocError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.AstraIcons
@@ -128,7 +129,7 @@ class DocumentHandler(
                 )
                 if (!response.isSuccessful) {
                     virtualFile.let{
-                        notifyUpdateDocError(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,it.documentId,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
+                        notifyReloadDocError(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,it.documentId,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
                     }
                     updateButton.isEnabled = changesExist
                 } else{

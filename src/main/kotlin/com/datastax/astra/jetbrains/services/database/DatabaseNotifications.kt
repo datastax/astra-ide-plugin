@@ -65,7 +65,7 @@ fun notifyLoadDocsError(
     whereQuery: String,
     errors: Pair<String, String>,
 ) {
-    val cName = collectionName.ifEmpty { "[unnamed_table]" }
+    val cName = collectionName.ifEmpty { "[unnamed_collection]" }
     notifyError(
         title = "Failed to load docs from remote collection: '$cName'",
         content = "Error loading documents from remote collection: '$cName' in keyspace: '$keyspaceName' in database: '$databaseName'. Click below to see error info",
@@ -87,7 +87,7 @@ fun notifyUpdateDocError(
     documentId: String,
     errors: Pair<String, String>,
 ) {
-    val cName = collectionName.ifEmpty { "[unnamed_table]" }
+    val cName = collectionName.ifEmpty { "[unnamed_collection]" }
     notifyError(
         title = "Failed to update remote collection: '$cName'",
         content = "Error changing data on document: '$documentId' in collection: '$cName' in keyspace: '$keyspaceName' in database: '$databaseName'. Click below to see error info",
@@ -96,6 +96,28 @@ fun notifyUpdateDocError(
                 "Error Info",
                 "Failed to update document in remote collection '$cName'",
                 "Error in response to changes on document '$documentId'",
+                "HTTP Response:\n${errors.first}\n\nError Body:\n${errors.second}"
+            )
+        )
+    )
+}
+
+fun notifyReloadDocError(
+    databaseName: String,
+    keyspaceName: String,
+    collectionName: String,
+    documentId: String,
+    errors: Pair<String, String>,
+) {
+    val cName = collectionName.ifEmpty { "[unnamed_collection]" }
+    notifyError(
+        title = "Failed to reload document from remote collection: '$cName'",
+        content = "Error loading document: '$documentId' from remote collection: '$cName' in keyspace: '$keyspaceName' in database: '$databaseName'. Click below to see error info",
+        notificationActions = listOf(
+            createShowMoreInfoDialogAction(
+                "Error Info",
+                "Failed to reload document from remote collection: '$cName'",
+                "Error in response to loading document: '$documentId' from remote collection: '$cName'",
                 "HTTP Response:\n${errors.first}\n\nError Body:\n${errors.second}"
             )
         )
