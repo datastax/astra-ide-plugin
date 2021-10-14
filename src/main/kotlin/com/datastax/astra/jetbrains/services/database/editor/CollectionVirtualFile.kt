@@ -8,10 +8,20 @@ class CollectionVirtualFile(
     val database: Database,
     val keyspaceName: String,
     val collectionName: String,
-    val collectionJson: String
+    val collectionJson: String,
 ) :
     LightVirtualFile(
         collectionName,
         FileTypeManager.getInstance().getFileTypeByExtension("JSON"),
         collectionJson
-    )
+    ) {
+    override fun equals(other: Any?): Boolean {
+        if (other !is CollectionVirtualFile) {
+            return false
+        }
+        return other.database == this.database &&
+                other.keyspaceName == this.keyspaceName &&
+                other.collectionName == this.collectionName
+
+    }
+}

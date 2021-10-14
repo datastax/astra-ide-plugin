@@ -5,14 +5,17 @@ import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SearchTextField
 import org.jdesktop.swingx.combobox.ListComboBoxModel
+import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.beans.PropertyChangeEvent
 import java.beans.PropertyChangeListener
+import javax.swing.BorderFactory
 import javax.swing.JButton
 import javax.swing.JLabel
+import javax.swing.border.EmptyBorder
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
@@ -24,6 +27,7 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>) : EditorHea
     val pageSizeComboBox = ComboBox(PageSizeComboBox(handler::changePageSize, pageSizes))
 
     init{
+        pageLabel.border = BorderFactory.createEmptyBorder(0, 2, 0, 3)
         super.setLayout(FlowLayout(FlowLayout.LEFT,0, 0))
         setUpWhereField(handler::changeWhereQuery)
         prevButton.addActionListener { handler.changePage(Page.PREVIOUS) }
