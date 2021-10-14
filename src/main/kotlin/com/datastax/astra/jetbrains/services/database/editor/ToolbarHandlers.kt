@@ -1,5 +1,6 @@
 package com.datastax.astra.jetbrains.services.database
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.CollectionNode
 import com.datastax.astra.jetbrains.explorer.ExplorerNode
@@ -35,7 +36,7 @@ abstract class ToolbarHandlerBase(private val fileEditor: FileEditor, node: Expl
             return cursors.lastOrNull()
         }
     private var nextCursor: String? = null
-    private val pageNumber: Int
+    protected val pageNumber: Int
         get() {
             return cursors.size + 1
         }
@@ -178,6 +179,9 @@ class TableHandler(private val tableEditor: TableEditor, val node: TableNode) : 
                         tableEditor.tableView.listTableModel.items = it
                     }
                 }
+            }
+            else -> {
+                notifyLoadRowsError(node.endpoint,pageNumber,pageState.orEmpty(),where,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
             }
         }
         return response.body()?.pageState

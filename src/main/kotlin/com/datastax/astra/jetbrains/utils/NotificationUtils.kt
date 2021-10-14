@@ -28,6 +28,9 @@ fun notifyInfo(title: String, content: String = "", project: Project? = null, no
 fun notifyWarn(title: String, content: String = "", project: Project? = null, notificationActions: Collection<AnAction>) =
     notify(NotificationType.WARNING, title, content, project, notificationActions)
 
+fun notifyError(title: String, content: String = "", project: Project? = null, notificationActions: Collection<AnAction>) =
+    notify(NotificationType.ERROR, title, content, project, notificationActions)
+
 /**
  * Creates a Notification Action that will expire a notification after performing some AnAction
  */

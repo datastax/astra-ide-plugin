@@ -3,7 +3,7 @@ package com.datastax.astra.jetbrains.services.database.editor
 import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.TableEndpoint
-import com.datastax.astra.jetbrains.services.database.failedRowUpdateNotification
+import com.datastax.astra.jetbrains.services.database.notifyUpdateRowError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_rest_v2.models.InlineResponse2004
 import com.datastax.astra.stargate_rest_v2.models.Table
@@ -11,6 +11,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.table.TableView
@@ -33,7 +34,6 @@ class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), Fi
     init {
         tableModel = ListTableModel<Map<String, String>>(
             tableVirtualFile.endpoint.table.columnDefinitions?.map {
-                // TODO: Map each TypeDefinition to the appropriate column info
                 AstraColumnInfo(it.name, tableVirtualFile.endpoint)
             }.orEmpty().toTypedArray(),
             listOf<MutableMap<String, String>>(),
@@ -73,6 +73,10 @@ class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), Fi
     override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
 
     override fun getCurrentLocation(): FileEditorLocation? = null
+
+    override fun getFile(): VirtualFile {
+        return FileEditor.FILE_KEY[this]
+    }
 }
 
 class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<MutableMap<String, String>, String>(name),
@@ -105,7 +109,7 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
                 if (response.isSuccessful) {
                     item[name] = value
                 }else{
-                    failedRowUpdateNotification(endpoint.table.name.orEmpty(),keys,name,item[name].orEmpty(),value,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
+                    notifyUpdateRowError(endpoint.table.name.orEmpty(),keys,name,item[name].orEmpty(),value,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
                 }
             }
 
