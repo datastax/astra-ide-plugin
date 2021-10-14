@@ -6,15 +6,16 @@ import com.datastax.astra.jetbrains.services.database.notifyUpdateDocError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.AstraIcons
 import com.datastax.astra.jetbrains.utils.getCoroutineBgContext
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
+import com.datastax.astra.stargate_document_v2.infrastructure.Serializer
+import com.intellij.icons.AllIcons
 import com.intellij.json.psi.JsonFile
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiErrorElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter
+import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.AsyncProcessIcon
@@ -38,11 +39,16 @@ class DocumentHandler(
     val myFile: PsiFile?
     val toolbar: JPanel
     val updateButton: JButton
-    var myBusy = false
-    val myBusyIcon = AsyncProcessIcon(toString())
+    val refreshButton: JButton
+
+    val gson = Serializer.gsonBuilder
+        .setPrettyPrinting()
+        .disableHtmlEscaping()
+        .create()
 
     private val coroutineScope = ApplicationThreadPoolScope("DocumentHandler")
     private val bg = getCoroutineBgContext()
+    internal val edt = getCoroutineUiContext()
 
     init {
         myFile = PsiManager.getInstance(project).findFile(virtualFile)
@@ -53,17 +59,25 @@ class DocumentHandler(
 
         toolbar = EditorHeaderComponent()
         toolbar.layout= FlowLayout(FlowLayout.LEFT,1, 0)
-        updateButton = JButton(AstraIcons.UI.InsertDoc)
-        updateButton.isEnabled = false //Only enable when first valid modification occurs
         virtualFile.let {
             toolbar.add(BreadcrumbsEx(it.database.info.name.orEmpty(),it.keyspaceName,null,it.collectionName,it.documentId))
         }
-
+        updateButton = JButton(AstraIcons.UI.InsertDoc)
+        updateButton.isEnabled = false //Only enable when first valid modification occurs
         toolbar.add(updateButton)
+        refreshButton = JButton(AllIcons.Actions.Refresh)
+        refreshButton.isEnabled = true
+        toolbar.add(refreshButton)
+
         updateButton.addActionListener {
             val json = (myFile as? JsonFile)?.topLevelValue?.text
             coroutineScope.launch {
                 updateAstraDocument(json.orEmpty())
+            }
+        }
+        refreshButton.addActionListener {
+            coroutineScope.launch {
+                reloadAstraDocument()
             }
         }
 
@@ -75,6 +89,7 @@ class DocumentHandler(
         try {
             (fileEditor.component as JBLoadingPanel).startLoading()
             updateButton.isEnabled = false
+            refreshButton.isEnabled = false
             withContext(bg) {
                 val response = AstraClient.documentApiForDatabase(virtualFile.database).updatePartOfDoc(
                     UUID.randomUUID(),
@@ -93,7 +108,49 @@ class DocumentHandler(
             }
         } finally {
             (fileEditor.component as JBLoadingPanel).stopLoading()
-            updateButton.isEnabled = true
+            refreshButton.isEnabled = true
+        }
+
+    }
+
+    private suspend fun reloadAstraDocument() {
+        try {
+            val changesExist = updateButton.isEnabled
+            (fileEditor.component as JBLoadingPanel).startLoading()
+            refreshButton.isEnabled = false
+            withContext(bg) {
+                val response = AstraClient.documentApiForDatabase(virtualFile.database).getDocById(
+                    UUID.randomUUID(),
+                    AstraClient.accessToken,
+                    virtualFile.keyspaceName,
+                    virtualFile.collectionName,
+                    virtualFile.documentId
+                )
+                if (!response.isSuccessful) {
+                    virtualFile.let{
+                        notifyUpdateDocError(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,it.documentId,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
+                    }
+                    updateButton.isEnabled = changesExist
+                } else{
+
+                    fileEditor.file?.let {
+                        withContext(edt) {
+                            PsiManager.getInstance(project).findFile(it)?.let {
+                                PsiDocumentManager.getInstance(project).getDocument(it)?.let {
+                                    runWriteAction { it.setText(gson.toJson(response.body()?.data)) }
+                                }
+                            }
+                            delayedUpdateDisable()
+                        }
+                    }
+
+
+                }
+            }
+        } finally {
+            (fileEditor.component as JBLoadingPanel).stopLoading()
+            refreshButton.isEnabled = true
+
         }
 
     }
@@ -102,6 +159,16 @@ class DocumentHandler(
     //public Color getSelectionBackground() {
     //  return isEnabled() ? super.getSelectionBackground() : UIUtil.getTableSelectionBackground(false);
     //}
+
+    //Tried other solutions but the onChange can get called many times so a one time flag won't work
+    suspend fun delayedUpdateDisable(){
+        withContext(bg){
+            launch {
+                Thread.sleep(400)
+                updateButton.isEnabled = false
+            }
+        }
+    }
 
     override fun onChange(file: PsiFile?) {
         if (file?.equals(myFile) == true) {
