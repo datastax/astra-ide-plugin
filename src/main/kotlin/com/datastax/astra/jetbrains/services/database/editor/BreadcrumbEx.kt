@@ -14,7 +14,7 @@ class BreadcrumbsEx(databaseName: String,keyspace: String, table: String? = null
         crumbs.add(Crumb.Impl(AstraIcons.IntelliJ.ColBlueKeyIndex, keyspace,"", listOf()))
         when {
             table != null -> crumbs.add(Crumb.Impl(AllIcons.Nodes.DataTables, table.orEmpty().ifEmpty { "[unnamed_table]" } ,"", listOf()))
-            collection != null -> crumbs.add(Crumb.Impl(AllIcons.Nodes.Folder, collection.orEmpty().ifEmpty { "[unnamed_collection]" } ,"", listOf()))
+            collection != null -> crumbs.add(Crumb.Impl(AllIcons.Nodes.CopyOfFolder, collection.orEmpty().ifEmpty { "[unnamed_collection]" } ,"", listOf()))
         }
         if (document != null){
             crumbs.add(Crumb.Impl(AllIcons.FileTypes.Json, "..."+document.drop(30) ,"", listOf()))

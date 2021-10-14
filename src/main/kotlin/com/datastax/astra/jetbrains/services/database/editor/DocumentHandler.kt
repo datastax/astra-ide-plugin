@@ -56,7 +56,7 @@ class DocumentHandler(
         updateButton = JButton(AstraIcons.UI.InsertDoc)
         updateButton.isEnabled = false //Only enable when first valid modification occurs
         virtualFile.let {
-            toolbar.add(BreadcrumbsEx(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,null,it.documentId))
+            toolbar.add(BreadcrumbsEx(it.database.info.name.orEmpty(),it.keyspaceName,null,it.collectionName,it.documentId))
         }
 
         toolbar.add(updateButton)
