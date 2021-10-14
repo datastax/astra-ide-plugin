@@ -45,6 +45,10 @@ class DocumentHandler(
     private val bg = getCoroutineBgContext()
 
     init {
+        myFile = PsiManager.getInstance(project).findFile(virtualFile)
+        //TODO: Need a disposable here so the listener will get removed
+        PsiManager.getInstance(project).addPsiTreeChangeListener(this)
+
         //Set up UI
 
         toolbar = EditorHeaderComponent()
@@ -57,26 +61,21 @@ class DocumentHandler(
 
         toolbar.add(updateButton)
         updateButton.addActionListener {
+            val json = (myFile as? JsonFile)?.topLevelValue?.text
             coroutineScope.launch {
-                updateAstraDocument()
+                updateAstraDocument(json.orEmpty())
             }
         }
 
         //TODO: Include a refresh button?
         FileEditorManager.getInstance(project).addTopComponent(fileEditor, toolbar)
-
-        myFile = PsiManager.getInstance(project).findFile(virtualFile)
-        //TODO: Need a disposable here so the listener will get removed
-        PsiManager.getInstance(project).addPsiTreeChangeListener(this)
-
     }
 
-    private suspend fun updateAstraDocument() {
+    private suspend fun updateAstraDocument(json: String) {
         try {
             (fileEditor.component as JBLoadingPanel).startLoading()
             updateButton.isEnabled = false
             withContext(bg) {
-                val json = (myFile as? JsonFile)?.topLevelValue?.text
                 val response = AstraClient.documentApiForDatabase(virtualFile.database).updatePartOfDoc(
                     UUID.randomUUID(),
                     AstraClient.accessToken,
@@ -89,9 +88,7 @@ class DocumentHandler(
                     virtualFile.let{
                         notifyUpdateDocError(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,it.documentId,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
                     }
-
-                    //TODO: Notification
-                    // enable upsert
+                    updateButton.isEnabled = true
                 }
             }
         } finally {
