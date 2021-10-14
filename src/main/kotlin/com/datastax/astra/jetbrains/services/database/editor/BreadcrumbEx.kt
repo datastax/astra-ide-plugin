@@ -7,19 +7,18 @@ import com.intellij.icons.AllIcons
 import com.intellij.ui.components.breadcrumbs.Breadcrumbs
 import com.intellij.ui.components.breadcrumbs.Crumb
 
-class BreadcrumbsEx(databaseName: String,keyspace: String, collection: DocCollection? = null,table: Table? = null): Breadcrumbs() {
-    val crumbs: List<Crumb>
+class BreadcrumbsEx(databaseName: String,keyspace: String, table: String? = null, collection: String? = null, document: String? = null): Breadcrumbs() {
+    val crumbs = mutableListOf<Crumb>()
     init {
-
-        crumbs = listOf(
-            Crumb.Impl(AstraIcons.IntelliJ.Dbms, databaseName.ifEmpty { "[unnamed_db]" },"", listOf()),
-            Crumb.Impl(AstraIcons.IntelliJ.ColBlueKeyIndex, keyspace,"", listOf()),
-            if(collection == null){
-                Crumb.Impl(AllIcons.Nodes.Folder, table?.name.orEmpty().ifEmpty { "[unnamed_collection]" } ,"", listOf())
-            }else{
-                Crumb.Impl(AllIcons.Nodes.Folder, collection?.name.orEmpty().ifEmpty { "[unnamed_collection]" } ,"", listOf())
-            }
-        )
+        crumbs.add(Crumb.Impl(AstraIcons.IntelliJ.Dbms, databaseName.ifEmpty { "[unnamed_db]" },"", listOf()))
+        crumbs.add(Crumb.Impl(AstraIcons.IntelliJ.ColBlueKeyIndex, keyspace,"", listOf()))
+        when {
+            table != null -> crumbs.add(Crumb.Impl(AllIcons.Nodes.DataTables, table.orEmpty().ifEmpty { "[unnamed_table]" } ,"", listOf()))
+            collection != null -> crumbs.add(Crumb.Impl(AllIcons.Nodes.Folder, collection.orEmpty().ifEmpty { "[unnamed_collection]" } ,"", listOf()))
+        }
+        if (document != null){
+            crumbs.add(Crumb.Impl(AllIcons.FileTypes.Json, "..."+document.drop(30) ,"", listOf()))
+        }
         this.setCrumbs(crumbs)
     }
 }

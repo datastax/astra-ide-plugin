@@ -53,13 +53,13 @@ abstract class ToolbarHandlerBase(private val fileEditor: FileEditor, node: Expl
             is CollectionNode -> BreadcrumbsEx(
                 node.database.info.name.orEmpty().ifEmpty { "[unnamed_db]" },
                 node.keyspace.name,
-                node.collection
+                null,
+                node.collection.name
             )
             is TableNode -> BreadcrumbsEx(
                 node.endpoint.database.info.name.orEmpty().ifEmpty { "[unnamed_db]" },
                 node.endpoint.keyspace.name,
-                null,
-                node.endpoint.table
+                node.endpoint.table.name
             )
             else -> Breadcrumbs()
         }
