@@ -1,6 +1,8 @@
 package com.datastax.astra.jetbrains.services.database.editor
 
+import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.AstraClient
+import com.datastax.astra.jetbrains.services.database.notifyUpdateDocError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.AstraIcons
 import com.datastax.astra.jetbrains.utils.getCoroutineBgContext
@@ -20,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.awt.FlowLayout
 import java.util.*
 import javax.swing.JButton
 import javax.swing.JPanel
@@ -45,8 +48,13 @@ class DocumentHandler(
         //Set up UI
 
         toolbar = EditorHeaderComponent()
+        toolbar.layout= FlowLayout(FlowLayout.LEFT,1, 0)
         updateButton = JButton(AstraIcons.UI.InsertDoc)
         updateButton.isEnabled = false //Only enable when first valid modification occurs
+        virtualFile.let {
+            toolbar.add(BreadcrumbsEx(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,null,it.documentId))
+        }
+
         toolbar.add(updateButton)
         updateButton.addActionListener {
             coroutineScope.launch {
@@ -54,13 +62,11 @@ class DocumentHandler(
             }
         }
 
-        // TODO: Insert the breadcrumbs to the left of this button
         //TODO: Include a refresh button?
         FileEditorManager.getInstance(project).addTopComponent(fileEditor, toolbar)
 
         myFile = PsiManager.getInstance(project).findFile(virtualFile)
         //TODO: Need a disposable here so the listener will get removed
-        // Disposable for what object?
         PsiManager.getInstance(project).addPsiTreeChangeListener(this)
 
     }
@@ -80,7 +86,12 @@ class DocumentHandler(
                     json.orEmpty().toRequestBody("application/json".toMediaTypeOrNull())
                 )
                 if (!response.isSuccessful) {
+                    virtualFile.let{
+                        notifyUpdateDocError(it.database.info.name.orEmpty(),it.keyspaceName,it.collectionName,it.documentId,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
+                    }
+
                     //TODO: Notification
+                    // enable upsert
                 }
             }
         } finally {

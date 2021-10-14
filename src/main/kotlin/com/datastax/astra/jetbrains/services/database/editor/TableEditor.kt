@@ -126,9 +126,6 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
         )
     }
 
-
-
-
     override fun valueOf(item: MutableMap<String, String>?): String? {
         return item?.get(name)
     }

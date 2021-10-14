@@ -28,8 +28,8 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
     val pageSizeComboBox = ComboBox(PageSizeComboBox(handler::changePageSize, pageSizes))
 
     init{
-        pageLabel.border = BorderFactory.createEmptyBorder(0, 2, 0, 3)
-        super.setLayout(FlowLayout(FlowLayout.LEFT,0, 0))
+        pageLabel.border = BorderFactory.createEmptyBorder(0, 1, 0, 2)
+        super.setLayout(FlowLayout(FlowLayout.LEFT,1, 0))
         //breadcrumbs.maximumSize=Dimension(160  ,28)
         setUpWhereField(handler::changeWhereQuery)
         prevButton.addActionListener { handler.changePage(Page.PREVIOUS) }

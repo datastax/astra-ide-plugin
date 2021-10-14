@@ -119,7 +119,7 @@ abstract class ToolbarHandlerBase(private val fileEditor: FileEditor, node: Expl
         coroutineScope.launch {
             cursors.clear()
             nextCursor = null
-            where = where
+            where = query
             nextCursor = fetch(pageSize, currentCursor, where)
             updatePaginatorUi()
         }
@@ -170,6 +170,9 @@ class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : 
                     }
 
                 }
+            }
+            else -> {
+                notifyLoadDocsError(node.database.info.name.orEmpty(),node.keyspace.name,node.collection.name,pageNumber,pageState.orEmpty(),where,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
             }
         }
         return response.body()?.pageState
