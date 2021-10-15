@@ -96,9 +96,9 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
 
     //Don't allow editing any column until we're sure it's not in that list.
     val isKeyColumn: Boolean
-    var keyColumnIndex: Int? = null
 
     init {
+
         if (endpoint.table.primaryKey == null) {
             isKeyColumn = false
         } else {
@@ -106,11 +106,6 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
                 isKeyColumn = if (it.partitionKey.contains(name)) {
                     true
                 } else it.clusteringKey != null && it.clusteringKey.contains(name)
-            }
-        }
-        if(isKeyColumn){
-            endpoint.table.columnDefinitions?.let { list ->
-                keyColumnIndex = list.indexOf(list.first { it.name == name })
             }
         }
     }
@@ -170,49 +165,3 @@ fun getRowKeys(item: MutableMap<String, String>,table: Table): String {
     val primaryKey = table.primaryKey!!.partitionKey.first()
     return item[primaryKey].orEmpty()
 }
-
-class AstraTableCellRenderer(val columnKey: Int?) : DefaultTableCellRenderer() {
-    val NO_FOCUS_BORDER_NONEDITING: Border = LineBorder(Color.getHSBColor(0f,0.4f,0.7f),1)
-    val NO_FOCUS_BORDER: Border = EmptyBorder(1, 1, 1, 1)
-    val FOCUS_BORDER: Border = BevelBorder(2,Color.PINK,Color.PINK)
-    val FOCUS_BORDER_UNSELECTED: Border = BevelBorder(2,Color.GRAY,Color.GRAY)
-
-    override fun getTableCellRendererComponent(
-        table: JTable?, value: Any?,
-        isSelectedGet: Boolean, hasFocus: Boolean, row: Int, column: Int,
-    ): Component? {
-        var isSelected = isSelectedGet
-        if (table == null) {
-            return this
-        }
-
-        val dropLocation = table.dropLocation
-        if (dropLocation != null && !dropLocation.isInsertRow
-            && !dropLocation.isInsertColumn
-            && dropLocation.row == row && dropLocation.column == column
-        ) {
-            isSelected = true
-        }
-        if (isSelected) {
-            setBorder(FOCUS_BORDER)
-        } else {
-
-        }
-        setFont(table.font)
-        if (hasFocus) {
-            if (isSelected) {
-
-            }
-            if (!isSelected && table.isCellEditable(row, column)) {
-                setBorder(FOCUS_BORDER_UNSELECTED)
-            }
-        } else {
-            if(columnKey != null && column==columnKey){
-                setBorder(NO_FOCUS_BORDER_NONEDITING)
-            }
-        }
-        setValue(value)
-        return this
-    }
-}
-
