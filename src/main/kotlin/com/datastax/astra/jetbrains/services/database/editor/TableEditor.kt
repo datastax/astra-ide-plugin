@@ -7,9 +7,11 @@ import com.datastax.astra.jetbrains.services.database.notifyUpdateRowError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.stargate_rest_v2.models.InlineResponse2004
 import com.datastax.astra.stargate_rest_v2.models.Table
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.ScrollPaneFactory
@@ -20,10 +22,20 @@ import com.intellij.util.ui.ListTableModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import java.awt.Color
+import java.awt.Component
 import java.beans.PropertyChangeListener
+import javax.swing.DefaultCellEditor
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SortOrder
+import javax.swing.border.BevelBorder
+import javax.swing.border.Border
+import javax.swing.border.EmptyBorder
+import javax.swing.border.LineBorder
+import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 
 class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
 
@@ -84,6 +96,7 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
 
     //Don't allow editing any column until we're sure it's not in that list.
     val isKeyColumn: Boolean
+    var keyColumnIndex: Int? = null
 
     init {
         if (endpoint.table.primaryKey == null) {
@@ -95,10 +108,15 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
                 } else it.clusteringKey != null && it.clusteringKey.contains(name)
             }
         }
+        if(isKeyColumn){
+            endpoint.table.columnDefinitions?.let { list ->
+                keyColumnIndex = list.indexOf(list.first { it.name == name })
+            }
+        }
     }
 
     override fun isCellEditable(item: MutableMap<String, String>): Boolean {
-        return !isKeyColumn
+        return true
     }
 
     override fun setValue(item: MutableMap<String, String>, value: String) {
@@ -116,6 +134,7 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
         }
     }
 
+
     suspend fun updateRemoteTable(rowKey: String, columnName: String, newValue: String): Response<InlineResponse2004> {
         return AstraClient.dataApiForDatabase(endpoint.database).updateRows(
             AstraClient.accessToken,
@@ -129,9 +148,71 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
     override fun valueOf(item: MutableMap<String, String>?): String? {
         return item?.get(name)
     }
+
+    override fun getRenderer(item: MutableMap<String, String>?): TableCellRenderer? {
+        val renderer = super.getCustomizedRenderer(item,DefaultTableCellRenderer())
+        if(isKeyColumn){
+            (renderer as DefaultTableCellRenderer).let {
+                it.disabledIcon = AllIcons.Diff.Lock
+                it.isEnabled=false
+            }
+        }
+        return renderer
+    }
+
+    override fun getEditor(item: MutableMap<String, String>?): TableCellEditor? {
+        return super.getEditor(item)
+    }
+
 }
 
 fun getRowKeys(item: MutableMap<String, String>,table: Table): String {
     val primaryKey = table.primaryKey!!.partitionKey.first()
     return item[primaryKey].orEmpty()
 }
+
+class AstraTableCellRenderer(val columnKey: Int?) : DefaultTableCellRenderer() {
+    val NO_FOCUS_BORDER_NONEDITING: Border = LineBorder(Color.getHSBColor(0f,0.4f,0.7f),1)
+    val NO_FOCUS_BORDER: Border = EmptyBorder(1, 1, 1, 1)
+    val FOCUS_BORDER: Border = BevelBorder(2,Color.PINK,Color.PINK)
+    val FOCUS_BORDER_UNSELECTED: Border = BevelBorder(2,Color.GRAY,Color.GRAY)
+
+    override fun getTableCellRendererComponent(
+        table: JTable?, value: Any?,
+        isSelectedGet: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): Component? {
+        var isSelected = isSelectedGet
+        if (table == null) {
+            return this
+        }
+
+        val dropLocation = table.dropLocation
+        if (dropLocation != null && !dropLocation.isInsertRow
+            && !dropLocation.isInsertColumn
+            && dropLocation.row == row && dropLocation.column == column
+        ) {
+            isSelected = true
+        }
+        if (isSelected) {
+            setBorder(FOCUS_BORDER)
+        } else {
+
+        }
+        setFont(table.font)
+        if (hasFocus) {
+            if (isSelected) {
+
+            }
+            if (!isSelected && table.isCellEditable(row, column)) {
+                setBorder(FOCUS_BORDER_UNSELECTED)
+            }
+        } else {
+            if(columnKey != null && column==columnKey){
+                setBorder(NO_FOCUS_BORDER_NONEDITING)
+            }
+        }
+        setValue(value)
+        return this
+    }
+}
+
