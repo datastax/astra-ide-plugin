@@ -21,7 +21,7 @@ import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
 class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs: Breadcrumbs) : EditorHeaderComponent(){
-    val whereField = SearchTextField()
+    val whereField = SearchTextField(true,"pastWhereQueries")
     val prevButton = JButton(AllIcons.Actions.ArrowCollapse)
     val pageLabel = JLabel("1")
     val nextButton = JButton(AllIcons.Actions.ArrowExpand)
@@ -60,13 +60,15 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
         whereField.preferredSize= Dimension(250,whereField.preferredSize.height)
 
         whereField.onEmpty {
-            //whereFieldInvalid(false)
+            changeWhereQuery("{}")
         }
 
         whereField.onEnter {
             // If it is not empty do a search
             if (whereField.text.isNotEmpty()) {
+                whereField.MyModel().insertElementAt(whereField.text,0)
                 changeWhereQuery(whereField.text)
+
             }
             else {
                 changeWhereQuery("{}")
@@ -80,9 +82,7 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
                 private var lastText = ""
                 override fun actionPerformed(e: ActionEvent?) {
                     val searchFieldText = text.trim()
-                    if (searchFieldText == lastText) {
-                        return
-                    }
+                    //Removed check for same last value. Allows reusing last search after clear
                     lastText = searchFieldText
                     block()
                 }
