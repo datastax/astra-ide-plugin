@@ -45,6 +45,7 @@ class DocumentHandler(
     private val bg = getCoroutineBgContext()
 
     init {
+
         myFile = PsiManager.getInstance(project).findFile(virtualFile)
         //TODO: Need a disposable here so the listener will get removed
         PsiManager.getInstance(project).addPsiTreeChangeListener(this)
@@ -66,7 +67,7 @@ class DocumentHandler(
                 updateAstraDocument(json.orEmpty())
             }
         }
-
+        setTooltips()
         //TODO: Include a refresh button?
         FileEditorManager.getInstance(project).addTopComponent(fileEditor, toolbar)
     }
@@ -98,6 +99,11 @@ class DocumentHandler(
 
     }
 
+    fun setTooltips(){
+        //TODO: Add tooltips for other buttons on this toolbar in other branches
+
+        updateButton.toolTipText = "Update Remote Doc"
+    }
     //@Override
     //public Color getSelectionBackground() {
     //  return isEnabled() ? super.getSelectionBackground() : UIUtil.getTableSelectionBackground(false);

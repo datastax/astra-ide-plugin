@@ -28,12 +28,16 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
     val pageSizeComboBox = ComboBox(PageSizeComboBox(handler::changePageSize, pageSizes))
 
     init{
+        setTooltips()
         pageLabel.border = BorderFactory.createEmptyBorder(0, 1, 0, 2)
         super.setLayout(FlowLayout(FlowLayout.LEFT,1, 0))
         //breadcrumbs.maximumSize=Dimension(160  ,28)
         setUpWhereField(handler::changeWhereQuery)
         prevButton.addActionListener { handler.changePage(Page.PREVIOUS) }
+
         nextButton.addActionListener { handler.changePage(Page.NEXT) }
+
+
         add(breadcrumbs)
         add(whereField)
         add(prevButton)
@@ -42,6 +46,14 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
         add(pageSizeComboBox)
 
 
+    }
+
+    private fun setTooltips(){
+        whereField.textEditor.toolTipText = "Search with Where Query"
+        prevButton.toolTipText = "Previous Page"
+        pageLabel.toolTipText = "Current Page"
+        nextButton.toolTipText = "Next Page"
+        pageSizeComboBox.toolTipText = "Change Page Size"
     }
 
     private fun setUpWhereField(changeWhereQuery: (String) -> Unit) {
