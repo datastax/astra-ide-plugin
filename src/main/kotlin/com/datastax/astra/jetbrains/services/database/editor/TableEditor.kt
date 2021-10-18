@@ -111,7 +111,7 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
     }
 
     override fun isCellEditable(item: MutableMap<String, String>): Boolean {
-        return true
+        return !isKeyColumn
     }
 
     override fun setValue(item: MutableMap<String, String>, value: String) {
@@ -148,15 +148,12 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
         val renderer = super.getCustomizedRenderer(item,DefaultTableCellRenderer())
         if(isKeyColumn){
             (renderer as DefaultTableCellRenderer).let {
-                it.disabledIcon = AllIcons.Diff.Lock
+                //TODO: Ask Garrett is something else will replace this indicator
+                // it.disabledIcon = AllIcons.Diff.Lock
                 it.isEnabled=false
             }
         }
         return renderer
-    }
-
-    override fun getEditor(item: MutableMap<String, String>?): TableCellEditor? {
-        return super.getEditor(item)
     }
 
 }
