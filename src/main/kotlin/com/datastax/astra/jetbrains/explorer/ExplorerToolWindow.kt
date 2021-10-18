@@ -62,7 +62,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             project.getService(ExplorerToolWindow::class.java)
         const val explorerToolWindowPlace = "ExplorerToolWindow"
     }
-    private fun createInfoPanel(state: ProfileState): JComponent {
+    private fun createInfoPanel(): JComponent {
         val panel = NonOpaquePanel(GridBagLayout())
         return panel
     }
@@ -82,9 +82,9 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
                         treePanel
                     }
                     is ProfileState.IncompleteConfiguration -> {
-                        createInfoPanel(newProfile)
+                        createInfoPanel()
                     }
-                    else -> createInfoPanel(newProfile)
+                    else -> createInfoPanel()
                 }
             )
         }
@@ -98,6 +98,8 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
                 structureTreeModel.invalidate()
             }
         }
+
+
         // TODO: Trigger reset and watching of databaseMap
     }
 

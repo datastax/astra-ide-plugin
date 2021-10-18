@@ -40,6 +40,9 @@
                     class="com.datastax.astra.jetbrains.services.database.DeleteDatabaseAction"/>
         </group>
         <group id="astra.explorer.databases.keyspace" popup="true" compact="false">
+            <action id="collection.create"
+                    class="com.datastax.astra.jetbrains.services.database.CreateCollectionAction"/>
+            <separator/>
             <action id="keyspace.delete"
                     class="com.datastax.astra.jetbrains.services.database.DeleteKeyspaceAction"/>
         </group>

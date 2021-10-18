@@ -31,6 +31,28 @@ interface DocumentsApi {
     suspend fun addDoc(@Header("X-Cassandra-Request-Id") xCassandraRequestId: java.util.UUID, @Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Path("collection-id") collectionId: kotlin.String, @Body body: RequestBody, @Query("pretty") pretty: kotlin.Boolean? = null): Response<Unit>
 
     /**
+     * Add a new document to {collection-id}
+     *
+     * Responses:
+     *  - 201: resource created
+     *  - 400: Invalid input
+     *  - 401: Unauthorized
+     *  - 409: Conflict
+     *  - 500: Internal server error
+     *
+     * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
+     * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
+     * @param namespaceId namespace name
+     * @param collectionId name of the document collection
+     * @param body document
+     * @param pretty format results (optional)
+     * @return [Unit]
+     */
+    @POST("api/rest/v2/namespaces/{namespace-id}/collections")
+    @Headers("Accept: application/json", "Content-Type: application/json")
+    suspend fun createCollection(@Header("X-Cassandra-Token") xCassandraToken: kotlin.String, @Path("namespace-id") namespaceId: kotlin.String, @Body body: RequestBody): Response<Unit>
+
+    /**
      * Delete a collection
      *
      * Responses:

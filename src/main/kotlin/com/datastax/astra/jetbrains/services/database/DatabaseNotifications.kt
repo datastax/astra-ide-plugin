@@ -2,6 +2,7 @@ package com.datastax.astra.jetbrains.services.database
 
 import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.MessagesBundle
+import com.datastax.astra.jetbrains.explorer.KeyspaceNode
 import com.datastax.astra.jetbrains.explorer.TableEndpoint
 import com.datastax.astra.jetbrains.utils.createShowMoreInfoDialogAction
 import com.datastax.astra.jetbrains.utils.notifyError
@@ -9,6 +10,9 @@ import com.datastax.astra.jetbrains.utils.notifyInfo
 import com.datastax.astra.jetbrains.utils.notifyWarn
 import retrofit2.Response
 
+/*
+ERROR NOTIFICATIONS
+ */
 fun notifyLoadRowsError(
     endpoint: TableEndpoint,
     pageNumber: Int,
@@ -99,5 +103,39 @@ fun notifyUpdateDocError(
                 "HTTP Response:\n${errors.first}\n\nError Body:\n${errors.second}"
             )
         )
+    )
+}
+
+fun notifyCreateCollectionError(
+    collectionName: String,
+    node: KeyspaceNode,
+    errors: Pair<String, String>,
+) {
+    notifyError(
+        title = "Failed to create collection: $collectionName",
+        content = "Error creating collection: $collectionName in keyspace: ${node.keyspace.name} for database ${node.database}. Click below to see error info",
+        notificationActions = listOf(
+            createShowMoreInfoDialogAction(
+                "Error Info",
+                "Failed to create collection: $collectionName",
+                "Error in response to creating new collection named: '$collectionName' in keyspace: ${node.keyspace.name}",
+                "HTTP Response:\n${errors.first}\n\nError Body:\n${errors.second}"
+            )
+        )
+    )
+}
+
+/*
+INFO NOTIFICATIONS
+ */
+
+fun notifyCreateCollectionSuccess(
+    collectionName: String,
+    node: KeyspaceNode,
+) {
+    notifyInfo(
+        title = "Created new collection: $collectionName",
+        content = "Successfully created collection: $collectionName in keyspace: ${node.keyspace.name} for database ${node.database.info.name}. Now refreshing explorer list to reflect change.",
+        notificationActions = listOf()
     )
 }
