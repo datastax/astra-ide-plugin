@@ -21,19 +21,23 @@ import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
 class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs: Breadcrumbs) : EditorHeaderComponent(){
-    val whereField = SearchTextField()
+    val whereField = SearchTextField(true,"pastWhereQueries")
     val prevButton = JButton(AllIcons.Actions.ArrowCollapse)
     val pageLabel = JLabel("1")
     val nextButton = JButton(AllIcons.Actions.ArrowExpand)
     val pageSizeComboBox = ComboBox(PageSizeComboBox(handler::changePageSize, pageSizes))
 
     init{
+        setTooltips()
         pageLabel.border = BorderFactory.createEmptyBorder(0, 1, 0, 2)
         super.setLayout(FlowLayout(FlowLayout.LEFT,1, 0))
         //breadcrumbs.maximumSize=Dimension(160  ,28)
         setUpWhereField(handler::changeWhereQuery)
         prevButton.addActionListener { handler.changePage(Page.PREVIOUS) }
+
         nextButton.addActionListener { handler.changePage(Page.NEXT) }
+
+
         add(breadcrumbs)
         add(whereField)
         add(prevButton)
@@ -44,17 +48,27 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
 
     }
 
+    private fun setTooltips(){
+        whereField.textEditor.toolTipText = "Search with Where Query"
+        prevButton.toolTipText = "Previous Page"
+        pageLabel.toolTipText = "Current Page"
+        nextButton.toolTipText = "Next Page"
+        pageSizeComboBox.toolTipText = "Change Page Size"
+    }
+
     private fun setUpWhereField(changeWhereQuery: (String) -> Unit) {
         whereField.preferredSize= Dimension(250,whereField.preferredSize.height)
 
         whereField.onEmpty {
-            //whereFieldInvalid(false)
+            changeWhereQuery("{}")
         }
 
         whereField.onEnter {
             // If it is not empty do a search
             if (whereField.text.isNotEmpty()) {
+                whereField.MyModel().insertElementAt(whereField.text,0)
                 changeWhereQuery(whereField.text)
+
             }
             else {
                 changeWhereQuery("{}")
@@ -68,9 +82,7 @@ class EndpointToolbar(handler: ToolbarHandler, pageSizes: List<Int>, breadcrumbs
                 private var lastText = ""
                 override fun actionPerformed(e: ActionEvent?) {
                     val searchFieldText = text.trim()
-                    if (searchFieldText == lastText) {
-                        return
-                    }
+                    //Removed check for same last value. Allows reusing last search after clear
                     lastText = searchFieldText
                     block()
                 }
