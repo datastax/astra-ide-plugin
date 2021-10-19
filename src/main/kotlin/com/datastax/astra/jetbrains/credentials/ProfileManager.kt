@@ -183,3 +183,7 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
 interface ProfileStateChangeNotifier {
     fun profileStateChanged(newState: ProfileState)
 }
+
+interface ExplorerTreeStateChangeNotifier {
+    fun profileStateChanged(newState: ProfileState)
+}

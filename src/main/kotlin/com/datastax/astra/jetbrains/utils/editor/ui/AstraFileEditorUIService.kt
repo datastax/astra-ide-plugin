@@ -161,6 +161,8 @@ class AstraFileEditorUIService(private val project: Project) :
         }
     }
 
+
+
     override fun profileStateChanged(newState: ProfileState) {
         when {
             !newState.isTerminal -> project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC)
