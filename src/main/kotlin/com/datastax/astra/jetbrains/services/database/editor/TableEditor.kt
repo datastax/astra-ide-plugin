@@ -5,11 +5,15 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.TableEndpoint
 import com.datastax.astra.jetbrains.services.database.notifyUpdateRowError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.AstraIcons
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_rest_v2.models.InlineResponse2004
 import com.datastax.astra.stargate_rest_v2.models.Table
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.ScrollPaneFactory
@@ -19,11 +23,22 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Response
+import java.awt.Color
+import java.awt.Component
 import java.beans.PropertyChangeListener
+import javax.swing.DefaultCellEditor
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SortOrder
+import javax.swing.border.BevelBorder
+import javax.swing.border.Border
+import javax.swing.border.EmptyBorder
+import javax.swing.border.LineBorder
+import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 
 class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
 
@@ -80,7 +95,8 @@ class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), Fi
 }
 
 class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<MutableMap<String, String>, String>(name),
-    CoroutineScope by ApplicationThreadPoolScope("Mine") {
+    CoroutineScope by ApplicationThreadPoolScope("Table") {
+    internal val edt = getCoroutineUiContext()
 
     //Don't allow editing any column until we're sure it's not in that list.
     val isKeyColumn: Boolean
@@ -103,6 +119,8 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
 
     override fun setValue(item: MutableMap<String, String>, value: String) {
         if (item[name] != value) {
+
+
             launch {
                 val keys = getRowKeys(item,endpoint.table)
                 val response = updateRemoteTable(keys, name, value)
@@ -129,6 +147,25 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
     override fun valueOf(item: MutableMap<String, String>?): String? {
         return item?.get(name)
     }
+
+    override fun getRenderer(item: MutableMap<String, String>?): TableCellRenderer? {
+        val renderer = super.getCustomizedRenderer(item,DefaultTableCellRenderer())
+        if(isKeyColumn){
+            (renderer as DefaultTableCellRenderer).let {
+                //TODO: Ask Garrett is something else will replace this indicator
+                it.disabledIcon = AstraIcons.IntelliJ.GoldKeyAlt
+                it.isEnabled=false
+            }
+        }
+        else{
+            (renderer as DefaultTableCellRenderer).let {
+                //TODO: Ask Garrett is something else will replace this indicator
+                it.disabledIcon = AllIcons.Actions.Refresh
+            }
+        }
+        return renderer
+    }
+
 }
 
 fun getRowKeys(item: MutableMap<String, String>,table: Table): String {
