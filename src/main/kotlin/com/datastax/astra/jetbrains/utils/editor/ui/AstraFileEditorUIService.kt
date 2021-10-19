@@ -199,8 +199,10 @@ class AstraFileEditorUIService(private val project: Project) :
         // and notify to configure the schema
         EditorNotifications.getInstance(project).updateAllNotifications()
 
-        // Build this in the background
-        rebuildAndNotify()
+        // Build this in the background if the token is set
+        if(AstraClient.accessToken != null && AstraClient.accessToken != ""){
+            rebuildAndNotify()
+        }
     }
 
     fun endpoints(): MutableList<SimpleDatabase> {

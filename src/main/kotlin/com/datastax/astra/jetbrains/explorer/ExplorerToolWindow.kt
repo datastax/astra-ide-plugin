@@ -1,8 +1,10 @@
 package com.datastax.astra.jetbrains.explorer
 
+import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.*
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.utils.buildTextPanel
+import com.datastax.astra.jetbrains.utils.editor.ui.AstraFileEditorUIService
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.TreeState
 import com.intellij.openapi.Disposable
@@ -41,6 +43,9 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
     private val profileManager = ProfileManager.getInstance(project)
 
     init {
+        //Give our client the active project variable
+        AstraClient.project = project
+
         val group = DefaultActionGroup(
             SettingsSelectorComboBoxAction(project),
         )
@@ -55,6 +60,9 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
 
         project.messageBus.connect(this).subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
         profileStateChanged(profileManager.profileState)
+
+        //Start fileEditor listener for JSON toolbar
+        AstraFileEditorUIService.getService(project)
     }
 
     companion object {

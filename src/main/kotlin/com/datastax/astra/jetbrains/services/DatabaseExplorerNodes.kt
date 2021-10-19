@@ -55,8 +55,7 @@ class DatabaseParentNode(project: Project) :
     ResourceActionNode,
     ResourceParentNode {
     init {
-        // Pass project object to astraclient so it can acquire tokens from profile manager
-        AstraClient.project = project
+
     }
 
     private var children = mutableMapOf<String, DatabaseNode>()
