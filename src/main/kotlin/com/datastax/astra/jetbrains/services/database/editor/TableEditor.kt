@@ -5,6 +5,8 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.explorer.TableEndpoint
 import com.datastax.astra.jetbrains.services.database.notifyUpdateRowError
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.AstraIcons
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.datastax.astra.stargate_rest_v2.models.InlineResponse2004
 import com.datastax.astra.stargate_rest_v2.models.Table
 import com.intellij.icons.AllIcons
@@ -21,6 +23,7 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.awt.Color
 import java.awt.Component
@@ -92,13 +95,13 @@ class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), Fi
 }
 
 class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<MutableMap<String, String>, String>(name),
-    CoroutineScope by ApplicationThreadPoolScope("Mine") {
+    CoroutineScope by ApplicationThreadPoolScope("Table") {
+    internal val edt = getCoroutineUiContext()
 
     //Don't allow editing any column until we're sure it's not in that list.
     val isKeyColumn: Boolean
 
     init {
-
         if (endpoint.table.primaryKey == null) {
             isKeyColumn = false
         } else {
@@ -116,6 +119,8 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
 
     override fun setValue(item: MutableMap<String, String>, value: String) {
         if (item[name] != value) {
+
+
             launch {
                 val keys = getRowKeys(item,endpoint.table)
                 val response = updateRemoteTable(keys, name, value)
@@ -128,7 +133,6 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
 
         }
     }
-
 
     suspend fun updateRemoteTable(rowKey: String, columnName: String, newValue: String): Response<InlineResponse2004> {
         return AstraClient.dataApiForDatabase(endpoint.database).updateRows(
@@ -149,8 +153,14 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
         if(isKeyColumn){
             (renderer as DefaultTableCellRenderer).let {
                 //TODO: Ask Garrett is something else will replace this indicator
-                // it.disabledIcon = AllIcons.Diff.Lock
+                it.disabledIcon = AstraIcons.IntelliJ.GoldKeyAlt
                 it.isEnabled=false
+            }
+        }
+        else{
+            (renderer as DefaultTableCellRenderer).let {
+                //TODO: Ask Garrett is something else will replace this indicator
+                it.disabledIcon = AllIcons.Actions.Refresh
             }
         }
         return renderer
