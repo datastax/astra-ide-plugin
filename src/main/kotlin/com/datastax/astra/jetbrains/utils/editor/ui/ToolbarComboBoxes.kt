@@ -34,11 +34,11 @@ class ToolbarComboBoxes(
     var databaseComboBox = DatabaseComboBox(mutableListOf(emptySimpleDb), selDatabaseId, keyspaceComboBox)
     val wrapComboBoxList: List<ComboBox<Any>> = List(3) { ComboBox(ListComboBoxModel<Any>(emptyList())) }
     // val iconList = listOf(AstraIcons.IntelliJ.Dbms, AstraIcons.IntelliJ.ColBlueKeyIndex, AllIcons.Nodes.WebFolder)
-
+    val messageBusConnection: MessageBusConnection = project.getMessageBus().connect(this)
     init {
         databaseComboBox.reload(databaseList.toMutableList())
 
-        val messageBusConnection: MessageBusConnection = project.getMessageBus().connect(this)
+
         // listen for configuration changes
         messageBusConnection.subscribe(ProfileChangeEventListener.TOPIC, this)
     }
@@ -87,6 +87,7 @@ class ToolbarComboBoxes(
     }
 
     override fun dispose() {
+        messageBusConnection.dispose()
     }
 
     override fun reloadFileEditorUIResources(databaseList: List<SimpleDatabase>) {
