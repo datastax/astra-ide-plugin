@@ -13,6 +13,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.alsoIfNull
 import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -35,21 +36,26 @@ class InsertDocumentsAction(
 
         // Put this in a try catch because I had it throw a null point exception
         try {
-            val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).allTopLevelValues
-            val psiError =
-                PsiTreeUtil.findChildOfType(jsonObject.first().containingFile?.originalElement, PsiErrorElement::class.java)
-            if (psiError != null ||
-                jsonObject.first()::class == com.intellij.json.psi.impl.JsonStringLiteralImpl::class
+            var jsonSize = 0
+            val jsonObject = (e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).allTopLevelValues.also {
+                jsonSize = it.size
+            }.first()
+            val originalElement = jsonObject.containingFile?.originalElement
+            val psiError = if(originalElement != null){
+                PsiTreeUtil.hasErrorElements(originalElement)
+            } else {false}
+            if (psiError ||
+                jsonObject::class == com.intellij.json.psi.impl.JsonStringLiteralImpl::class
             ) {
                 e.presentation.text = "Insert Disabled: Invalid JSON Format"
                 e.presentation.isEnabled = false
-            } else if (jsonObject.first()::class != com.intellij.json.psi.impl.JsonArrayImpl::class) {
+            } else if (jsonObject::class != com.intellij.json.psi.impl.JsonArrayImpl::class) {
                 e.presentation.text = "Insert Disabled: Not Array of JSON Docs"
                 e.presentation.isEnabled = false
-            } else if (jsonObject.size > 1) {
+            } else if (jsonSize > 1) {
                 e.presentation.text = "Insert Disabled: Improper Array"
                 e.presentation.isEnabled = false
-            } else if (jsonObject.first().containingFile.modificationStamp == state) {
+            } else if (jsonObject.containingFile.modificationStamp == state) {
                 e.presentation.text = "Insert Disabled: File Unmodified"
                 e.presentation.isEnabled = false
             } else if (cBoxes.noEndpoint()) {
