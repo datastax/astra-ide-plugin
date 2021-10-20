@@ -7,6 +7,7 @@ import com.datastax.astra.jetbrains.utils.KWatchEvent
 import com.datastax.astra.jetbrains.utils.asWatchChannel
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.ConfigSpec
+import com.uchuhimo.konf.Feature
 import com.uchuhimo.konf.source.toml
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.consumeEach
@@ -38,7 +39,7 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
                     try {
                         // Go through each map entry and remap it to map of valid profiles if it can make simple rest call
                         validateProfile(it.value)
-                        validProfiles[it.key] = ProfileToken(it.key, it.value)
+                        validProfiles[it.key] = ProfileToken(it.key.trim('"'), it.value)
                     } catch (e: Exception) {
                         invalidProfiles[it.key] = e
                     }
@@ -77,6 +78,7 @@ object ProfileReader : CoroutineScope by ApplicationThreadPoolScope("Credentials
 
     private fun importProfileFile(): Config =
         Config { addSpec(AstraProfileFile) }
+            .disable(Feature.LOAD_KEYS_AS_LITTLE_CAMEL_CASE)
             .from.toml.file(profileFile)
 
     private fun validateProfile(token: String) {

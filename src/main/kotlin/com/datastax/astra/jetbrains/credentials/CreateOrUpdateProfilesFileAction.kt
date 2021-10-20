@@ -153,12 +153,13 @@ object DefaultConfigFileWriter : ConfigFileWriter {
         # new token. Then, update this file with the replacement token.
         
         # NOTE: This file must be saved for modifications to be read! (Ctrl+S)
+        # NOTE: Profile names must be unique and contain no spaces!
         
         [astraProfileFile.profiles]
         # default profile is loaded on plugin startup
         default = "bearertoken"
         # profile_name = "applicationToken"
-        # profile2_name = "applicationToken2"
+        # "profile with spaces" = "applicationToken2"
         """.trimIndent()
 
     override fun createFile(file: File) {
