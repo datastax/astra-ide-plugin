@@ -33,7 +33,6 @@ interface ExplorerTreeChangeEventListener : EventListener {
     }
 
     // TODO: Subscribe all JsonEditorComboBoxes objects to this event topic. Rebuild the databaseMap then pass it to listeners if tree invalidated
-    fun reloadFileEditorUIEndpoints(databaseList: List<SimpleDatabase>)
+    fun rebuildEndpointList()
 
-    fun reloadFileEditorUIEndpoints()
 }

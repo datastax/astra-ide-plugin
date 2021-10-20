@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.*
@@ -39,7 +40,7 @@ import javax.swing.*
  * Provides the editor header for JSON files
  */
 class AstraFileEditorUIService(private val project: Project) :
-    Disposable, FileEditorManagerListener, ProfileStateChangeNotifier, CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+    Disposable, FileEditorManagerListener, ProfileStateChangeNotifier,ExplorerTreeChangeEventListener, CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
     private var databaseList = mutableListOf<SimpleDatabase>()
     private val myLock = Any()
     private var fileEditor: FileEditor? = null
@@ -154,10 +155,13 @@ class AstraFileEditorUIService(private val project: Project) :
     }
 
     fun rebuildAndNotify() {
-        launch {
-            val defer = async { buildDatabaseMap() }
-            defer.await()
-            project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC).reloadFileEditorUIResources(databaseList)
+        if(AstraClient.accessToken != null && AstraClient.accessToken != "") {
+            launch {
+                val defer = async { buildDatabaseMap() }
+                defer.await()
+                project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC)
+                    .reloadFileEditorUIResources(databaseList)
+            }
         }
     }
 
@@ -171,7 +175,9 @@ class AstraFileEditorUIService(private val project: Project) :
         }
     }
     // -- instance management --
-    override fun dispose() {}
+    override fun dispose() {
+
+    }
 
     companion object {
 
@@ -181,8 +187,11 @@ class AstraFileEditorUIService(private val project: Project) :
     }
 
     init {
+
         // Get the message bus service
         val messageBusConnection = project.messageBus.connect(this)
+        // Subscribe to tree change notifications
+        messageBusConnection.subscribe(ExplorerTreeChangeEventListener.TOPIC, this)
         // Subscribe to profile change notifications
         messageBusConnection.subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
         // listen for editor file tab changes to update the list of current errors
@@ -202,13 +211,15 @@ class AstraFileEditorUIService(private val project: Project) :
         EditorNotifications.getInstance(project).updateAllNotifications()
 
         // Build this in the background if the token is set
-        if(AstraClient.accessToken != null && AstraClient.accessToken != ""){
-            rebuildAndNotify()
-        }
+        rebuildAndNotify()
     }
 
     fun endpoints(): MutableList<SimpleDatabase> {
         return databaseList
+    }
+
+    override fun rebuildEndpointList() {
+        rebuildAndNotify()
     }
 }
 
