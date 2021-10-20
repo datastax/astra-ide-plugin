@@ -106,9 +106,7 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
             isKeyColumn = false
         } else {
             endpoint.table.primaryKey.let {
-                isKeyColumn = if (it.partitionKey.contains(name)) {
-                    true
-                } else it.clusteringKey != null && it.clusteringKey.contains(name)
+                isKeyColumn = it.partitionKey.contains(name)
             }
         }
     }
@@ -169,6 +167,13 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
 }
 
 fun getRowKeys(item: MutableMap<String, String>,table: Table): String {
-    val primaryKey = table.primaryKey!!.partitionKey.first()
-    return item[primaryKey].orEmpty()
+    var compositeKey = ""
+    if(table.primaryKey != null){
+        //for(key in table.primaryKey.partitionKey){
+        //    compositeKey += (item[key] + "/")
+        //}
+        compositeKey = item[table.primaryKey.partitionKey.first()].toString()
+    }
+    return compositeKey //.trimEnd('/')
+
 }
