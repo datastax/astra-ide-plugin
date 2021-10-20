@@ -106,7 +106,9 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
             isKeyColumn = false
         } else {
             endpoint.table.primaryKey.let {
-                isKeyColumn = it.partitionKey.contains(name)
+                isKeyColumn = if (it.partitionKey.contains(name)) {
+                    true
+                } else it.clusteringKey != null && it.clusteringKey.contains(name)
             }
         }
     }
