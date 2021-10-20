@@ -43,9 +43,7 @@ interface DocumentsApi {
      * @param xCassandraRequestId Unique identifier (UUID) for the request. Use any valid UUID.
      * @param xCassandraToken The application token for serverless databases or the token returned from the authorization endpoint for classic databases. Use this token in each request.
      * @param namespaceId namespace name
-     * @param collectionId name of the document collection
-     * @param body document
-     * @param pretty format results (optional)
+     * @param body name of the document collection
      * @return [Unit]
      */
     @POST("api/rest/v2/namespaces/{namespace-id}/collections")

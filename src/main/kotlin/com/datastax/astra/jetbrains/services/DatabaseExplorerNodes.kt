@@ -244,7 +244,7 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     // If upgrade is available then it's not really a document.
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database, keyspace), loader = fetchCollections)?.filter { it.upgradeAvailable == false }?.map {
+        cached(Pair(database, keyspace), loader = fetchCollections)?.map {
             collectionList += it.name
             CollectionNode(nodeProject, it, keyspace, database)
         } ?: emptyList()
