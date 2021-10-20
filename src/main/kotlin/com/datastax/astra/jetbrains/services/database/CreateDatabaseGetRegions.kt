@@ -18,7 +18,7 @@ class CreateDatabaseGetRegions(project: Project) {
         lateinit var regionsList: List<AvailableRegionCombination>
 
         fun getRegions(): List<AvailableRegionCombination> {
-            val activeProfile = ProfileManager.getInstance(AstraClient.project).activeProfile?.name.toString()
+            val activeProfile = ProfileManager.getInstance(currentProject).activeProfile?.name.toString()
             if (recentProfile == activeProfile) {
                 return regionsList
             }
@@ -28,13 +28,13 @@ class CreateDatabaseGetRegions(project: Project) {
         }
 
         fun updateRegions() {
-            runBlocking { regionsList = AstraClient.dbOperationsApi().listAvailableRegions().body().orEmpty() }
+            runBlocking { regionsList = AstraClient.getInstance(currentProject).dbOperationsApi().listAvailableRegions().body().orEmpty() }
         }
     }
 
     init {
         currentProject = project
-        recentProfile = ProfileManager.getInstance(AstraClient.project).activeProfile?.name.toString()
+        recentProfile = ProfileManager.getInstance(project).activeProfile?.name.toString()
         updateRegions()
     }
 }

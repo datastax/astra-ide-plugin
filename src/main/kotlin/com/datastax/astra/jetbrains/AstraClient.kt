@@ -6,12 +6,16 @@ import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.stargate_document_v2.apis.DocumentsApi
 import com.datastax.astra.stargate_rest_v2.apis.DataApi
 import com.datastax.astra.stargate_rest_v2.apis.SchemasApi
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.util.messages.Topic
 import java.net.URI
 import com.datastax.astra.stargate_document_v2.apis.SchemasApi as SchemasApiDoc
 
-object AstraClient {
-    lateinit var project: Project
+class AstraClient(private val project: Project)  {
+
     var accessToken: String = ""
         get() = ProfileManager.getInstance(project).activeProfile?.token.toString()
 
@@ -44,4 +48,9 @@ object AstraClient {
             baseUrl = basePath
         ).createService(SchemasApiDoc::class.java)
     }
+
+    companion object {
+        @JvmStatic
+        fun getInstance(project: Project): AstraClient = project.service()
+  }
 }

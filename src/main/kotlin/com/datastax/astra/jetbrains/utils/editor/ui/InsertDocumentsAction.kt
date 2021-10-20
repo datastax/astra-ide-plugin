@@ -11,6 +11,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.alsoIfNull
@@ -73,26 +74,28 @@ class InsertDocumentsAction(
 
     override fun actionPerformed(e: AnActionEvent) {
         try {
-            val docList =
-                ((e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue as JsonArray).valueList.map { it.text }
-                    .toList()
-            launch {
+            e.project?.let {
+                val docList =
+                                ((e.getData(CommonDataKeys.PSI_FILE) as JsonFileImpl).topLevelValue as JsonArray).valueList.map { it.text }
+                                    .toList()
+                            launch {
 
-                val responses = insertAndWait(docList, cBoxes.getSelected())
-                val success = responses.filter { it.isSuccessful }
-                val failed = responses.filter { !it.isSuccessful }
-                // Do the rest in the UI context because we show some notifications and possibly generate dialog boxes from them
-                withContext(edtContext) {
-                    if (failed.isNotEmpty()) {
-                        failedDocInsertNotification(failed.size)
-                        // TODO: Add telemetry for this action
-                        // TODO: Add more information about failed inserts
-                    }
-                    if (success.isNotEmpty()) {
-                        successfulDocInsertNotification(success.size, cBoxes.collectionComboBox.selectedItem)
-                        // TODO: Add telemetry for this action
-                    }
-                }
+                                val responses = insertAndWait(it, docList, cBoxes.getSelected())
+                                val success = responses.filter { it.isSuccessful }
+                                val failed = responses.filter { !it.isSuccessful }
+                                // Do the rest in the UI context because we show some notifications and possibly generate dialog boxes from them
+                                withContext(edtContext) {
+                                    if (failed.isNotEmpty()) {
+                                        failedDocInsertNotification(failed.size)
+                                        // TODO: Add telemetry for this action
+                                        // TODO: Add more information about failed inserts
+                                    }
+                                    if (success.isNotEmpty()) {
+                                        successfulDocInsertNotification(success.size, cBoxes.collectionComboBox.selectedItem)
+                                        // TODO: Add telemetry for this action
+                                    }
+                                }
+                            }
             }
         } catch (e: Exception) {
             // TODO: Cancel doing stuff here and tell user
@@ -100,13 +103,13 @@ class InsertDocumentsAction(
         }
     }
 
-    suspend fun insertAndWait(docList: List<String>, selected: CBoxSelections): List<Response<Unit>> {
+    suspend fun insertAndWait(project: Project, docList: List<String>, selected: CBoxSelections): List<Response<Unit>> {
         var responses = runBlocking {
             docList.map { doc ->
                 async {
-                    AstraClient.documentApiForDatabase(selected.database).addDoc(
+                    AstraClient.getInstance(project).documentApiForDatabase(selected.database).addDoc(
                         UUID.randomUUID(),
-                        AstraClient.accessToken,
+                        AstraClient.getInstance(project).accessToken,
                         selected.keyspace,
                         selected.collection,
                         doc.trim().toRequestBody("text/plain".toMediaTypeOrNull()),

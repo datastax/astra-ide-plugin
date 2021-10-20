@@ -30,7 +30,7 @@ import javax.swing.JComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeModel
 
-class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), ProfileStateChangeNotifier, Disposable {
+class ExplorerToolWindow(val project: Project) : SimpleToolWindowPanel(true, true), ProfileStateChangeNotifier, Disposable {
     private val actionManager = ActionManagerEx.getInstanceEx()
     private val treePanelWrapper = NonOpaquePanel()
 
@@ -43,8 +43,6 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
     private val profileManager = ProfileManager.getInstance(project)
 
     init {
-        //Give our client the active project variable
-        AstraClient.project = project
 
         val group = DefaultActionGroup(
             SettingsSelectorComboBoxAction(project),
@@ -85,7 +83,7 @@ class ExplorerToolWindow(project: Project) : SimpleToolWindowPanel(true, true), 
             treePanelWrapper.setContent(
                 when (newProfile) {
                     is ProfileState.ValidConnection -> {
-                        clearCacheMap()
+                        clearCacheMap(this.project)
                         invalidateTree()
                         treePanel
                     }

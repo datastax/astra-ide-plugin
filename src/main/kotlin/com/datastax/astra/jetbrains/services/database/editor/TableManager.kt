@@ -12,7 +12,7 @@ class TableManager {
                 val fileNotOpen = manager.openFiles.filterIsInstance<TableVirtualFile>().none { it == virtualFile }
                 manager.openFile(virtualFile, true).first().let { editor ->
                     if (fileNotOpen) {
-                        TableHandler(editor as TableEditor, node)
+                        TableHandler(node.nodeProject, editor as TableEditor, node)
                     }
                 }
             }

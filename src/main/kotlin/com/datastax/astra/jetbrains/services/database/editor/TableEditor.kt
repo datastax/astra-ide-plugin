@@ -13,6 +13,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
@@ -40,7 +41,7 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellEditor
 import javax.swing.table.TableCellRenderer
 
-class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
+class TableEditor(private val project: Project, tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), FileEditor {
 
     val tableView: TableView<Map<String, String>>
     private val tableModel: ListTableModel<Map<String, String>>
@@ -49,7 +50,7 @@ class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), Fi
     init {
         tableModel = ListTableModel<Map<String, String>>(
             tableVirtualFile.endpoint.table.columnDefinitions?.map {
-                AstraColumnInfo(it.name, tableVirtualFile.endpoint)
+                AstraColumnInfo(project, it.name, tableVirtualFile.endpoint)
             }.orEmpty().toTypedArray(),
             listOf<MutableMap<String, String>>(),
             -1,
@@ -94,7 +95,7 @@ class TableEditor(tableVirtualFile: TableVirtualFile) : UserDataHolderBase(), Fi
     }
 }
 
-class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<MutableMap<String, String>, String>(name),
+class AstraColumnInfo(private val project: Project, name: String, val endpoint: TableEndpoint) : ColumnInfo<MutableMap<String, String>, String>(name),
     CoroutineScope by ApplicationThreadPoolScope("Table") {
     internal val edt = getCoroutineUiContext()
 
@@ -135,8 +136,8 @@ class AstraColumnInfo(name: String, val endpoint: TableEndpoint) : ColumnInfo<Mu
     }
 
     suspend fun updateRemoteTable(rowKey: String, columnName: String, newValue: String): Response<InlineResponse2004> {
-        return AstraClient.dataApiForDatabase(endpoint.database).updateRows(
-            AstraClient.accessToken,
+        return AstraClient.getInstance(project).dataApiForDatabase(endpoint.database).updateRows(
+            AstraClient.getInstance(project).accessToken,
             endpoint.table.keyspace.orEmpty(),
             endpoint.table.name.orEmpty(),
             rowKey,

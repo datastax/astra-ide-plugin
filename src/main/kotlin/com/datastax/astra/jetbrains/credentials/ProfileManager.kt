@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.util.messages.Topic
@@ -51,13 +52,13 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
             } else {
                 selectedProfile = profileMap.entries.first().value
             }
-            AstraClient.accessToken = selectedProfile!!.token
+            AstraClient.getInstance(project).accessToken = selectedProfile!!.token
             // validateProfileAndSetState(selectedProfile)
             changeProfile(selectedProfile!!)
         } else {
             // Null if no valid profiles on reload. A reload without doing so will result in residual profile being used
             selectedProfile = null
-            AstraClient.accessToken = ""
+            AstraClient.getInstance(project).accessToken = ""
             profileState = ProfileState.IncompleteConfiguration(selectedProfile)
         }
     }
@@ -137,7 +138,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         )
 
         @JvmStatic
-        fun getInstance(project: Project): ProfileManager = ServiceManager.getService(project, ProfileManager::class.java)
+        fun getInstance(project: Project): ProfileManager = project.service()
 
         private val LOGGER = getLogger<ProfileManager>()
         private const val MAX_HISTORY = 5

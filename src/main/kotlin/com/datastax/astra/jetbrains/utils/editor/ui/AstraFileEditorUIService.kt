@@ -135,15 +135,15 @@ class AstraFileEditorUIService(private val project: Project) :
     // TODO: do this with the cache maps instead, then there's less requests to the server
     suspend fun buildDatabaseMap() = coroutineScope {
         databaseList.clear()
-        val response = AstraClient.dbOperationsApi().listDatabases()
+        val response = AstraClient.getInstance(project).dbOperationsApi().listDatabases()
         if (response.isSuccessful && !response.body()?.filter{it.status==StatusEnum.ACTIVE}.isNullOrEmpty()) {
             response.body()?.filter { it.status==StatusEnum.ACTIVE }?.forEach { database ->
                 launch {
-                    val keyspaceResponse = AstraClient.schemasApiForDatabase(database).getKeyspaces(AstraClient.accessToken)
+                    val keyspaceResponse = AstraClient.getInstance(project).schemasApiForDatabase(database).getKeyspaces(AstraClient.getInstance(project).accessToken)
                     if (keyspaceResponse.isSuccessful && !keyspaceResponse.body()?.data.isNullOrEmpty()) {
                         keyspaceResponse.body()?.data?.forEach { keyspace ->
-                            val collectionResponse = AstraClient.documentApiForDatabase(database)
-                                .listCollections(randomUUID(), AstraClient.accessToken, keyspace.name)
+                            val collectionResponse = AstraClient.getInstance(project).documentApiForDatabase(database)
+                                .listCollections(randomUUID(), AstraClient.getInstance(project).accessToken, keyspace.name)
                             if (collectionResponse.isSuccessful && collectionResponse.body()?.data != null) {
                                 indexCollections(collectionResponse.body()?.data, keyspace, database)
                             }
@@ -155,7 +155,7 @@ class AstraFileEditorUIService(private val project: Project) :
     }
 
     fun rebuildAndNotify() {
-        if(AstraClient.accessToken != null && AstraClient.accessToken != "") {
+        if(AstraClient.getInstance(project).accessToken != null && AstraClient.getInstance(project).accessToken != "") {
             launch {
                 val defer = async { buildDatabaseMap() }
                 defer.await()

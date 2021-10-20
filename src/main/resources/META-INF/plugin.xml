@@ -10,6 +10,8 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceInterface="com.datastax.astra.jetbrains.AstraClient"
+                        serviceImplementation="com.datastax.astra.jetbrains.AstraClient"/>
         <projectService serviceInterface="com.datastax.astra.jetbrains.credentials.ProfileManager"
                         serviceImplementation="com.datastax.astra.jetbrains.credentials.ProfileManager"/>
         <projectService serviceImplementation="com.datastax.astra.jetbrains.explorer.ExplorerToolWindow"/>

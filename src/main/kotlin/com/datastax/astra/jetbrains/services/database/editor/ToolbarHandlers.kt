@@ -15,6 +15,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.ui.components.breadcrumbs.Breadcrumbs
@@ -137,7 +138,7 @@ abstract class ToolbarHandlerBase(private val fileEditor: FileEditor, node: Expl
 
 }
 
-class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : ToolbarHandlerBase(fileEditor, node) {
+class CollectionHandler(val project: Project, val fileEditor: FileEditor, val node: CollectionNode) : ToolbarHandlerBase(fileEditor, node) {
 
     val gson = Serializer.gsonBuilder
         .setPrettyPrinting()
@@ -148,9 +149,9 @@ class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : 
         get() = listOf<Int>(1, 2, 5, 20)
 
     override suspend fun fetch(pageSize: Int, pageState: String?, where: String): String? {
-        val response = AstraClient.documentApiForDatabase(node.database).searchDoc(
+        val response = AstraClient.getInstance(project).documentApiForDatabase(node.database).searchDoc(
             UUID.randomUUID(),
-            AstraClient.accessToken,
+            AstraClient.getInstance(project).accessToken,
             node.keyspace.name,
             node.value.orEmpty(),
             pageSize = pageSize,
@@ -179,15 +180,15 @@ class CollectionHandler(val fileEditor: FileEditor, val node: CollectionNode) : 
     }
 }
 
-class TableHandler(private val tableEditor: TableEditor, val node: TableNode) : ToolbarHandlerBase(tableEditor, node) {
+class TableHandler(val project: Project, private val tableEditor: TableEditor, val node: TableNode) : ToolbarHandlerBase(tableEditor, node) {
 
     override val pageSizes: List<Int>
         get() = listOf<Int>(20, 50, 100)
 
     override suspend fun fetch(pageSize: Int, pageState: String?, where: String): String? {
 
-        val response = AstraClient.dataApiForDatabase(node.endpoint.database).searchTable(
-            AstraClient.accessToken,
+        val response = AstraClient.getInstance(project).dataApiForDatabase(node.endpoint.database).searchTable(
+            AstraClient.getInstance(project).accessToken,
             node.endpoint.keyspace.name,
             node.endpoint.table.name.orEmpty(),
             pageState = pageState,

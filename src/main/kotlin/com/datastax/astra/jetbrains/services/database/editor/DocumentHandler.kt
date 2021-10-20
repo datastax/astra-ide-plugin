@@ -96,9 +96,9 @@ class DocumentHandler(
             updateButton.isEnabled = false
             refreshButton.isEnabled = false
             withContext(bg) {
-                val response = AstraClient.documentApiForDatabase(virtualFile.database).updatePartOfDoc(
+                val response = AstraClient.getInstance(project).documentApiForDatabase(virtualFile.database).updatePartOfDoc(
                     UUID.randomUUID(),
-                    AstraClient.accessToken,
+                    AstraClient.getInstance(project).accessToken,
                     virtualFile.keyspaceName,
                     virtualFile.collectionName,
                     virtualFile.documentId,
@@ -124,9 +124,9 @@ class DocumentHandler(
             (fileEditor.component as JBLoadingPanel).startLoading()
             refreshButton.isEnabled = false
             withContext(bg) {
-                val response = AstraClient.documentApiForDatabase(virtualFile.database).getDocById(
+                val response = AstraClient.getInstance(project).documentApiForDatabase(virtualFile.database).getDocById(
                     UUID.randomUUID(),
-                    AstraClient.accessToken,
+                    AstraClient.getInstance(project).accessToken,
                     virtualFile.keyspaceName,
                     virtualFile.collectionName,
                     virtualFile.documentId

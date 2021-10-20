@@ -14,7 +14,7 @@ class TableEditorProvider : FileEditorProvider, PossiblyDumbAware {
     override fun accept(project: Project, file: VirtualFile) = file is TableVirtualFile
 
     override fun createEditor(project: Project, file: VirtualFile): FileEditor =
-        TableEditor(file as TableVirtualFile)
+        TableEditor(project, file as TableVirtualFile)
 
     override fun getEditorTypeId() = EDITOR_TYPE_ID
 

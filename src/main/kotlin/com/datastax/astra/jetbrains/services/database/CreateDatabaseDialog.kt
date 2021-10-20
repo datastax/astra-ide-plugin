@@ -124,13 +124,13 @@ class CreateDatabaseDialog(
         launch {
             // TODO: Wouldn't it be nice if this structure had a mapper directly to the View values?
             val databaseInfoCreate = DatabaseInfoCreate(name, keyspace, cloudProvider, tier, 1, regionForProvider[cloudProvider.value]?.region.orEmpty())
-            val response = AstraClient.dbOperationsApi().createDatabase(databaseInfoCreate)
+            val response = AstraClient.getInstance(project).dbOperationsApi().createDatabase(databaseInfoCreate)
             if (response.isSuccessful) {
                 val databaseParent =
                     TreeUtil.findNode(ExplorerToolWindow.getInstance(project).tree.model.root as @NotNull DefaultMutableTreeNode) {
                         it.userObject is DatabaseParentNode
                     }?.userObject as DatabaseParentNode
-                databaseParent.clearCache()
+                databaseParent.clearCache(project)
                 project.refreshTree(databaseParent, true)
 
                 // This is disabled for now to reduce potential data leakage

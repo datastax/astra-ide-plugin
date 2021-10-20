@@ -4,11 +4,16 @@ import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.CredentialsClient
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.project.ProjectManager
 import com.segment.analytics.Analytics
 import com.segment.analytics.messages.IdentifyMessage
 import com.segment.analytics.messages.TrackMessage
 import kotlinx.coroutines.runBlocking
 import java.util.UUID.randomUUID
+import com.intellij.openapi.wm.WindowManager
+
+
+
 
 // TODO: Rewrite this as a service and not a static class
 // Possibly expand this into more than one class at that time
@@ -27,7 +32,11 @@ object TelemetryManager {
     // Make sure the "user" hasn't changed
     // TODO: Make this an active process that occurs as part of the credential change process
     fun checkCreds() {
-        val activeToken = ProfileManager.getInstance(AstraClient.project).activeProfile?.token.toString()
+        val project = ProjectManager.getInstance().openProjects.first() {
+            val window = WindowManager.getInstance().suggestParentWindow(it)
+            window !=null && window.isActive
+        }
+        val activeToken = ProfileManager.getInstance(project).activeProfile?.token.toString()
         // If there were no tokens to use don't change the profile since we can't without an ID
         // This should be cleaner once moved into a service
         if (activeToken != knownToken && activeToken != "null") {
@@ -81,7 +90,7 @@ object TelemetryManager {
         )
     }
 
-    fun trackDevOpsCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean,) {
+    fun trackDevOpsCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean) {
         checkCreds()
         telClient.enqueue(
             TrackMessage.builder("DevOps CRUD")
@@ -98,7 +107,13 @@ object TelemetryManager {
     }
 
     // Same as above but with an extra data load for kludging extra features
-    fun trackDevOpsCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean, extraData: Map<String, String>,) {
+    fun trackDevOpsCrud(
+        resourceType: String,
+        resourceName: String,
+        operation: CrudEnum,
+        completed: Boolean,
+        extraData: Map<String, String>
+    ) {
         checkCreds()
         telClient.enqueue(
             TrackMessage.builder("DevOps CRUD")
@@ -114,7 +129,7 @@ object TelemetryManager {
         )
     }
 
-    fun trackStargateCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean,) {
+    fun trackStargateCrud(resourceType: String, resourceName: String, operation: CrudEnum, completed: Boolean) {
         checkCreds()
         telClient.enqueue(
             TrackMessage.builder("Stargate CRUD")

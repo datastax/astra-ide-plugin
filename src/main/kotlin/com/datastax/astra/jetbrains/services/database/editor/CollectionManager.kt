@@ -14,7 +14,7 @@ class CollectionManager {
                 val fileNotOpen = manager.openFiles.filterIsInstance<CollectionVirtualFile>().none { it == virtualFile }
                 manager.openFile(virtualFile, true).first().let { editor ->
                     if (fileNotOpen) {
-                        CollectionHandler(editor, node)
+                        CollectionHandler(node.nodeProject, editor, node)
                     }
                 }
             }

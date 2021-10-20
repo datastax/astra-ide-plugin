@@ -20,17 +20,19 @@ class DeleteDatabaseAction :
     CoroutineScope by ApplicationThreadPoolScope("Database") {
 
     override fun actionPerformed(e: AnActionEvent) {
-        e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.run {
-            if (DeleteDatabaseDialog(this.nodeProject).showAndGet()) {
-                val databaseNode = this
-                launch {
-                    var response = AstraClient.dbOperationsApi().terminateDatabase(databaseNode.database.id)
-                    if (response.isSuccessful) {
-                        databaseNode.database = databaseNode.database.copy(status = StatusEnum.TERMINATING)
-                        trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.DELETE, true)
-                    } else {
-                        // TODO("implement unsuccessful delete handling")
-                        trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.CREATE, false, mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
+        e.project?.let {
+            e.getData(SELECTED_NODES)?.map { it as? DatabaseNode }?.singleOrNull()?.run {
+                if (DeleteDatabaseDialog(this.nodeProject).showAndGet()) {
+                    val databaseNode = this
+                    launch {
+                        var response = AstraClient.getInstance(it).dbOperationsApi().terminateDatabase(databaseNode.database.id)
+                        if (response.isSuccessful) {
+                            databaseNode.database = databaseNode.database.copy(status = StatusEnum.TERMINATING)
+                            trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.DELETE, true)
+                        } else {
+                            // TODO("implement unsuccessful delete handling")
+                            trackDevOpsCrud("Database", databaseNode.database.info.name!!, CrudEnum.CREATE, false, mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
+                        }
                     }
                 }
             }

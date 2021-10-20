@@ -31,8 +31,8 @@ class CreateCollectionAction:
                     val collectionName = dialog.name
                     val node = this
                     launch {
-                        val response = AstraClient.documentApiForDatabase(database).createCollection(
-                            AstraClient.accessToken,
+                        val response = AstraClient.getInstance(project).documentApiForDatabase(database).createCollection(
+                            AstraClient.getInstance(project).accessToken,
                             keyspace.name,
                             """{"name":"$collectionName"}""".toRequestBody()
                         )
@@ -42,7 +42,7 @@ class CreateCollectionAction:
                                 TreeUtil.findNode(ExplorerToolWindow.getInstance(project).tree.model.root as @NotNull DefaultMutableTreeNode) {
                                     it.userObject is DatabaseParentNode
                                 }?.userObject as DatabaseParentNode
-                            databaseParent.clearCache()
+                            databaseParent.clearCache(project)
                             project.refreshTree(databaseParent, true)
                             // This is disabled for now to reduce potential data leakage
                             // val databaseId = response.headers()["Location"]
