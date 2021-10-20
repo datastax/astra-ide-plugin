@@ -4,18 +4,17 @@
 
 ## [Unreleased]
 ### Added
-- Basic support for viewing document collections
+- Filtering and pagination on document collections
+- Filtering and pagination on tables
+- Ability to edit table cells
+- Ability to edit documents in collections
+- Insert documents into collection from JSON files
 
+## [0.7.1]
+### Added
+- Basic support for viewing document collections
 ### Changed
 - Minimum supported IntelliJ Platform is 2021.2
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 ## [0.6.0]
 ### Added
 - Register a new account without leaving the IDE
