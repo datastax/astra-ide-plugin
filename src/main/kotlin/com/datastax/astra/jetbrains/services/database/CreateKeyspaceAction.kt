@@ -10,6 +10,7 @@ import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.ui.ExplorerTreeChangeEventListener
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,7 @@ class CreateKeyspaceAction :
                     val resp = AstraClient.dbOperationsApi().addKeyspace(database.id, keyspace)
                     if (resp.isSuccessful) {
                         delay(10000)
+                        nodeProject.messageBus.syncPublisher(ExplorerTreeChangeEventListener.TOPIC).rebuildEndpointList()
                         dbNode.nodeProject.refreshTree(dbNode, true)
                         trackDevOpsCrud("Keyspace", keyspace, CrudEnum.CREATE, true)
                     } else {

@@ -6,6 +6,7 @@ import com.datastax.astra.jetbrains.explorer.*
 import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.ui.ExplorerTreeChangeEventListener
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
@@ -36,13 +37,13 @@ class CreateCollectionAction:
                             """{"name":"$collectionName"}""".toRequestBody()
                         )
                         if (response.isSuccessful) {
+                            nodeProject.messageBus.syncPublisher(ExplorerTreeChangeEventListener.TOPIC).rebuildEndpointList()
                             val databaseParent =
                                 TreeUtil.findNode(ExplorerToolWindow.getInstance(project).tree.model.root as @NotNull DefaultMutableTreeNode) {
                                     it.userObject is DatabaseParentNode
                                 }?.userObject as DatabaseParentNode
                             databaseParent.clearCache()
                             project.refreshTree(databaseParent, true)
-
                             // This is disabled for now to reduce potential data leakage
                             // val databaseId = response.headers()["Location"]
                             notifyCreateCollectionSuccess(collectionName,node)

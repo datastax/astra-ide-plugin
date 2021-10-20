@@ -20,3 +20,19 @@ interface ProfileChangeEventListener : EventListener {
 
     fun clearFileEditorUIResources()
 }
+/**
+ * Events relating to accessible astra resources changing
+ */
+interface ExplorerTreeChangeEventListener : EventListener {
+    companion object {
+        var TOPIC = Topic<ExplorerTreeChangeEventListener>(
+            "Tree Resources Change Events",
+            ExplorerTreeChangeEventListener::class.java,
+            Topic.BroadcastDirection.TO_PARENT
+        )
+    }
+
+    // TODO: Subscribe all JsonEditorComboBoxes objects to this event topic. Rebuild the databaseMap then pass it to listeners if tree invalidated
+    fun rebuildEndpointList()
+
+}
