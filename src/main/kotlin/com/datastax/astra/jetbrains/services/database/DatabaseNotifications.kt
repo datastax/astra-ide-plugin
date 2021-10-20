@@ -114,7 +114,7 @@ fun notifyCreateCollectionError(
 ) {
     notifyError(
         title = "Failed to create collection: $collectionName",
-        content = "Error creating collection: $collectionName in keyspace: ${node.keyspace.name} for database ${node.database}. Click below to see error info",
+        content = "Error creating collection: $collectionName in keyspace: ${node.keyspace.name} for database ${node.database.info.name}. Click below to see error info",
         notificationActions = listOf(
             createShowMoreInfoDialogAction(
                 "Error Info",

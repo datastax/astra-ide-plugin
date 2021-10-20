@@ -87,7 +87,7 @@ class ToolbarComboBoxes(
     }
 
     override fun dispose() {
-        messageBusConnection.dispose()
+        //messageBusConnection.dispose()
     }
 
     override fun reloadFileEditorUIResources(databaseList: List<SimpleDatabase>) {
