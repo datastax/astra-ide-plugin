@@ -1,13 +1,11 @@
 package com.datastax.astra.jetbrains.credentials
 
-import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.ProfileReader.validateAndGetProfiles
 import com.datastax.astra.jetbrains.utils.getLogger
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -52,13 +50,10 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
             } else {
                 selectedProfile = profileMap.entries.first().value
             }
-            AstraClient.getInstance(project).accessToken = selectedProfile!!.token
-            // validateProfileAndSetState(selectedProfile)
             changeProfile(selectedProfile!!)
         } else {
             // Null if no valid profiles on reload. A reload without doing so will result in residual profile being used
             selectedProfile = null
-            AstraClient.getInstance(project).accessToken = ""
             profileState = ProfileState.IncompleteConfiguration(selectedProfile)
         }
     }
@@ -111,9 +106,6 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         return promise
     }
 
-    /**
-     * Legacy method, should be considered deprecated and avoided since it loads defaults out of band
-     */
     val activeProfile: ProfileToken?
         get() = selectedProfile
 
@@ -182,9 +174,5 @@ sealed class ProfileState(val displayMessage: String, val isTerminal: Boolean) {
 }
 
 interface ProfileStateChangeNotifier {
-    fun profileStateChanged(newState: ProfileState)
-}
-
-interface ExplorerTreeStateChangeNotifier {
     fun profileStateChanged(newState: ProfileState)
 }

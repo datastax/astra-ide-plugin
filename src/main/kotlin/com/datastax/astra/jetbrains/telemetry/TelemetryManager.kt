@@ -3,7 +3,9 @@ package com.datastax.astra.jetbrains.telemetry
 import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.CredentialsClient
 import com.datastax.astra.jetbrains.credentials.ProfileManager
+import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
 import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.ProjectManager
 import com.segment.analytics.Analytics
 import com.segment.analytics.messages.IdentifyMessage
@@ -28,35 +30,38 @@ object TelemetryManager {
     var knownToken = ""
     var knownOrg = ""
     var anonMode = false
+    val edt = getCoroutineUiContext()
 
     // Make sure the "user" hasn't changed
     // TODO: Make this an active process that occurs as part of the credential change process
     fun checkCreds() {
-        val project = ProjectManager.getInstance().openProjects.first() {
-            val window = WindowManager.getInstance().suggestParentWindow(it)
-            window !=null && window.isActive
-        }
-        val activeToken = ProfileManager.getInstance(project).activeProfile?.token.toString()
-        // If there were no tokens to use don't change the profile since we can't without an ID
-        // This should be cleaner once moved into a service
-        if (activeToken != knownToken && activeToken != "null") {
-            knownToken = activeToken
-            runBlocking {
-                knownOrg = CredentialsClient.operationsApi(activeToken).getCurrentOrganization().body()!!.id
+        runBlocking(edt) {
+            val project = ProjectManager.getInstance().openProjects.first() {
+                val window = WindowManager.getInstance().suggestParentWindow(it)
+                window !=null && window.isActive
             }
-            // TODO: Re-enable this with userID change
-            /*if(activeOrg != knownOrg){
-                knownOrg = activeOrg
-                trackOrgChange()
-            }*/
-            anonMode = false
-            trackProfileChange()
-        }
-        // Only track a user if there's not currently a userID
-        else if (!anonMode && knownOrg == "") {
-            knownOrg = randomUUID().toString()
-            anonMode = true
-            trackProfileChange()
+            val activeToken = ProfileManager.getInstance(project).activeProfile?.token.toString()
+            // If there were no tokens to use don't change the profile since we can't without an ID
+            // This should be cleaner once moved into a service
+            if (activeToken != knownToken && activeToken != "null") {
+                knownToken = activeToken
+                runBlocking {
+                    knownOrg = CredentialsClient.operationsApi(activeToken).getCurrentOrganization().body()!!.id
+                }
+                // TODO: Re-enable this with userID change
+                /*if(activeOrg != knownOrg){
+                    knownOrg = activeOrg
+                    trackOrgChange()
+                }*/
+                anonMode = false
+                trackProfileChange()
+            }
+            // Only track a user if there's not currently a userID
+            else if (!anonMode && knownOrg == "") {
+                knownOrg = randomUUID().toString()
+                anonMode = true
+                trackProfileChange()
+            }
         }
     }
 

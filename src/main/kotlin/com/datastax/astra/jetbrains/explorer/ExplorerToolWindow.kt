@@ -58,9 +58,6 @@ class ExplorerToolWindow(val project: Project) : SimpleToolWindowPanel(true, tru
 
         project.messageBus.connect(this).subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
         profileStateChanged(profileManager.profileState)
-
-        //Start fileEditor listener for JSON toolbar
-        AstraFileEditorUIService.getService(project)
     }
 
     companion object {

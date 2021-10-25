@@ -2,51 +2,53 @@ package com.datastax.astra.jetbrains.utils.editor.ui
 
 import com.datastax.astra.devops_v2.models.Database
 import com.datastax.astra.devops_v2.models.StatusEnum
-import com.datastax.astra.jetbrains.AstraClient
 import com.datastax.astra.jetbrains.credentials.ProfileManager
 import com.datastax.astra.jetbrains.credentials.ProfileState
 import com.datastax.astra.jetbrains.credentials.ProfileStateChangeNotifier
+import com.datastax.astra.jetbrains.explorer.cached
+import com.datastax.astra.jetbrains.explorer.fetchCollections
+import com.datastax.astra.jetbrains.explorer.fetchDatabases
+import com.datastax.astra.jetbrains.explorer.fetchKeyspaces
 import com.datastax.astra.jetbrains.services.database.editor.CollectionVirtualFile
 import com.datastax.astra.jetbrains.services.database.editor.DocumentVirtualFile
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
-import com.datastax.astra.jetbrains.utils.getCoroutineUiContext
+import com.datastax.astra.jetbrains.utils.getCoroutineBgContext
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
-import com.intellij.ide.BrowserUtil
-
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.*
-
-import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
-import com.intellij.openapi.fileEditor.*
-import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.GridLayout
-import java.util.UUID.randomUUID
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * Provides the editor header for JSON files
  */
 class AstraFileEditorUIService(private val project: Project) :
-    Disposable, FileEditorManagerListener, ProfileStateChangeNotifier,ExplorerTreeChangeEventListener, CoroutineScope by ApplicationThreadPoolScope("FileEditorUIService") {
+    Disposable, FileEditorManagerListener, ProfileStateChangeNotifier, ExplorerTreeChangeEventListener {
     private var databaseList = mutableListOf<SimpleDatabase>()
-    private val myLock = Any()
-    private var fileEditor: FileEditor? = null
-    val edtContext = getCoroutineUiContext()
-    // private var queryResultLabel: JBLabel? = null
-    // private var querySuccessLabel: JBLabel? = null
+    private var rebuildingJob: Job? = null
+    private val coroutineScope = ApplicationThreadPoolScope("AstraFileEditorUIService")
+    private val bg = getCoroutineBgContext()
 
     // ---- editor tabs listener ----
     override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
@@ -76,7 +78,6 @@ class AstraFileEditorUIService(private val project: Project) :
                 }
             }
         }
-
     }
 
     private class AstraEditorHeaderComponent : EditorHeaderComponent()
@@ -126,63 +127,57 @@ class AstraFileEditorUIService(private val project: Project) :
         }
 
         // TODO: Handle concurrent access exception
-        databaseList.first { it.database == database }.keyspaces?.put(
+        databaseList.first { it.database == database }.keyspaces.put(
             keyspace.name,
             SimpleKeyspace(keyspace, cList.orEmpty())
         )
     }
 
     // TODO: do this with the cache maps instead, then there's less requests to the server
-    suspend fun buildDatabaseMap() = coroutineScope {
+    suspend fun buildDatabaseMap() {
         databaseList.clear()
-        val response = AstraClient.getInstance(project).dbOperationsApi().listDatabases()
-        if (response.isSuccessful && !response.body()?.filter{it.status==StatusEnum.ACTIVE}.isNullOrEmpty()) {
-            response.body()?.filter { it.status==StatusEnum.ACTIVE }?.forEach { database ->
-                launch {
-                    val keyspaceResponse = AstraClient.getInstance(project).schemasApiForDatabase(database).getKeyspaces(AstraClient.getInstance(project).accessToken)
-                    if (keyspaceResponse.isSuccessful && !keyspaceResponse.body()?.data.isNullOrEmpty()) {
-                        keyspaceResponse.body()?.data?.forEach { keyspace ->
-                            val collectionResponse = AstraClient.getInstance(project).documentApiForDatabase(database)
-                                .listCollections(randomUUID(), AstraClient.getInstance(project).accessToken, keyspace.name)
-                            if (collectionResponse.isSuccessful && collectionResponse.body()?.data != null) {
-                                indexCollections(collectionResponse.body()?.data, keyspace, database)
-                            }
-                        }
-                    }
-                }
+        val databases = cached(project, "", loader = fetchDatabases(project))
+        databases.filter {
+            it.status == StatusEnum.ACTIVE
+        }.forEach { database ->
+            val keyspaces = cached(project, database, loader = fetchKeyspaces(project))
+            keyspaces?.forEach { keyspace ->
+                val collections = cached(project, Pair(database, keyspace), loader = fetchCollections(project))
+                indexCollections(collections, keyspace, database)
             }
         }
     }
 
     fun rebuildAndNotify() {
-        if(AstraClient.getInstance(project).accessToken != null && AstraClient.getInstance(project).accessToken != "") {
-            launch {
-                val defer = async { buildDatabaseMap() }
-                defer.await()
-                project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC)
+        if (rebuildingJob?.isActive != true) {
+            rebuildingJob = coroutineScope.launch(bg) {
+                buildDatabaseMap()
+                project.messageBus.syncPublisher(ProfileChangeEventListener.TOPIC)
                     .reloadFileEditorUIResources(databaseList)
             }
         }
     }
 
+    //Implements ExplorerTreeChangeEventListener
+    override fun rebuildEndpointList() {
+        project.messageBus.syncPublisher(ProfileChangeEventListener.TOPIC)
+            .clearFileEditorUIResources()
+        rebuildAndNotify()
+    }
 
-
+    //Implements ProfileStateChangeNotifier
     override fun profileStateChanged(newState: ProfileState) {
         when {
-            !newState.isTerminal -> project.getMessageBus().syncPublisher(ProfileChangeEventListener.TOPIC)
+            !newState.isTerminal -> project.messageBus.syncPublisher(ProfileChangeEventListener.TOPIC)
                 .clearFileEditorUIResources()
             newState.displayMessage.contains("placehold") -> rebuildAndNotify()
         }
     }
+
     // -- instance management --
     override fun dispose() {
-
-    }
-
-    companion object {
-
-        fun getService(project: Project): AstraFileEditorUIService {
-            return ServiceManager.getService(project, AstraFileEditorUIService::class.java)
+        if (rebuildingJob?.isActive == true) {
+            rebuildingJob?.cancel()
         }
     }
 
@@ -194,31 +189,11 @@ class AstraFileEditorUIService(private val project: Project) :
         messageBusConnection.subscribe(ExplorerTreeChangeEventListener.TOPIC, this)
         // Subscribe to profile change notifications
         messageBusConnection.subscribe(ProfileManager.CONNECTION_SETTINGS_STATE_CHANGED, this)
-        // listen for editor file tab changes to update the list of current errors
-        messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this)
-        // add editor headers to already open files since we've only just added the listener for fileOpened()
-        val fileEditorManager = FileEditorManager.getInstance(project)
-        for (virtualFile in fileEditorManager.openFiles) {
-            UIUtil.invokeLaterIfNeeded {
-                insertEditorHeaderComponentIfApplicable(
-                    fileEditorManager,
-                    virtualFile
-                )
-            }
-        }
 
         // and notify to configure the schema
         EditorNotifications.getInstance(project).updateAllNotifications()
 
         // Build this in the background if the token is set
-        rebuildAndNotify()
-    }
-
-    fun endpoints(): MutableList<SimpleDatabase> {
-        return databaseList
-    }
-
-    override fun rebuildEndpointList() {
         rebuildAndNotify()
     }
 }
@@ -239,12 +214,6 @@ class SimpleKeyspace(
     var collections: List<DocCollection>,
 ) {
     override fun toString(): String {
-        return "${keyspace.name}"
-    }
-}
-
-class UserRegisterAction () : AnAction("Register"), DumbAware {
-    override fun actionPerformed(e: AnActionEvent) {
-        BrowserUtil.browse("https://www.google.com")
+        return keyspace.name
     }
 }

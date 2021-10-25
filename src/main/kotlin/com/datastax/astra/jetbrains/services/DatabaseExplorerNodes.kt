@@ -7,6 +7,7 @@ import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.services.database.editor.CollectionManager
 import com.datastax.astra.jetbrains.services.database.editor.TableManager
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.datastax.astra.jetbrains.utils.editor.ui.ExplorerTreeChangeEventListener
 import com.datastax.astra.stargate_document_v2.models.DocCollection
 import com.datastax.astra.stargate_rest_v2.models.Keyspace
 import com.datastax.astra.stargate_rest_v2.models.Table
@@ -14,6 +15,8 @@ import com.github.benmanes.caffeine.cache.AsyncLoadingCache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeNode
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.ui.SimpleTextAttributes
@@ -30,21 +33,21 @@ import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
-private fun fetchDatabases(project: Project): (suspend (key: String) -> List<Database>) {
+fun fetchDatabases(project: Project): (suspend (key: String) -> List<Database>) {
     return {
         val response = AstraClient.getInstance(project).dbOperationsApi().listDatabases()
         if (response.isSuccessful) response.body()!! else throw HttpException(response)
     }
 }
 
-private fun fetchKeyspaces(project: Project): (suspend (database: Database) -> List<Keyspace>?) {
+fun fetchKeyspaces(project: Project): (suspend (database: Database) -> List<Keyspace>?) {
     return {
         val response = AstraClient.getInstance(project).schemasApiForDatabase(it).getKeyspaces(AstraClient.getInstance(project).accessToken, null)
         if (response.isSuccessful) response.body()?.data else throw HttpException(response)
     }
 }
 
-private fun fetchTables(project: Project): (suspend (dataBKeySPair: Pair<Database, Keyspace>) -> List<Table>?) {
+fun fetchTables(project: Project): (suspend (dataBKeySPair: Pair<Database, Keyspace>) -> List<Table>?) {
     return {
         val response = AstraClient.getInstance(project).schemasApiForDatabase(it.first).getTables(AstraClient.getInstance(project).accessToken, it.second.name, null)
         if (response.isSuccessful) response.body()?.data else throw HttpException(response)
@@ -52,7 +55,7 @@ private fun fetchTables(project: Project): (suspend (dataBKeySPair: Pair<Databas
 }
 
 // TODO: Determine what UUID should be used (random is probably not a good choice)
-private fun fetchCollections(project: Project): (suspend (dataBKeySPair: Pair<Database, Keyspace>) -> List<DocCollection>?) {
+fun fetchCollections(project: Project): (suspend (dataBKeySPair: Pair<Database, Keyspace>) -> List<DocCollection>?) {
     return {
         val response = AstraClient.getInstance(project).documentApiForDatabase(it.first).listCollections(randomUUID(), AstraClient.getInstance(project).accessToken, it.second.name, null)
         if (response.isSuccessful) response.body()?.data else throw HttpException(response)
@@ -70,7 +73,7 @@ class DatabaseParentNode(project: Project) :
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
         try {
-            val dbList = cached("", loader = fetchDatabases(nodeProject))
+            val dbList = cached(nodeProject, "", loader = fetchDatabases(nodeProject))
             children = children.filterKeys { key ->
                 dbList.map { it.id }.contains(key)
             } as MutableMap<String, DatabaseNode>
@@ -96,9 +99,9 @@ class DatabaseParentNode(project: Project) :
     fun clearCache(project: Project) = run {
         // This is how to force removal
         // Need the lambda not 'inline' though because it's used as the key in the map
-        val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
+        val cacheMap = AstraCache.getInstance(project).cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
         cacheMap[fetchDatabases(project)::class].also {
-            it?.asMap()?.remove("")
+            it?.asMap()?.remove(project)
         }
     }
 }
@@ -138,6 +141,7 @@ class DatabaseNode(nodeProject: Project, database: Database) :
                 } else {
                     nodeProject.refreshTree(this@DatabaseNode, true)
                 }
+                nodeProject.messageBus.syncPublisher(ExplorerTreeChangeEventListener.TOPIC).rebuildEndpointList()
                 emit(it)
             } else {
                 // Force an update of the view
@@ -177,7 +181,7 @@ class DatabaseNode(nodeProject: Project, database: Database) :
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(database, loader = fetchKeyspaces(nodeProject))?.map {
+        cached(nodeProject, database, loader = fetchKeyspaces(nodeProject))?.map {
             KeyspaceNode(nodeProject, it, database)
         } ?: emptyList()
     }
@@ -219,7 +223,7 @@ class TableParentNode(project: Project, val keyspace: Keyspace, val database: Da
 
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database, keyspace), loader = fetchTables(nodeProject))?.filter { !collectionList.contains(it.name) }?.map {
+        cached(nodeProject, Pair(database, keyspace), loader = fetchTables(nodeProject))?.filter { !collectionList.contains(it.name) }?.map {
             TableNode(nodeProject, TableEndpoint(database,keyspace,it))
         } ?: emptyList()
     }
@@ -250,7 +254,7 @@ class CollectionParentNode(project: Project, val keyspace: Keyspace, val databas
     override fun getChildren(): List<ExplorerNode<*>> = super.getChildren()
     // If upgrade is available then it's not really a document.
     override fun getChildrenInternal(): List<ExplorerNode<*>> = runBlocking {
-        cached(Pair(database, keyspace), loader = fetchCollections(nodeProject))?.filter { it.upgradeAvailable == false }?.map {
+        cached(nodeProject, Pair(database, keyspace), loader = fetchCollections(nodeProject))?.filter { it.upgradeAvailable == false }?.map {
             collectionList += it.name
             CollectionNode(nodeProject, it, keyspace, database)
         } ?: emptyList()
@@ -269,31 +273,43 @@ class CollectionNode(project: Project, val collection: DocCollection, val keyspa
     }
 }
 
-private val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
-private val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()
+class AstraCache(private val project: Project): Disposable {
+
+    val cacheContext = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    val cacheMap: MutableMap<KClass<suspend (Any?) -> Any?>, AsyncLoadingCache<*, *>> = HashMap()
+    override fun dispose() {
+        cacheMap.clear()
+    }
+    companion object {
+        @JvmStatic
+        fun getInstance(project: Project): AstraCache = project.service()
+    }
+}
+
 
 fun clearCacheMap(project: Project) {
     ProjectManager.getInstance().openProjects
-    val cacheMap = cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
+    val cacheMap = AstraCache.getInstance(project).cacheMap as MutableMap<KClass<out suspend (String) -> Any?>, AsyncLoadingCache<*, *>>
     cacheMap[fetchDatabases(project)::class].also {
-        it?.asMap()?.remove("")
+        it?.asMap()?.remove(project)
     }
 }
 
 suspend fun <K, V> cached(
+    project: Project,
     key: K,
     cacheConfig: Caffeine<Any, Any>.() -> Caffeine<Any, Any> = {
         this.maximumSize(1000)
             .expireAfterAccess(5, TimeUnit.SECONDS)
     },
     loader: suspend (K) -> V
-): V = withContext(cacheContext.coroutineContext) {
-    val cacheMap = cacheMap as MutableMap<KClass<out suspend (K) -> V>, AsyncLoadingCache<K, V>>
+): V = withContext(AstraCache.getInstance(project).cacheContext.coroutineContext) {
+    val cacheMap = AstraCache.getInstance(project).cacheMap as MutableMap<KClass<out suspend (K) -> V>, AsyncLoadingCache<K, V>>
 
     (
         cacheMap[loader::class] ?: Caffeine.newBuilder()
             .cacheConfig()
-            .buildAsync { key: K, _ -> cacheContext.future { loader(key) } }
+            .buildAsync { key: K, _ -> AstraCache.getInstance(project).cacheContext.future { loader(key) } }
             .also { cacheMap[loader::class] = it }
         )
         .get(key)

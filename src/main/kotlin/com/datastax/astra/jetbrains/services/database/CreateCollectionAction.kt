@@ -48,7 +48,6 @@ class CreateCollectionAction:
                             // val databaseId = response.headers()["Location"]
                             notifyCreateCollectionSuccess(collectionName,node)
                             //TODO: Telemetry
-                            println("Yay")
                         } else {
                             notifyCreateCollectionError(collectionName,node,Pair(response.toString(),response.getErrorResponse<Any?>().toString()))
                             //TODO: Telemetry
