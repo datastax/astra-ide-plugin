@@ -3,6 +3,10 @@
 # astra.toolkit Changelog
 
 ## [Unreleased]
+### Changed
+- Renamed plugin and updated description
+
+## [1.2.0]
 ### Added
 - Filtering and pagination on document collections
 - Filtering and pagination on tables

@@ -14,7 +14,7 @@
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-With DataStax Astra for Jetbrains, interact directly with your serverless Cassandra databases right from your IDE. Register for Astra, create a token, and then you can access your databases, keyspaces and tables right from your IDE.
+Navigate, insert and edit data in your Astra DB without coding, directly in your favorite JetBrains IDE using this plugin from DataStax. This plugin also works with open source Apache Cassandra 4.0 once a [Stargate Data API gateway](https://stargate.io/) has been configured.
 <!-- Plugin description end -->
 
 ## Installation

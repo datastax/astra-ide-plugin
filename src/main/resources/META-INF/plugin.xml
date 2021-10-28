@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>astra.toolkit</id>
-    <name>DataStax Astra</name>
+    <name>DataStax Astra DB Explorer</name>
     <vendor url="https://www.datastax.com">DataStax</vendor>
 
     <resource-bundle>MessagesBundle</resource-bundle>
