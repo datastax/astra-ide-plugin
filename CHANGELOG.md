@@ -4,8 +4,13 @@
 
 ## [Unreleased]
 ### Changed
-- Renamed plugin and updated description
+- Plugin is now project aware; each project can have a separate active Astra profile.
+### Fixed
+- Fixed a race condition in plugin ini
 
+## [1.2.1]
+### Changed
+- Renamed plugin and updated description
 ## [1.2.0]
 ### Added
 - Filtering and pagination on document collections
@@ -13,7 +18,6 @@
 - Ability to edit table cells
 - Ability to edit documents in collections
 - Insert documents into collection from JSON files
-
 ## [0.7.1]
 ### Added
 - Basic support for viewing document collections
