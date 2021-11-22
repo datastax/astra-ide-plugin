@@ -61,7 +61,7 @@ dependencies {
     // Use JUnit Jupiter Engine for testing.
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.3")
     implementation("com.uchuhimo:konf-toml:0.23.0")
 
     implementation("com.segment.analytics.java:analytics:+")
