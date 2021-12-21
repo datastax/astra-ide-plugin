@@ -2,12 +2,13 @@ package com.datastax.astra.jetbrains.credentials
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.telemetry.ClickTarget
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
+import com.datastax.astra.jetbrains.telemetry.TelemetryService
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileTypes.FileTypes
@@ -38,7 +39,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
         // if config does not exist, (try to) create a new config file
         if (!configFile.exists()) {
             if (confirm(project, configFile)) {
-                trackClick(ClickTarget.BUTTON, "create profile file")
+                project.service<TelemetryService>().trackClick(ClickTarget.BUTTON, "create profile file")
                 try {
                     writer.createFile(configFile)
                 } finally {
@@ -90,7 +91,7 @@ class CreateOrUpdateProfilesFileAction @TestOnly constructor(
             try {
                 writer.createFile(configFile)
             } finally {
-                trackClick(ClickTarget.BUTTON, "create profile file")
+                project.service<TelemetryService>().trackClick(ClickTarget.BUTTON, "create profile file")
             }
         }
 

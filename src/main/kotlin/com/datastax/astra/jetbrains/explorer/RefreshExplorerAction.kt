@@ -2,12 +2,13 @@ package com.datastax.astra.jetbrains.explorer
 
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.telemetry.ClickTarget
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
+import com.datastax.astra.jetbrains.telemetry.TelemetryService
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import kotlinx.coroutines.CoroutineScope
 
@@ -20,7 +21,7 @@ class RefreshExplorerAction(text: String = message("explorer.refresh.description
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        trackClick(ClickTarget.BUTTON, "refresh plugin")
+        e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackClick(ClickTarget.BUTTON, "refresh plugin")
         e.getRequiredData(LangDataKeys.PROJECT).refreshTree()
     }
 }

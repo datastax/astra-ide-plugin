@@ -4,13 +4,13 @@ import com.datastax.astra.devops_v2.infrastructure.getErrorResponse
 import com.datastax.astra.jetbrains.MessagesBundle.message
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.telemetry.ClickTarget
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackAction
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackClick
+import com.datastax.astra.jetbrains.telemetry.TelemetryService
 import com.datastax.astra.jetbrains.utils.*
 import com.datastax.astra.jetbrains.utils.internal_apis.models.GenerateTokenRequest
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.WindowWrapper
 import com.intellij.ui.jcef.JBCefBrowser
@@ -38,7 +38,7 @@ class GetTokenAction :
     val edtContext = getCoroutineUiContext()
 
     override fun actionPerformed(e: AnActionEvent) {
-        trackClick(ClickTarget.LINK, message("telemetry.get_token.start"))
+        e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackClick(ClickTarget.LINK, message("telemetry.get_token.start"))
         val loginBrowser = JBCefBrowser(message("credentials.login.link"))
         val loginChannel = Channel<UserLoginResponse>()
         loginBrowser.jbCefClient.addRequestHandler(MyCefRequestHandlerAdapter(loginChannel), loginBrowser.cefBrowser)
@@ -59,11 +59,11 @@ class GetTokenAction :
                     UserLoginResult.SUCCESS -> {
                         window.close()
                         buildConfirmWindow(e, response)
-                        trackAction(message("telemetry.get_token.login.success"))
+                        e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackAction(message("telemetry.get_token.login.success"))
                     }
                     UserLoginResult.AWAITING_VERIFICATION -> {
                         addRestartPanel(e, view, window)
-                        trackAction(message("telemetry.get_token.login.verify"))
+                        e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackAction(message("telemetry.get_token.login.verify"))
                     }
                 }
             }
@@ -103,7 +103,7 @@ class GetTokenAction :
             GenerateTokenRequest(loginResponse.orgId!!).graphqlBlob
         )
         if (response.isSuccessful && response.body()?.data != null) {
-            trackAction(message("telemetry.get_token.success"))
+            e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackAction(message("telemetry.get_token.success"))
 
             response.body()?.data?.generateToken?.token?.let {
                 CreateOrUpdateProfilesFileAction().createWithGenToken(
@@ -120,7 +120,7 @@ class GetTokenAction :
             }
         } else {
             generateTokenFailure()
-            trackAction(message("telemetry.get_token.failed"), mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
+            e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackAction(message("telemetry.get_token.failed"), mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
         }
     }
 
@@ -128,7 +128,7 @@ class GetTokenAction :
         val returnButton = JButton(message("credentials.get_token.restart.okay"))
         val cancelLoginButton = JButton(message("credentials.get_token.restart.cancel"))
         returnButton.addActionListener { actionEvent: ActionEvent? ->
-            trackClick(ClickTarget.BUTTON, message("telemetry.get_token.login.restart"))
+            e.getRequiredData(LangDataKeys.PROJECT).service<TelemetryService>().trackClick(ClickTarget.BUTTON, message("telemetry.get_token.login.restart"))
             window.close()
             ActionUtil.performActionDumbAware(GetTokenAction(), e)
         }

@@ -9,8 +9,9 @@ import com.datastax.astra.jetbrains.explorer.DatabaseParentNode
 import com.datastax.astra.jetbrains.explorer.ExplorerToolWindow
 import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
+import com.datastax.astra.jetbrains.telemetry.TelemetryService
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
@@ -135,9 +136,9 @@ class CreateDatabaseDialog(
 
                 // This is disabled for now to reduce potential data leakage
                 // val databaseId = response.headers()["Location"]
-                trackDevOpsCrud("Database", name, CrudEnum.CREATE, true)
+                project.service<TelemetryService>().trackDevOpsCrud("Database", name, CrudEnum.CREATE, true)
             } else {
-                trackDevOpsCrud("Database", name, CrudEnum.CREATE, false, mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
+                project.service<TelemetryService>().trackDevOpsCrud("Database", name, CrudEnum.CREATE, false, mapOf("httpError" to response.getErrorResponse<Any?>().toString(), "httpResponse" to response.toString()))
             }
         }
     }

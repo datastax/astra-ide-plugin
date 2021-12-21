@@ -16,13 +16,35 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Plugin service that keeps track of profiles and provides tokens for other Astra plugin classes/objects
  */
+
+interface ProfileListener {
+    fun onActiveProfileChanged(profile: ProfileToken?)
+}
+
 class ProfileManager(private val project: Project) : SimpleModificationTracker(), Disposable {
     private var profileMap = mapOf<String, ProfileToken>()
 
     // Internal state is visible ChangeProfileSettingsActionGroup
     internal var selectedProfile: ProfileToken? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                runCatching {
+                    listeners.forEach { it.onActiveProfileChanged(value) }
+                }
+            }
+        }
     private val validationJob = AtomicReference<AsyncPromise<ProfileState>>()
 
+    private val listeners = mutableSetOf<ProfileListener>()
+
+    fun addListener(listener: ProfileListener) {
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: ProfileListener) {
+        listeners.remove(listener)
+    }
     @Volatile
     var profileState: ProfileState = ProfileState.InitializingToolkit
         internal set(value) {
@@ -116,6 +138,7 @@ class ProfileManager(private val project: Project) : SimpleModificationTracker()
         get() = profileMap
 
     override fun dispose() {
+        listeners.clear()
     }
 
     companion object {

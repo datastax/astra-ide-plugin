@@ -8,11 +8,12 @@ import com.datastax.astra.jetbrains.explorer.ExplorerDataKeys.SELECTED_NODES
 import com.datastax.astra.jetbrains.explorer.isProcessing
 import com.datastax.astra.jetbrains.explorer.refreshTree
 import com.datastax.astra.jetbrains.telemetry.CrudEnum
-import com.datastax.astra.jetbrains.telemetry.TelemetryManager.trackDevOpsCrud
+import com.datastax.astra.jetbrains.telemetry.TelemetryService
 import com.datastax.astra.jetbrains.utils.ApplicationThreadPoolScope
 import com.datastax.astra.jetbrains.utils.editor.ui.ExplorerTreeChangeEventListener
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -35,9 +36,9 @@ class CreateKeyspaceAction :
                             delay(10000)
                             nodeProject.messageBus.syncPublisher(ExplorerTreeChangeEventListener.TOPIC).rebuildEndpointList()
                             dbNode.nodeProject.refreshTree(dbNode, true)
-                            trackDevOpsCrud("Keyspace", keyspace, CrudEnum.CREATE, true)
+                            nodeProject.service<TelemetryService>().trackDevOpsCrud("Keyspace", keyspace, CrudEnum.CREATE, true)
                         } else {
-                            trackDevOpsCrud(
+                            nodeProject.service<TelemetryService>().trackDevOpsCrud(
                                 "Keyspace",
                                 keyspace,
                                 CrudEnum.CREATE,
