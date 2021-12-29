@@ -20,7 +20,8 @@ import java.util.UUID.randomUUID
 
 class TelemetryService(private val project: Project) : Disposable, ProfileListener {
 
-    var telClient = Analytics.builder(this::class.java.getResource("/telConfig").readText()).build()
+    var writeKey = this::class.java.getResource("/telConfig").readText().trim()
+    var telClient = Analytics.builder(writeKey).build()
 
     //TODO: Store a persistent identifier
     var randomOrg = randomUUID().toString()
@@ -56,7 +57,7 @@ class TelemetryService(private val project: Project) : Disposable, ProfileListen
                     org = randomOrg
                 } else {
                     try {
-                        org = CredentialsClient.operationsApi(profile?.token).getCurrentOrganization().body()!!.id
+                        org = CredentialsClient.operationsApi(profile.token).getCurrentOrganization().body()!!.id
                     } catch (e: Exception) {
                         //TODO: Log
                         //TODO: Retry?
