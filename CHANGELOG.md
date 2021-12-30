@@ -4,10 +4,14 @@
 
 ## [Unreleased]
 ### Changed
+- Updated to support latest IntelliJ Platform 2021.3
+### Fixed
+- Various bugs in telemetry
+## [1.2.2]
+### Changed
 - Plugin is now project aware; each project can have a separate active Astra profile.
 ### Fixed
 - Fixed a race condition in plugin ini
-
 ## [1.2.1]
 ### Changed
 - Renamed plugin and updated description
