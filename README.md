@@ -26,7 +26,7 @@ Navigate, insert and edit data in your Astra DB without coding, directly in your
   
 - Manually:
 
-  Download the [latest release](https://github.com/gconaty/intellij-plugin-template/releases/latest) and install it manually using
+  Download the [latest release](https://github.com/datastax/astra-ide-plugin/releases) and install it manually using
   <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
 
 
