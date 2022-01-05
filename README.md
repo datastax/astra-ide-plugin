@@ -21,7 +21,7 @@ Navigate, insert and edit data in your Astra DB without coding, directly in your
 
 - Using IDE built-in plugin system:
   
-  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "intellij-plugin-template"</kbd> >
+  <kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>Marketplace</kbd> > <kbd>Search for "DataStax Astra DB Explorer"</kbd> >
   <kbd>Install Plugin</kbd>
   
 - Manually:
