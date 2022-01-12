@@ -62,7 +62,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
-    implementation("com.uchuhimo:konf-toml:0.23.0")
+    implementation("com.uchuhimo:konf-toml:1.1.2")
 
     implementation("com.segment.analytics.java:analytics:+")
 }
