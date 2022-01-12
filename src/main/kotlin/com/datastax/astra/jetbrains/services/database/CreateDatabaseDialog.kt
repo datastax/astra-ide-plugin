@@ -74,7 +74,7 @@ class CreateDatabaseDialog(
             cell {
                 buttonGroup(::cloudProvider) {
                     providerButtons = listOf("AWS", "GCP", "AZURE").associate {
-                        it to radioButton(it, DatabaseInfoCreate.CloudProvider.AWS).component
+                        it to radioButton(it, DatabaseInfoCreate.CloudProvider.valueOf(it)).component
                     }
                 }
             }
