@@ -14,7 +14,7 @@
 - [ ] Click the <kbd>Watch</kbd> button on the top of the [IntelliJ Platform Plugin Template][template] to be notified about releases containing new features and fixes.
 
 <!-- Plugin description -->
-Navigate, insert and edit data in your Astra DB without coding, directly in your favorite JetBrains IDE using this plugin from DataStax. This plugin also works with open source Apache Cassandra 4.0 once a [Stargate Data API gateway](https://stargate.io/) has been configured.
+[Astra DB](https://www.datastax.com/products/datastax-astra/features) is a serverless NoSQL database as a service, built on Apache Cassandra (tm).  Navigate, insert and edit data in your Astra DB without coding, directly in your favorite JetBrains IDE using this plugin from DataStax. This plugin also works with open source Apache Cassandra 4.0 once a [Stargate Data API gateway](https://stargate.io/) has been configured. 
 <!-- Plugin description end -->
 
 ## Installation
