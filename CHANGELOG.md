@@ -3,6 +3,12 @@
 # astra.toolkit Changelog
 
 ## [Unreleased]
+## [1.2.4]
+### Changed
+- Change to plugin description
+### Fixed
+- Create database was not working with GCP or Azure
+## [1.2.3]
 ### Changed
 - Updated to support latest IntelliJ Platform 2021.3
 ### Fixed
