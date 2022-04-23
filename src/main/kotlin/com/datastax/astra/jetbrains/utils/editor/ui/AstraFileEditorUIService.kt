@@ -136,13 +136,25 @@ class AstraFileEditorUIService(private val project: Project) :
     // TODO: do this with the cache maps instead, then there's less requests to the server
     suspend fun buildDatabaseMap() {
         databaseList.clear()
-        val databases = cached(project, "", loader = fetchDatabases(project))
+        val databases = try {
+            cached(project, "", loader = fetchDatabases(project))
+        } catch (e: Exception) {
+            listOf()
+        }
         databases.filter {
             it.status == StatusEnum.ACTIVE
         }.forEach { database ->
-            val keyspaces = cached(project, database, loader = fetchKeyspaces(project))
+            val keyspaces = try {
+                cached(project, database, loader = fetchKeyspaces(project))
+            } catch (e: Exception) {
+                listOf()
+            }
             keyspaces?.forEach { keyspace ->
-                val collections = cached(project, Pair(database, keyspace), loader = fetchCollections(project))
+                val collections = try {
+                    cached(project, Pair(database, keyspace), loader = fetchCollections(project))
+                } catch (e:Exception) {
+                    listOf()
+                }
                 indexCollections(collections, keyspace, database)
             }
         }
