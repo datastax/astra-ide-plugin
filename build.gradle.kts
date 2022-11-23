@@ -34,7 +34,7 @@ sourceSets {
     }
 }
 
-val retrofitVersion = "2.7.2"
+val retrofitVersion = "2.9.0"
 dependencies {
 
     // BEGIN Dependencies for OpenApi clients
