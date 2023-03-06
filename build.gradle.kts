@@ -54,7 +54,7 @@ dependencies {
 
     // END Dependencies for OpenApi clients
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.0.2")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.5")
 
     // Use JUnit Jupiter API for testing.
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
