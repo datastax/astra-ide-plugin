@@ -21,6 +21,4 @@ java -jar modules/openapi-generator-cli/target/openapi-generator-cli.jar generat
 
 Then `src` and `doc` are replaced in the respective directories from that in `gen`
 
-Due to a bug in Kotlin generation [https://github.com/OpenAPITools/openapi-generator/pull/8796] ,build the generator code [https://github.com/streammachineio/openapi-generator/tree/add-support-for-collection-of-generic-classes] locally:
-
 Using gson for JSON conversion because the enums in the spec don't match what comes across the wire.
